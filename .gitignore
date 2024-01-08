@@ -1,0 +1,12 @@
+.venv/
+_*.py
+*.txt
+*.log
+*.yml
+selfbot.py
+**/.DS_Store
+**/__pycache__*
+*.db
+*.sql
+*.sqlite3
+*.code-workspace
