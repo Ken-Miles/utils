@@ -1,5 +1,4 @@
 .venv/
-_*.py
 *.txt
 *.log
 *.yml
