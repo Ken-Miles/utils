@@ -1,17 +1,23 @@
 from __future__ import annotations
-from discord.audit_logs import F
+from enum import Enum
 
 from discord.ext.commands import Cog
 
-from typing import Dict, Optional, Union, Any, TYPE_CHECKING, Sequence, Union, Literal, ClassVar
+from typing import Callable, Dict, Optional, Tuple, Union, Any, TYPE_CHECKING, Sequence, Union, Literal, ClassVar, TypeVar, Generic, overload
 import discord
-from discord import TextChannel, Thread, Guild, User, Member, DMChannel, TextChannel, VoiceChannel, ForumChannel, CategoryChannel, StageChannel
+from discord import TextChannel, TextInput, Thread, Guild, User, Member, DMChannel, TextChannel, VoiceChannel, ForumChannel, CategoryChannel, StageChannel
 from discord.abc import GuildChannel, PrivateChannel, Messageable
 from discord.ext import commands
 from discord.ext.commands import Bot, BucketType
 from discord.app_commands import CommandTree, AppCommand, Command
-
+import logging
+import aiohttp
 import datetime
+import asyncio
+from discord.utils import DISCORD_EPOCH
+import yaml
+from collections import defaultdict as emojidictionary
+import re
 
 if TYPE_CHECKING:
     from discord import Message, InteractionMessage, WebhookMessage
@@ -24,22 +30,32 @@ TRUSTED_USERS = [
     694535201925365841, # sccubmo
 ]
 
-class emojidictionary(dict):
-    def __init__(self, *args, **kwargs):
-        if isinstance(args[0],dict):
-            super().__init__(args[0].items()) 
-        else:
-            super().__init__(*args, **kwargs)
-    
-    def get(self, key: Any, default='default'):
-        # if isinstance(key, str):
-        #     if key.isnumeric():
-        #         key = int(key)
-        if r := super().get(key):
-            return r
-        return super().get(default,None)
+# K = TypeVar('K')
+# V = TypeVar('V')
 
-emojidict: emojidictionary = emojidictionary({
+# class emojidictionary(Generic[K, V], dict):
+#     def __init__(self, *args: Any, **kwargs: Any) -> None:
+#         if args and isinstance(args[0], dict):
+#             super().__init__(args[0].items()) 
+#         else:
+#             super().__init__(*args, **kwargs)
+
+#     # Overloading get method for different types of keys
+#     @overload
+#     def get(self, key: K) -> V | None: ...
+    
+#     @overload
+#     def get(self, key: K, default: V) -> V: ...
+
+#     def get(self, key: K, default: Optional[V] = None) -> V | None:
+#         if r := super().get(key):
+#             return r
+#         return super().get(default, None)
+
+def constant_factory(value):
+    return lambda: value
+
+emojidict: emojidictionary = emojidictionary(constant_factory("\U00002753"), {
     'guest': '<:guest:1181644152388194314>',
     'td': '<:td:1181644208109539400>',
     'qd': '<:qd:1181644138047869038>',
@@ -233,6 +249,250 @@ emojidict: emojidictionary = emojidictionary({
     'default': "\U00002753",
 })
 
+dt_fmt = '%Y-%m-%d %H:%M:%S'
+formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
+
+requests_handler = logging.FileHandler('requests.log','a')
+requests_handler.setFormatter(formatter)
+requests_logger = logging.getLogger('requests_commands')
+requests_logger.setLevel(logging.INFO)
+requests_logger.addHandler(requests_handler)
+
+with open('apikeys.yml','r') as f:
+    config = dict(yaml.safe_load(f))
+    BLOXLINK_API_KEY = config.get('bloxlink_api')
+    ROVER_API_KEY = config.get('rover_api')
+
+class HTTPCode:
+    status: int
+    def __init__(self, status: int):
+        self.status = status
+        assert status in http_codes.keys(), f"Invalid HTTP status code {status}"
+    
+    @property
+    def name(self) -> str:
+        return http_codes.get(self.status, "Unknown")
+
+    @property
+    def is_100(self) -> bool:
+        return 100 <= self.status < 200
+    
+    @property
+    def is_200(self) -> bool:
+        return 200 <= self.status < 300
+    
+    @property
+    def is_300(self) -> bool:
+        return 300 <= self.status < 400
+    
+    @property
+    def is_400(self) -> bool:
+        return 400 <= self.status < 500
+    
+    @property
+    def is_500(self) -> bool:
+        return 500 <= self.status < 600
+
+    def __str__(self) -> str:
+        return f"{self.status} {self.name}"
+    
+    def __int__(self) -> int:
+        return self.status
+
+class RequestType(Enum):
+    GET = 'GET'
+    POST = 'POST'
+    PATCH = 'PATCH'
+    PUT = 'PUT'
+    DELETE = 'DELETE'
+
+    def get_method_callable(self, session: aiohttp.ClientSession) -> Callable:
+        if self is RequestType.GET:
+            return session.get
+        elif self is RequestType.POST:
+            return session.post
+        elif self is RequestType.PATCH:
+            return session.patch
+        elif self is RequestType.PUT:
+            return session.put
+        elif self is RequestType.DELETE:
+            return session.delete
+        raise ValueError(f"Invalid request type {self}")
+
+    def __str__(self):
+        return self.value.upper()
+
+
+http_codes = {
+    100: "Continue",
+    101: "Switching Protocols",
+    102: "Processing",
+    103: "Early Hints",
+
+    200: "OK",
+    201: "Created",
+    202: "Accepted",
+    203: "Non-Authoritative Information",
+    204: "No Content",
+    205: "Reset Content",
+    206: "Partial Content",
+    207: "Multi-Status",
+    208: "Already Reported",
+    218: "This is fine", # apache servers... https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#Unofficial_codes
+    226: "IM Used",
+
+    300: "Multiple Choices",
+    301: "Moved Permanently",
+    302: "Found",
+    303: "See Other",
+    304: "Not Modified",
+    305: "Use Proxy", # depricated
+    306: "Unused", # depricated
+    307: "Temporary Redirect",
+    308: "Permanent Redirect",
+
+    400: "Bad Request",
+    401: "Unauthorized",
+    402: "Payment Required",
+    403: "Forbidden",
+    404: "Not Found",
+    405: "Method Not Allowed",
+    406: "Not Acceptable",
+    407: "Proxy Authentication Required",
+    408: "Request Timeout",
+    409: "Conflict",
+    410: "Gone",
+    411: "Length Required",
+    412: "Precondition Failed",
+    413: "Payload Too Large",
+    414: "URI Too Long",
+    415: "Unsupported Media Type",
+    416: "Range Not Satisfiable",
+    417: "Expectation Failed",
+    418: "I'm a teapot", # this is real btw
+    420: "Enhance Your Calm", # unofficial twitter response code??? https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#Unofficial_codes
+    421: "Misdirected Request",
+    422: "Unprocessable Content",
+    423: "Locked",
+    424: "Failed Dependency",
+    425: "Too Early",
+    426: "Upgrade Required",
+    428: "Precondition Required",
+    429: "Too Many Requests",
+    430: "Shopify Security Rejection", # unofficial shopify servers... https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#Unofficial_codes
+    431: "Request Header Fields Too Large",
+    444: "No Response", # unofficial nginx  https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#Unofficial_codes
+    449: "Retry With", # unofficial
+    450: "Blocked by Windows Parental Controls", # bro what https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#Unofficial_codes
+    451: "Unavailable For Legal Reasons",
+
+    500: "Internal Server Error",
+    501: "Not Implemented",
+    502: "Bad Gateway",
+    503: "Service Unavailable",
+    504: "Gateway Timeout",
+    505: "HTTP Version Not Supported",
+    506: "Variant Also Negotiates",
+    507: "Insufficient Storage",
+    508: "Loop Detected",
+    510: "Not Extended",
+    511: "Network Authentication Required",
+    520: "Web Server Returned an Unknown Error", # unoffical code cloudflare
+    521: "Web Server is Down", # unoffical code cloudflare
+    522: "Connection Timed Out", # unoffical code cloudflare
+    523: "Origin is Unreachable", # unoffical code cloudflare
+    524: "A Timeout Occurred", # unoffical code cloudflare
+    525: "SSL Handshake Failed", # unoffical code cloudflare
+    526: "Invalid SSL Certificate", # unoffical code cloudflare
+    527: "Railgun Error", # unoffical code cloudflare
+    530: "Site is Frozen", # unoffical code cloudflare
+
+    598: "Network Read Timeout Error", # unoffical code
+    599: "Network Connect Timeout Error", # unoffical code
+}
+
+async def _request(_method: Union[str, RequestType], /,  url: str, **kwargs) -> aiohttp.ClientResponse:
+    """Performs a GET request on the given URL."""
+    method: RequestType
+    if isinstance(_method, str):
+        method = RequestType(_method.upper())
+    else:
+        method = _method
+
+    rover = kwargs.pop('rover',False)
+    bloxlink = kwargs.pop('bloxlink',False)
+
+    SESSIONS = [aiohttp.ClientSession() for _ in range(3)]
+
+    if rover:
+        kwargs['headers'] = {'Authorization': f'Bearer {ROVER_API_KEY}'}
+    
+    if bloxlink:
+        kwargs['headers'] = {'Authorization': f"{BLOXLINK_API_KEY}"}
+    
+    tr = 0
+
+    for tr, session in enumerate(SESSIONS,1):
+        request = method.get_method_callable(session)
+
+        try: response = await request(url, **kwargs)
+        except aiohttp.ServerDisconnectedError:
+            requests_logger.warning(f"Server disconnected on session {tr}.")
+            #await asyncio.sleep(5)
+            continue
+
+        status = response.status
+        status_ = HTTPCode(status)
+        requests_logger.info(f"[{method}] {status} {status_.name} from {response.url} (Session {tr})")
+
+        if status_.is_200:
+            return response
+        
+        if status_.is_100:
+            requests_logger.info(f"Got a 1__ Continue, Retrying request...")
+            continue
+        elif status_.is_300:
+            requests_logger.info(f"Got a 3__ Redirect. Retrying request...")
+            continue
+        elif status_.is_400:
+            if status == 429:
+                retry_after = response.headers.get('Retry-After',None)
+                if not retry_after:
+                    retry_after = response.headers.get('X-Ratelimit-Remaining',None)
+                
+                if retry_after:
+                    requests_logger.info(f"We are being rate limited. Retrying in {retry_after} seconds.")
+                    await asyncio.sleep(retry_after)
+                    continue
+                else:
+                    requests_logger.info(f"We are being rate limited but no Retry-After header was found. Retrying in 5 seconds.")
+                    await asyncio.sleep(5)
+                    continue
+        elif status_.is_500:
+            requests_logger.info(f"Got a 5__ Server Error. Retrying request...")
+            continue
+    
+    raise Exception(f"Failed to get a 2__ Success response after {tr} tries.")
+
+async def _get(url: str, **kwargs) -> aiohttp.ClientResponse:
+    """Performs a GET request on the given URL."""
+    return await _request(RequestType.GET, url, **kwargs)
+
+async def _post(url: str, **kwargs) -> aiohttp.ClientResponse:
+    """Performs a POST request on the given URL."""
+    return await _request(RequestType.POST, url, **kwargs)
+
+async def _patch(url: str, **kwargs) -> aiohttp.ClientResponse:
+    """Performs a PATCH request on the given URL."""
+    return await _request(RequestType.PATCH, url, **kwargs)
+
+async def _put(url: str, **kwargs) -> aiohttp.ClientResponse:
+    """Performs a PUT request on the given URL."""
+    return await _request(RequestType.PUT, url, **kwargs)
+
+async def _delete(url: str, **kwargs) -> aiohttp.ClientResponse:
+    """Performs a DELETE request on the given URL."""
+    return await _request(RequestType.DELETE, url, **kwargs)
 
 class CogU(Cog):
     """A subclass of Cog that includes a `hidden` attribute.
@@ -241,6 +501,57 @@ class CogU(Cog):
 
     def __init_subclass__(cls, *, hidden: bool=False):
         cls.hidden = hidden
+    
+    async def _get(self, url: str, **kwargs) -> aiohttp.ClientResponse:
+        """Performs a GET request on the given URL."""
+        return await _get(url, **kwargs)
+    
+    async def _post(self, url: str, **kwargs) -> aiohttp.ClientResponse:
+        """Performs a POST request on the given URL."""
+        return await _post(url, **kwargs)
+    
+    async def _patch(self, url: str, **kwargs) -> aiohttp.ClientResponse:
+        """Performs a PATCH request on the given URL."""
+        return await _patch(url, **kwargs)
+    
+    async def _put(self, url: str, **kwargs) -> aiohttp.ClientResponse:
+        """Performs a PUT request on the given URL."""
+        return await _put(url, **kwargs)
+    
+    async def _delete(self, url: str, **kwargs) -> aiohttp.ClientResponse:
+        """Performs a DELETE request on the given URL."""
+        return await _delete(url, **kwargs)
+
+class GoToPageModal(discord.ui.Modal):
+
+    def __init__(self, paginatior: BaseButtonPaginator, author_id: Optional[int]=None, title: str='Go to Page', **kwargs):
+        if not title and kwargs.get('title',None): title = kwargs.pop('title')
+        super().__init__(title='Go to Page', **kwargs)
+        
+        self.paginatior = paginatior
+
+        self.author_id = author_id
+
+        self.page_num = discord.ui.TextInput(label='Page Number', placeholder='Enter a page number',
+         min_length=len(str(0)), max_length=len(str(self.paginatior.max_pages)), required=True, 
+         custom_id='page_num', row=0)
+
+        self.add_item(self.page_num)
+    
+    async def on_submit(self, interaction: Interaction) -> None:
+        await interaction.response.defer()
+
+        if self.author_id and interaction.user.id != self.author_id:
+            return await interaction.followup.send('This modal is not for you.', ephemeral=True)
+        try: page_num = int(self.page_num.value)
+        except ValueError: return await interaction.followup.send('Page number must be an integer.', ephemeral=True)
+
+        min_pages, max_pages = 0, self.paginatior.max_pages
+
+        if not min_pages <= page_num <= max_pages:
+            return await interaction.followup.send(f'Page number must be between {min_pages} and {max_pages}.', ephemeral=True)
+
+        await self.paginatior._go_to_page(interaction, page_num)
 
 class BaseButtonPaginator(discord.ui.View):
     """Made by @soheab on Discord, taken from the Discord.py Discord Server"""
@@ -300,6 +611,10 @@ class BaseButtonPaginator(discord.ui.View):
             return self.pages[base : base + self.per_page]
 
     def format_page(self, page: Any) -> Any:
+        if isinstance(page, discord.Embed):
+            if page.footer.text and ' | page' in page.footer.text.lower():
+                new_footer = page.footer.text[:page.footer.text.lower().find(' | page')]
+                page.set_footer(text=new_footer.strip())
         return page
 
     async def get_page_kwargs(self, page: Any) -> Dict[str, Any]:
@@ -338,12 +653,6 @@ class BaseButtonPaginator(discord.ui.View):
         kwargs = await self.get_page_kwargs(self.get_page(self.current_page))
         await interaction.response.edit_message(**kwargs)
 
-    async def _previous_page(
-        self, interaction: Interaction, _: discord.ui.Button
-    ) -> None:
-        self.current_page -= 1
-        await self.update_page(interaction)
-
     async def _stop_paginator(
         self, interaction: Interaction, _: discord.ui.Button
     ) -> None:
@@ -355,8 +664,20 @@ class BaseButtonPaginator(discord.ui.View):
             
         self.stop()
     
+    async def _previous_page(
+        self, interaction: Interaction, _: discord.ui.Button
+    ) -> None:
+        self.current_page -= 1
+        await self.update_page(interaction)
+    
     async def _next_page(self, interaction: Interaction, _: discord.ui.Button) -> None:
         self.current_page += 1
+        await self.update_page(interaction)
+
+    async def _go_to_page(self, interaction: Interaction, page_num: int) -> None:
+        if page_num < 0 or page_num >= self.max_pages:
+            raise ValueError(f"Page number must be between 0 and {self.max_pages - 1}")
+        self.current_page = page_num
         await self.update_page(interaction)
 
     async def start(
@@ -403,6 +724,11 @@ class ButtonPaginator(BaseButtonPaginator):
     @discord.ui.button(label="\u200b", style=discord.ButtonStyle.blurple, emoji=emojidict.get('forward'))
     async def next_page(self, interaction: Interaction, _: discord.ui.Button) -> None:
         return await self._next_page(interaction, _)
+    
+    @discord.ui.button(label="Go To Page", style=discord.ButtonStyle.gray)
+    async def go_to_page(self, interaction: Interaction, _: discord.ui.Button) -> None:
+        modal = GoToPageModal(self, author_id=self.author_id)
+        await interaction.response.send_modal(modal)
 
 ThreeButtonPaginator = ButtonPaginator
 
@@ -445,6 +771,11 @@ class FiveButtonPaginator(BaseButtonPaginator):
     ) -> None:
         self.current_page = self.max_pages - 1
         await self.update_page(interaction)
+    
+    @discord.ui.button(label="Go To Page", style=discord.ButtonStyle.gray)
+    async def go_to_page(self, interaction: Interaction, _: discord.ui.Button) -> None:
+        modal = GoToPageModal(self, author_id=self.author_id)
+        await interaction.response.send_modal(modal)
 
 class MentionableTree(CommandTree):
     """
@@ -495,6 +826,47 @@ class MentionableTree(CommandTree):
 
 LOADING_EMOJI = emojidict.get('thinking')
 
+class ConfirmationView(discord.ui.View):
+    """
+    Taken from https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/context.py#L280
+    Written by @danny on Discord
+    """
+
+    def __init__(self, *, timeout: float, author_id: int, delete_after: bool, text: Optional[str]=None) -> None:
+        super().__init__(timeout=timeout)
+        self.value: Optional[bool] = None
+        self.delete_after: bool = delete_after
+        self.author_id: int = author_id
+        self.message: Optional[discord.Message] = None
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user and interaction.user.id == self.author_id:
+            return True
+        else:
+            await interaction.response.send_message('This button is not for you.', ephemeral=True)
+            return False
+
+    async def on_timeout(self) -> None:
+        if self.delete_after and self.message:
+            await self.message.delete()
+
+    @discord.ui.button(label='Confirm', style=discord.ButtonStyle.green)
+    async def confirm(self, interaction: discord.Interaction, _: discord.ui.Button):
+        self.value = True
+        await interaction.response.defer()
+        if self.delete_after:
+            await interaction.delete_original_response()
+        self.stop()
+
+    @discord.ui.button(label='Cancel', style=discord.ButtonStyle.red)
+    async def cancel(self, interaction: discord.Interaction, _: discord.ui.Button):
+        self.value = False
+        await interaction.response.defer()
+        if self.delete_after:
+            await interaction.delete_original_response()
+        self.stop()
+
+
 class ContextU(commands.Context):
     """Context Subclass to add some extra functionality."""
     defer_reaction: Optional[discord.Reaction] = None
@@ -523,8 +895,49 @@ class ContextU(commands.Context):
     async def reply(self, *args, **kwargs):
         await self._remove_reaction_if_present()
         return await super().reply(*args, **kwargs)
+    
+    async def prompt(
+        self,
+        message: str,
+        *,
+        timeout: float = 60.0,
+        delete_after: bool = True,
+        author_id: Optional[int] = None,
+    ) -> Optional[bool]:
+        """An interactive reaction confirmation dialog.
 
-class CurrencyBot(Bot):
+        Parameters
+        -----------
+        message: str
+            The message to show along with the prompt.
+        timeout: float
+            How long to wait before returning.
+        delete_after: bool
+            Whether to delete the confirmation message after we're done.
+        author_id: Optional[int]
+            The member who should respond to the prompt. Defaults to the author of the
+            Context's message.
+
+        Returns
+        --------
+        Optional[bool]
+            ``True`` if explicit confirm,
+            ``False`` if explicit deny,
+            ``None`` if deny due to timeout
+        """
+
+        author_id = author_id or self.author.id
+        view = ConfirmationView(
+            timeout=timeout,
+            delete_after=delete_after,
+            author_id=author_id,
+        )
+        view.message = await self.send(message, view=view, ephemeral=delete_after)
+        await view.wait()
+        return view.value
+
+
+class BotU(Bot):
     tree_cls: MentionableTree
     tree: MentionableTree
 
@@ -662,7 +1075,7 @@ class CurrencyBot(Bot):
         return embed
 
     def instance_makeembed(self, *args, **kwargs):
-        return CurrencyBot.makeembed(*args, **kwargs)
+        return BotU.makeembed(*args, **kwargs)
     
     @staticmethod
     def makeembed_bot(title: Optional[str]=None,timestamp: Optional[datetime.datetime]=None,
@@ -671,10 +1084,10 @@ class CurrencyBot(Bot):
         footer: str='Made by @aidenpearce3066', footer_icon_url: Optional[str]=None, url: Optional[str]=None,
         image: Optional[str]=None,thumbnail: Optional[str]=None,) -> discord.Embed:#embedtype: str='rich'):
         if not timestamp: timestamp = datetime.datetime.now()
-        return CurrencyBot.makeembed(title=title,timestamp=timestamp,color=color,description=description,author=author,author_url=author_url,author_icon_url=author_icon_url,footer=footer,footer_icon_url=footer_icon_url,url=url,image=image,thumbnail=thumbnail)
+        return BotU.makeembed(title=title,timestamp=timestamp,color=color,description=description,author=author,author_url=author_url,author_icon_url=author_icon_url,footer=footer,footer_icon_url=footer_icon_url,url=url,image=image,thumbnail=thumbnail)
 
     def instance_makeembed_bot(self, *args, **kwargs):
-        return CurrencyBot.makeembed_bot(*args, **kwargs)
+        return BotU.makeembed_bot(*args, **kwargs)
 
     @staticmethod
     def parsetime(date: str, time: Optional[str]=None) -> Optional[datetime.datetime]:
@@ -686,6 +1099,8 @@ class CurrencyBot(Bot):
                 return datetime.datetime.strptime(f"{date}", "%d.%m.%Y")
             elif time is not None:
                 return datetime.datetime.strptime(f"{time}", "%H:%M:%S")
+            #else:
+            #    return parser.(date)
         except:
             return None
 
@@ -705,7 +1120,7 @@ class CurrencyBot(Bot):
         R	  | 2 months ago	              | Relative Time
         """
         if isinstance(dt, datetime.datetime): dt = int(dt.timestamp())
-        if isinstance(dt, float): dt = int(dt)
+        if isinstance(dt, (int, float)): dt = int(dt)
         return f"<t:{int(dt)}:{format[:1]}>" 
 
     @staticmethod
@@ -715,11 +1130,11 @@ class CurrencyBot(Bot):
         texttoclick, hovertext = f"[{texttoclick}]", f" \"{hovertext}\"" if hovertext is not None else ""
         return f"{texttoclick}({'<' if suppress_embed else ''}{url}{'>' if suppress_embed else ''}{hovertext})"
 
-def is_owner(user: Union[discord.User, discord.Member], bot: CurrencyBot):
+def is_owner(user: Union[discord.User, discord.Member], bot: BotU):
     assert bot.owner_ids is not None
     return user.id in bot.owner_ids
 
-def check_is_trusted(user: Union[discord.User, discord.Member], bot: CurrencyBot):
+def check_is_trusted(user: Union[discord.User, discord.Member], bot: BotU):
     return is_owner(user, bot) or user.id in TRUSTED_USERS
 
 def Cooldown(rate: int, per: int, bucket: BucketType):
@@ -743,23 +1158,89 @@ def is_support_server():
 
     return commands.check(predicate)
 
-CODEBLOCK_LANGUAGES = ["1c","4d","abnf","accesslog","ada","arduino","ino","armasm","arm","avrasm","actionscript","as","alan","ansi","i","log","ln","angelscript","asc","apache","apacheconf","applescript","osascript","arcade","asciidoc","adoc","aspectj","autohotkey","autoit","awk","mawk","nawk","gawk","bash","sh","zsh","basic","bbcode","blade","bnf","brainfuck","bf","csharp","cs","c","h","cpp","hpp","cc","hh","c++","h++","cxx","hxx","cal","cos","cls","cmake","cmake.in","coq","csp","css","csv","capnproto","capnp","chaos","kaos","chapel","chpl","cisco","clojure","clj","coffeescript","coffee","cson","iced","cpc","crmsh","crm","pcmk","crystal","cr","cypher","d","dns","zone","bind","dos","bat","cmd","dart","delphi","dpr","dfm","pas","pascal","freepascal","lazarus","lpr","lfm","diff","patch","django","jinja","dockerfile","docker","dsconfig","dts","dust","dst","dylan","ebnf","elixir","ex","elm","erlang","erl","extempore","xtlang","xtm","fsharp","fs","fix","fortran","f90","f95","gcode","nc","gams","gms","gauss","gss","godot","gdscript","gherkin","gn","gni","go","golang","gf","golo","gololang","gradle","groovy","xml","html","xhtml","rss","atom","xjb","xsd","xsl","plist","svg","http","https","haml","handlebars","hbs","html.hbs","html.handlebars","haskell","hs","haxe","hx","hy","hylang","ini","toml","inform7","i7","irpf90","json","java","jsp","javascript","js","jsx","jolie","iol","ol","julia","julia-repl","kotlin","kt","tex","leaf","lean","lasso","ls","lassoscript","less","ldif","lisp","livecodeserver","livescript","lock","ls","lua","makefile","mk","mak","make","markdown","md","mkdown","mkd","mathematica","mma","wl","matlab","maxima","mel","mercury","mirc","mrc","mizar","mojolicious","monkey","moonscript","moon","n1ql","nsis","never","nginx","nginxconf","nim","nimrod","nix","ocl","ocaml","ml","objectivec","mm","objc","obj-c","obj-c++","objective-c++","glsl","openscad","scad","ruleslanguage","oxygene","pf","pf.conf","php","php3","php4","php5","php6","php7","parser3","perl","pl","pm","plaintext","txt","text","pony","pgsql","postgres","postgresql","powershell","ps","ps1","processing","prolog","properties","protobuf","puppet","pp","python","py","gyp","profile","python-repl","pycon","k","kdb","qml","r","cshtml","razor","razor-cshtml","reasonml","re","redbol","rebol","red","red-system","rib","rsl","graph","instances","robot","rf","rpm-specfile","rpm","spec","rpm-spec","specfile","ruby","rb","gemspec","podspec","thor","irb","rust","rs","SAS","sas","scss","sql","p21","step","stp","scala","scheme","scilab","sci","shexc","shell","console","smali","smalltalk","st","sml","ml","solidity","sol","stan","stanfuncs","stata","iecst","scl","structured-text","stylus","styl","subunit","supercollider","sc","svelte","swift","tcl","tk","terraform","tf","hcl","tap","thrift","tp","tsql","twig","craftcms","typescript","ts","tsx","unicorn-rails-log","vbnet","vb","vba","vbscript","vbs","vhdl","vala","verilog","v","vim","axapta","x++","x86asm","xl","tao","xquery","xpath","xq","yml","yaml","zephir","zep"]
-
 CodeblockLanguage = Literal["1c","4d","abnf","accesslog","ada","arduino","ino","armasm","arm","avrasm","actionscript","as","alan","ansi","i","log","ln","angelscript","asc","apache","apacheconf","applescript","osascript","arcade","asciidoc","adoc","aspectj","autohotkey","autoit","awk","mawk","nawk","gawk","bash","sh","zsh","basic","bbcode","blade","bnf","brainfuck","bf","csharp","cs","c","h","cpp","hpp","cc","hh","c++","h++","cxx","hxx","cal","cos","cls","cmake","cmake.in","coq","csp","css","csv","capnproto","capnp","chaos","kaos","chapel","chpl","cisco","clojure","clj","coffeescript","coffee","cson","iced","cpc","crmsh","crm","pcmk","crystal","cr","cypher","d","dns","zone","bind","dos","bat","cmd","dart","delphi","dpr","dfm","pas","pascal","freepascal","lazarus","lpr","lfm","diff","patch","django","jinja","dockerfile","docker","dsconfig","dts","dust","dst","dylan","ebnf","elixir","ex","elm","erlang","erl","extempore","xtlang","xtm","fsharp","fs","fix","fortran","f90","f95","gcode","nc","gams","gms","gauss","gss","godot","gdscript","gherkin","gn","gni","go","golang","gf","golo","gololang","gradle","groovy","xml","html","xhtml","rss","atom","xjb","xsd","xsl","plist","svg","http","https","haml","handlebars","hbs","html.hbs","html.handlebars","haskell","hs","haxe","hx","hy","hylang","ini","toml","inform7","i7","irpf90","json","java","jsp","javascript","js","jsx","jolie","iol","ol","julia","julia-repl","kotlin","kt","tex","leaf","lean","lasso","ls","lassoscript","less","ldif","lisp","livecodeserver","livescript","lock","ls","lua","makefile","mk","mak","make","markdown","md","mkdown","mkd","mathematica","mma","wl","matlab","maxima","mel","mercury","mirc","mrc","mizar","mojolicious","monkey","moonscript","moon","n1ql","nsis","never","nginx","nginxconf","nim","nimrod","nix","ocl","ocaml","ml","objectivec","mm","objc","obj-c","obj-c++","objective-c++","glsl","openscad","scad","ruleslanguage","oxygene","pf","pf.conf","php","php3","php4","php5","php6","php7","parser3","perl","pl","pm","plaintext","txt","text","pony","pgsql","postgres","postgresql","powershell","ps","ps1","processing","prolog","properties","protobuf","puppet","pp","python","py","gyp","profile","python-repl","pycon","k","kdb","qml","r","cshtml","razor","razor-cshtml","reasonml","re","redbol","rebol","red","red-system","rib","rsl","graph","instances","robot","rf","rpm-specfile","rpm","spec","rpm-spec","specfile","ruby","rb","gemspec","podspec","thor","irb","rust","rs","SAS","sas","scss","sql","p21","step","stp","scala","scheme","scilab","sci","shexc","shell","console","smali","smalltalk","st","sml","ml","solidity","sol","stan","stanfuncs","stata","iecst","scl","structured-text","stylus","styl","subunit","supercollider","sc","svelte","swift","tcl","tk","terraform","tf","hcl","tap","thrift","tp","tsql","twig","craftcms","typescript","ts","tsx","unicorn-rails-log","vbnet","vb","vba","vbscript","vbs","vhdl","vala","verilog","v","vim","axapta","x++","x86asm","xl","tao","xquery","xpath","xq","yml","yaml","zephir","zep"]
+
+# only way to get a list of all the codeblock langs and create a type for it 
+# is to use this hacky method -_-
+CODEBLOCK_LANGUAGES = list(CodeblockLanguage.__args__) # type: ignore
 
 async def create_codeblock(content: str, lang: CodeblockLanguage='py') -> str:
     if lang not in CODEBLOCK_LANGUAGES: raise ValueError(f"Invalid Language: {lang}")
     fmt: str = "```"
     return f"{fmt}{lang}\n{content}{fmt}"
 
+async def create_paginator(ctx: ContextU, pages: Sequence[Any], author_id: Optional[int]=None, timeout: Optional[float]=180.0, delete_message_after: bool=False, per_page: int=1) -> BaseButtonPaginator:
+    paginator = ThreeButtonPaginator(pages, author_id=author_id, timeout=timeout, delete_message_after=delete_message_after, per_page=per_page)
+    await paginator.start(ctx)
+    return paginator
+
 CURRENCY_SYMBOL = "$"
 CURRENCY_NAME = "Money"
 
-makeembed_bot = CurrencyBot.makeembed_bot
-makeembed = CurrencyBot.makeembed
-parsetime = CurrencyBot.parsetime
-dctimestamp = CurrencyBot.dctimestamp
-dchyperlink = CurrencyBot.dchyperlink
+# regexes
+
+RE_EMOJI = re.compile(r"<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>")
+RE_URL = re.compile(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+")
+RE_INVITE = re.compile(r"(?:https?://)?discord(?:app)?\.(?:com/invite|gg)/[a-zA-Z0-9]+/?")
+RE_GIFT = re.compile(r"(https?://)?discord((app)?.com/gifts|.gifts)/[a-zA-Z0-9-]+/?")
+RE_HEX = re.compile(r"^(#|0x)[A-Fa-f0-9]{6}$")
+RE_SNOWFLAKE = re.compile(r"^[0-9]{15,19}$")
+
+DISCORD_EPOCH = 1420070400000
+
+
+class Snowflake:
+    __binary: str
+    __epoch: int
+
+    def __init__(self, snowflake: Union[str, int], *, discord_snowflake: bool=False, custom_epoch: int=0):
+        if isinstance(snowflake, str): snowflake = int(snowflake.strip())
+        if discord_snowflake: self.__epoch = DISCORD_EPOCH
+        else: self.__epoch = custom_epoch
+
+        self.__binary = bin(snowflake)[2:]
+
+    @property
+    def datetime(self) -> datetime.datetime:
+        return datetime.datetime.fromtimestamp(__class__.binary_to_decimal(self.__binary[:-22]) + self.__epoch / 1000) # divide by 1000 to get seconds (from milliseconds)
+    
+    @property
+    def worker_id(self) -> int:
+        return int(self.__binary[-22:-17], 2)
+    
+    @property
+    def process_id(self) -> int:
+        return int(self.__binary[-17:-12], 2)
+    
+    @property
+    def increment(self) -> int:
+        return int(self.__binary[-12:])
+    
+    @property
+    def binary(self) -> str:
+        return self.__binary
+    
+    @property
+    def epoch(self) -> int:
+        return self.__epoch
+    
+    @staticmethod
+    def binary_to_decimal(n: str):
+        return int(n,2)
+
+def parse_discord_snowflake(snowflake: Union[str, int]) -> Snowflake:
+    """Returns a tuple of (datetime, worker_id, process_id, increment).
+    See [this](https://i.imgur.com/UxWvdYD.png) image for more information."""
+    return Snowflake(snowflake=snowflake, discord_snowflake=True)
+
+def snowflake_timestamp(snowflake: Union[int, str]) -> datetime.datetime:
+    return parse_discord_snowflake(snowflake).datetime
+
+makeembed_bot = BotU.makeembed_bot
+makeembed = BotU.makeembed
+parsetime = BotU.parsetime
+dctimestamp = BotU.dctimestamp
+dchyperlink = BotU.dchyperlink
 
 SHIFT_ENTHUSIASTS = 1059402677601185853
 GUILDS = [SHIFT_ENTHUSIASTS]
