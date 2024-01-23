@@ -68,8 +68,9 @@ class BaseButtonPaginator(discord.ui.View):
 
     def format_page(self, page: Any) -> Any:
         if isinstance(page, discord.Embed):
-            if page.footer.text and ' | page' in page.footer.text.lower():
+            if page.footer and page.footer.text and ' | page' in page.footer.text.lower():
                 new_footer = page.footer.text[:page.footer.text.lower().find(' | page')]
+                new_footer += f' | Page {self.current_page+1}/{self.max_pages}'
                 page.set_footer(text=new_footer.strip())
         return page
 
