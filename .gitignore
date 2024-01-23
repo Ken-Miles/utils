@@ -2,7 +2,6 @@
 *.txt
 *.log
 *.yml
-selfbot.py
 **/.DS_Store
 **/__pycache__*
 *.db
