@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 from typing import Any, Dict, Optional, Sequence, Union
+import datetime
 
 import discord
-from discord import Interaction, Message, InteractionMessage, WebhookMessage
+from discord import Embed, Interaction, Message, InteractionMessage, WebhookMessage
 from discord.abc import Messageable
 
 from context import ContextU
 from constants import emojidict
+from methods import makeembed_bot
 
 class BaseButtonPaginator(discord.ui.View):
     """Made by @soheab on Discord, taken from the Discord.py Discord Server"""
@@ -283,3 +285,59 @@ async def create_paginator(ctx: ContextU, pages: Sequence[Any], paginator: type[
     pg = paginator(pages, author_id=author_id, timeout=timeout, delete_message_after=delete_message_after, per_page=per_page)
     await pg.start(ctx)
     return pg
+
+async def generate_pages(items: list, items_per_page: Optional[int]=None, title: Optional[str]=None, footer: Optional[str]='Made by @aidenpearce3066', color: Optional[discord.Colour]=None, timestamp: Optional[datetime.datetime]=None) -> list[Embed]:
+    """Generate pages for an Embed Paginator
+
+    Args:
+        items (list): A list of items to paginate.
+        items_per_page (int): The number of lines/items to show per page. Default is when the page is at 2000 characters.
+        title (Optional[str], optional): The title to show on the Embed. Defaults to None.
+        footer (Optional[str], optional): The base Footer to show on the Embed. Page number will be appended to this if provided.. Defaults to 'Made by @aidenpearce3066'.
+        color (Optional[discord.Colour], optional): The color to show on the Embed. Defaults to None.
+        timestamp (Optional[datetime.datetime], optional): The timestamp to show on the embed. Defaults to the current time.
+    """
+    if not timestamp: timestamp = datetime.datetime.now()
+
+    embeds = []
+    
+    desc = ''
+    pagenum = 0
+    tr = 0
+
+    if not items_per_page: 
+        pagelen = len(''.join([str(item) for item in items]))//2000
+    else:
+        pagelen = len(items)//items_per_page+1
+
+    for item in items:
+        tr += 1
+        #if len(desc)+len(str(item)) > 2000 or (items_per_page and tr >= items_per_page):
+        
+        # if items per page is provided, use that, otherwise use 2000 characters
+        if (items_per_page and tr >= items_per_page) or (not items_per_page and len(desc)+len(str(item)) > 2000):
+            pagenum += 1
+            emb = makeembed_bot(
+                title=title,
+                footer=f"{footer+' : ' if footer else ''}Page {pagenum+1}/{pagelen}",
+                timestamp=timestamp,
+                color=color,
+                description=desc
+            )
+            embeds.append(emb)
+            desc = ''
+
+        desc += str(item)+'\n'
+    
+    if desc:
+        pagenum += 1
+        emb = makeembed_bot(
+            title=title,
+            footer=f"{footer+' : ' if footer else ''}Page {pagenum+1}/{pagelen}",
+            timestamp=timestamp,
+            color=color,
+            description=desc
+        )
+        embeds.append(emb)
+    
+    return embeds
