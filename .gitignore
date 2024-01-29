@@ -8,3 +8,4 @@
 *.sql
 *.sqlite3
 *.code-workspace
+testing.py

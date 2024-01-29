@@ -28,7 +28,7 @@ def Cooldown(rate: int, per: int, bucket: BucketType):
         if is_owner(ctx.author, ctx.bot):
             return None
         elif check_is_trusted(ctx.author, ctx.bot):
-            return commands.Cooldown(rate*2, per)
+            return commands.Cooldown(rate, per/2)
         return commands.Cooldown(rate, per)
     return commands.dynamic_cooldown(actually_cool, bucket)
 
