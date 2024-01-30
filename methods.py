@@ -162,7 +162,7 @@ def _autocomplete(current: str, items: Sequence[str]) -> Sequence[str]:
     return allmatches
 
 #@alru_cache(maxsize=1000)
-async def generic_autocomplete(current: str, items: Sequence[str], interaction: Optional[discord.Interaction]=None):
+async def generic_autocomplete(current: str, items: Sequence[str], interaction: Optional[discord.Interaction]=None) -> List[app_commands.Choice]:
     allmatches = _autocomplete(current, tuple(items))
     return [app_commands.Choice(name=x,value=x) for x in allmatches]
 

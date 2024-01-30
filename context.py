@@ -9,7 +9,7 @@ from discord.ext.commands import Bot, Cog
 from discord import Interaction, Message, Guild, User, Member, DMChannel, TextChannel, VoiceChannel, CategoryChannel, StageChannel, ForumChannel, Thread
 from discord.abc import GuildChannel, PrivateChannel
 
-from requests import _get, _post, _patch, _put, _delete
+from requests_http import _get, _post, _patch, _put, _delete
 
 from tree import MentionableTree
 from constants import LOADING_EMOJI

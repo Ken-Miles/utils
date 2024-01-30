@@ -11,7 +11,7 @@ from tree import *
 
 from checks import * # context
 from paginator import * # context
-from requests import * # constants
+from requests_http import * # constants
 from context import * # requests
 
 from custom_constants import *
