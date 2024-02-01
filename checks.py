@@ -6,8 +6,8 @@ import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 
-from context import BotU
-from constants import GUILDS, TRUSTED_USERS
+from .context import BotU
+from .constants import GUILDS, TRUSTED_USERS
 
 def is_owner(user: Union[discord.User, discord.Member], bot: BotU):
     assert bot.owner_ids is not None

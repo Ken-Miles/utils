@@ -5,8 +5,8 @@ from typing import Union
 import aiohttp
 import asyncio
 
-from logger import requests_logger
-from constants import RequestType, HTTPCode, BLOXLINK_API_KEY, ROVER_API_KEY
+from .logger import requests_logger
+from .constants import RequestType, HTTPCode, BLOXLINK_API_KEY, ROVER_API_KEY
 
 async def _request(_method: Union[str, RequestType], /,  url: str, **kwargs) -> aiohttp.ClientResponse:
     """Performs a GET request on the given URL."""

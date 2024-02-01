@@ -7,9 +7,9 @@ import discord
 from discord import Embed, Interaction, Message, InteractionMessage, WebhookMessage
 from discord.abc import Messageable
 
-from context import ContextU
-from constants import emojidict
-from methods import makeembed_bot
+from .context import ContextU
+from .constants import emojidict
+from .methods import makeembed_bot
 
 class BaseButtonPaginator(discord.ui.View):
     """Made by @soheab on Discord, taken from the Discord.py Discord Server"""

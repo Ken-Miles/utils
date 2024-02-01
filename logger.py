@@ -1,5 +1,5 @@
 import logging
-from constants import formatter
+from .constants import formatter
 
 requests_handler = logging.FileHandler('requests.log','a')
 requests_handler.setFormatter(formatter)

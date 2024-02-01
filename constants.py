@@ -7,7 +7,7 @@ import logging
 import re
 import datetime
 
-import aiohttp  
+import aiohttp
 import yaml
 
 # K = TypeVar('K')
