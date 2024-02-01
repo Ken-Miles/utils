@@ -4,14 +4,14 @@
 
 # no circular imports
 
-from constants import * # logger
-from logger import *
-from methods import *
-from tree import *
+from .constants import * # logger
+from .logger import *
+from .methods import *
+from .tree import *
 
-from checks import * # context
-from paginator import * # context
-from requests_http import * # constants
-from context import * # requests
+from .checks import * # context
+from .paginator import * # context
+from .requests_http import * # constants
+from .context import * # requests
 
-from custom_constants import *
+from .custom_constants import *
