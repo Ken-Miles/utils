@@ -1,11 +1,40 @@
+# ignore venv and VSC files
 .venv/
+*.code-workspace
+.vscode/
+
+# ignore testing files (files starting w/ an _) but not __init__
+_*.py
+!__init__.py
+dbtesting.py
+graphs.py
+selfbot.py
+wikidata.py
+custom_constants.py
+data visualization/
+
+# ignore mac garbage
+**/.DS_Store
+
+# ignore pycache and other files
+**/__pycache__*
+*.pyc
+*.xz
+Python-3.10.0/
+
+# ignore logs + secret files
 *.txt
+!requirements.txt
 *.log
 *.yml
-**/.DS_Store
-**/__pycache__*
+*.yaml
+
+# ignore DB files
 *.db
 *.sql
 *.sqlite3
-*.code-workspace
-testing.py
+*.sqlite-shm
+*.sqlite-wal
+
+# other
+ssh.config
