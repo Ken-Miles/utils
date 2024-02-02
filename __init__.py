@@ -14,4 +14,6 @@ from .paginator import * # context
 from .requests_http import * # constants
 from .context import * # requests
 
-from .custom_constants import *
+# check if custom_constants exists, if so import
+try: from .custom_constants import *
+except: pass
