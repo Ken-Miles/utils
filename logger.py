@@ -1,5 +1,7 @@
 import logging
-from .constants import formatter
+
+dt_fmt = '%Y-%m-%d %H:%M:%S'
+formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
 
 requests_handler = logging.FileHandler('requests.log','a')
 requests_handler.setFormatter(formatter)

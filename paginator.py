@@ -25,7 +25,13 @@ class BaseButtonPaginator(discord.ui.View):
         delete_message_after: bool = False,
         per_page: int = 1,
     ):
+
+        if not pages:
+            #raise ValueError("No pages were provided.")
+            return
+
         super().__init__(timeout=timeout)
+
         self.author_id: Optional[int] = author_id
         self.delete_message_after: bool = delete_message_after
 
@@ -286,7 +292,7 @@ async def create_paginator(ctx: ContextU, pages: Sequence[Any], paginator: type[
     await pg.start(ctx)
     return pg
 
-async def generate_pages(items: list, items_per_page: Optional[int]=None, title: Optional[str]=None, footer: Optional[str]='Made by @aidenpearce3066', color: Optional[discord.Colour]=None, timestamp: Optional[datetime.datetime]=None) -> list[Embed]:
+def generate_pages(items: list, items_per_page: Optional[int]=None, title: Optional[str]=None, footer: Optional[str]='Made by @aidenpearce3066', color: Optional[discord.Colour]=None, timestamp: Optional[datetime.datetime]=None) -> list[Embed]:
     """Generate pages for an Embed Paginator
 
     Args:
@@ -319,7 +325,7 @@ async def generate_pages(items: list, items_per_page: Optional[int]=None, title:
             pagenum += 1
             emb = makeembed_bot(
                 title=title,
-                footer=f"{footer+' : ' if footer else ''}Page {pagenum+1}/{pagelen}",
+                footer=f"{footer+' : ' if footer else ''}Page {pagenum+1}/{pagelen}" if len(items) > 1 else footer,
                 timestamp=timestamp,
                 color=color,
                 description=desc
@@ -333,8 +339,7 @@ async def generate_pages(items: list, items_per_page: Optional[int]=None, title:
         pagenum += 1
         emb = makeembed_bot(
             title=title,
-            footer=f"{footer+' : ' if footer else ''}Page {pagenum+1}/{pagelen}",
-            timestamp=timestamp,
+            footer=f"{footer+' : ' if footer else ''}Page {pagenum+1}/{pagelen}" if len(items) > 1 else footer,            timestamp=timestamp,
             color=color,
             description=desc
         )

@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Callable, Union
 from enum import Enum
 from collections import defaultdict as emojidictionary
-import logging
 import re
 import datetime
 
@@ -2236,13 +2235,14 @@ emojidict: emojidictionary = emojidictionary(constant_factory("\U00002753"), {
     'default': '\u2753',
 })
 
+LOADING_EMOJI = emojidict.get('thinking')
+
 try:
-    from custom_constants import emoijdict
+    from .custom_constants import emoijdict
     for k,v in emoijdict.items():
         emojidict[k] = v
-except: pass
-
-LOADING_EMOJI = emojidict.get('thinking')
+    LOADING_EMOJI = emojidict.get('thinking')
+except ImportError: pass
 
 
 http_codes = {
@@ -2414,9 +2414,6 @@ TRUSTED_USERS = [
 GUILDS = [
 
 ]
-
-dt_fmt = '%Y-%m-%d %H:%M:%S'
-formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
 
 with open('apikeys.yml','r') as f:
     try:

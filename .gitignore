@@ -4,6 +4,7 @@
 .vscode/
 
 # ignore testing files (files starting w/ an _) but not __init__
+_*.html
 _*.py
 !__init__.py
 dbtesting.py
