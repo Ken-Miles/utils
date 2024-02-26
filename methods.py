@@ -17,19 +17,38 @@ def makeembed(title: Optional[str]=None,timestamp: Optional[datetime.datetime]=N
     author_url: Optional[str]=None, author_icon_url: Optional[str]=None, footer: Optional[str]=None, 
     footer_icon_url: Optional[str]=None, url: Optional[str]=None,image: Optional[str]=None,
     thumbnail: Optional[str]=None,) -> discord.Embed:#embedtype: str='rich'):
+    """Create a discord embed, preformatted with optional params.
+
+    Args:
+        title: Optional[str]: The title of the embed. Defaults to None.
+        timestamp: Optional[datetime.datetime]: The timestamp of the embed. Defaults to None.
+        color: Optional[discord.Colour]]: The color of the embed. Defaults to None.
+        description: Optional[str]: The description of the embed. Defaults to None.
+        author: Optional[str]: The author of the embed. Defaults to None.
+        author_url: Optional[str]: The URL of the author. Defaults to None.
+        author_icon_url: Optional[str]: The icon URL of the author. Defaults to None.
+        footer: Optional[str]: The footer of the embed. Defaults to None.
+        footer_icon_url: Optional[str]: The icon URL of the footer. Defaults to None.
+        url: Optional[str]: The URL of the embed. Defaults to None.
+        image: Optional[str]: The image of the embed. Defaults to None.
+        thumbnail: Optional[str]: The thumbnail of the embed. Defaults to None.
+
+    Returns:
+        discord.Embed: The formatted embed.
+    """    
+
     embed = discord.Embed()
-    if title is not None:        embed.title = title
-    if timestamp is not None:    embed.timestamp = timestamp
-    if color is not None:        embed.color = color
-    if description is not None:  embed.description = description
-    if url is not None:          embed.url = url
-    if author is not None:       embed.set_author(name=author,url=author_url,icon_url=author_icon_url)
-    if footer is not None:       embed.set_footer(text=footer,icon_url=footer_icon_url)
-    if image is not None:        embed.set_image(url=image)
-    if thumbnail is not None:    embed.set_thumbnail(url=thumbnail)
+    if title:        embed.title = title
+    if timestamp:    embed.timestamp = timestamp
+    if color:        embed.color = color
+    if description:  embed.description = description
+    if url:          embed.url = url
+    if author:       embed.set_author(name=author,url=author_url,icon_url=author_icon_url)
+    if footer:       embed.set_footer(text=footer,icon_url=footer_icon_url)
+    if image:        embed.set_image(url=image)
+    if thumbnail:    embed.set_thumbnail(url=thumbnail)
     return embed
 
-@staticmethod
 def makeembed_bot(
         title: Optional[str]=None,
         timestamp: Optional[datetime.datetime]=None,
@@ -38,20 +57,40 @@ def makeembed_bot(
         author: Optional[str]=None, 
         author_url: Optional[str]=None, 
         author_icon_url: Optional[str]=None,
-        footer: str='Made by @aidenpearce3066', 
+        footer: Optional[str]='Made by @aidenpearce3066', 
         footer_icon_url: Optional[str]=None, 
         url: Optional[str]=None,
         image: Optional[str]=None,thumbnail: Optional[str]=None
         ) -> discord.Embed:#embedtype: str='rich'):
+    """Create a discord embed, preformatted with optional params, specifically with defaults for my bot.
+
+    Args:
+        title: Optional[str]: The title of the embed. Defaults to None.
+        timestamp: Optional[datetime.datetime]: The timestamp of the embed. Defaults to the current datetime.
+        color: Optional[discord.Colour]]: The color of the embed. Defaults to None.
+        description: Optional[str]: The description of the embed. Defaults to None.
+        author: Optional[str]: The author of the embed. Defaults to None.
+        author_url: Optional[str]: The URL of the author. Defaults to None.
+        author_icon_url: Optional[str]: The icon URL of the author. Defaults to None.
+        footer: Optional[str]: The footer of the embed. Defaults to "Made by @aidenpearce3066".
+        footer_icon_url: Optional[str]: The icon URL of the footer. Defaults to None.
+        url: Optional[str]: The URL of the embed. Defaults to None.
+        image: Optional[str]: The image of the embed. Defaults to None.
+        thumbnail: Optional[str]: The thumbnail of the embed. Defaults to None.
+
+    Returns:
+        discord.Embed: The formatted embed.
+    """        
     if not timestamp: timestamp = datetime.datetime.now()
     # i would put this in the default args, but then it will only be when the bot is started
     return makeembed(title=title,timestamp=timestamp,color=color,description=description,author=author,author_url=author_url,author_icon_url=author_icon_url,footer=footer,footer_icon_url=footer_icon_url,url=url,image=image,thumbnail=thumbnail)
 
 timestamptype = Literal["t","T","d","D","f","F","R"]
 
-@staticmethod
 def dctimestamp(dt: Union[datetime.datetime, int, float], format: timestamptype="f") -> str:
     """
+    Create a discord formatted unix timestamp.
+
     Timestamp Styles
     STYLE     | EXAMPLE OUTPUT	              | DESCRIPTION
     t	  | 16:20	                      | Short Time
@@ -61,15 +100,31 @@ def dctimestamp(dt: Union[datetime.datetime, int, float], format: timestamptype=
     f  	  | 20 April 2021 16:20	              | Short Date/Time
     F	  | Tuesday, 20 April 2021 16:20      | Long Date/Time
     R	  | 2 months ago	              | Relative Time
+
+    Args:
+        dt (Union[datetime.datetime, int, float]): The datetime to format. Can be a datetime object, a unix timestamp, or a float.
+        format (timestamptype, optional): The format to use. Defaults to "f".
+    
+    Returns:
+        str: The formatted timestamp.
     """
     if isinstance(dt, datetime.datetime): dt = int(dt.timestamp())
     if isinstance(dt, (int, float)): dt = int(dt)
     return f"<t:{int(dt)}:{format[:1]}>" 
 
-@staticmethod
 def dchyperlink(url: str, texttoclick: str, hovertext: Optional[str]=None, suppress_embed: bool=False) -> str:
-    '''Formats a Discord Hyperlink so that it can be clicked on.
-    "[Text To Click](https://www.youtube.com/ \"Hovertext\")"'''
+    """Formats a Discord Hyperlink so that it can be clicked on.
+    [Text To Click](https://www.youtube.com/ \"Hovertext\")"
+
+    Args:
+        url (str): The URL to link to.
+        texttoclick (str): The text to click on.
+        hovertext (Optional[str], optional):  The text that should appear when the link is hovered over. Defaults to None.
+        suppress_embed (bool, optional): Whether the embed of the URL should be supressed or not. Defaults to False.
+
+    Returns:
+        str: The formatted hyperlink.
+    """    
     texttoclick, hovertext = f"[{texttoclick}]", f" \"{hovertext}\"" if hovertext is not None else ""
     return f"{texttoclick}({'<' if suppress_embed else ''}{url}{'>' if suppress_embed else ''}{hovertext})"
 

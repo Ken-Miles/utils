@@ -24,7 +24,18 @@ class BaseButtonPaginator(discord.ui.View):
         timeout: Optional[float] = 180.0,
         delete_message_after: bool = False,
         per_page: int = 1,
+        go_to_button: bool=False,
     ):
+        """Initializes the Paginator.
+
+        Args:
+            pages (Sequence[Any]): The pages to paginate.
+            author_id (Optional[int], optional): The ID of the author. Defaults to None.
+            timeout (Optional[float], optional): The timeout for the view. Defaults to 180.0.
+            delete_message_after (bool, optional): Whether the message containing the paginator should be deleted after use. Defaults to False.
+            per_page (int, optional): The amount of pages to show per page. Defaults to 1.
+            go_to_button (bool, optional): Whether to include the "Go To" Button to go to a page. Defaults to False.
+        """        
 
         if not pages:
             #raise ValueError("No pages were provided.")
@@ -43,6 +54,10 @@ class BaseButtonPaginator(discord.ui.View):
             total_pages += 1
 
         self.max_pages: int = total_pages
+
+        if go_to_button:
+            self.go_to_page = GoToPageButton(self)
+            self.add_item(self.go_to_page)
 
     def stop(self) -> None:
         self.message = None
@@ -223,11 +238,8 @@ class GoToPageButton(discord.ui.Button):
         await interaction.response.send_modal(modal)
 
 class ButtonPaginator(BaseButtonPaginator):
-    def __init__(self, *args, go_to_button: bool=False, **kwargs) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        if go_to_button:
-            self.go_to_page = GoToPageButton(self)
-            self.add_item(self.go_to_page)
     
     @discord.ui.button(label="\u200b", style=discord.ButtonStyle.blurple, emoji=emojidict.get('back'))
     async def previous_page(
@@ -323,9 +335,16 @@ def generate_pages(items: list, items_per_page: Optional[int]=None, title: Optio
         # if items per page is provided, use that, otherwise use 2000 characters
         if (items_per_page and tr >= items_per_page) or (not items_per_page and len(desc)+len(str(item)) > 2000):
             pagenum += 1
+            if footer:
+                if len(items) > 1:
+                    __footer = f"{footer+' : ' if footer else ''}Page {pagenum+1}/{pagelen}"
+                else:
+                    __footer = footer
+            else:
+                __footer = None
             emb = makeembed_bot(
                 title=title,
-                footer=f"{footer+' : ' if footer else ''}Page {pagenum+1}/{pagelen}" if len(items) > 1 else footer,
+                footer=__footer,
                 timestamp=timestamp,
                 color=color,
                 description=desc
