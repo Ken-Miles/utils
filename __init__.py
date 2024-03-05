@@ -15,6 +15,7 @@ from .requests_http import * # constants
 from .context import * # requests
 from .help_command import *
 
+from .danny_time import *
 # check if custom_constants exists, if so import
 try: from .custom_constants import *
 except: pass
