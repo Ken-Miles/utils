@@ -111,5 +111,4 @@ def is_in_guilds(*guild_ids: int):
         if not ctx.guild:
             return False
         return ctx.guild.id in guild_ids
-
     return commands.check(predicate)
