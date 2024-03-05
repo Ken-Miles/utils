@@ -19,7 +19,6 @@ def check_is_trusted(user: Union[discord.User, discord.Member], bot: BotU):
 def is_trusted():
     def predicate(ctx: commands.Context):
         return check_is_trusted(ctx.author, ctx.bot)
-
     return commands.check(predicate)
 
 def Cooldown(rate: int, per: int, bucket: BucketType):
