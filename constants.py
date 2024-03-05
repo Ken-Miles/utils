@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import os
+import traceback
 from typing import Callable, Union
 from enum import Enum
 from collections import defaultdict as emojidictionary
+import logging
 import re
 import datetime
 
@@ -2235,15 +2238,13 @@ emojidict: emojidictionary = emojidictionary(constant_factory("\U00002753"), {
     'default': '\u2753',
 })
 
-LOADING_EMOJI = emojidict.get('thinking')
-
 try:
-    from .custom_constants import emoijdict
-    for k,v in emoijdict.items():
+    from .custom_constants import emojidict as new_emojidict
+    for k,v in new_emojidict.items():
         emojidict[k] = v
-    LOADING_EMOJI = emojidict.get('thinking')
-except ImportError: pass
+except: pass
 
+LOADING_EMOJI = emojidict.get('thinking')
 
 http_codes = {
     100: "Continue",
@@ -2333,7 +2334,6 @@ http_codes = {
     599: "Network Connect Timeout Error", # unoffical code
 }
 
-
 class HTTPCode:
     status: int
     def __init__(self, status: int):
@@ -2397,7 +2397,6 @@ CURRENCY_SYMBOL = "$"
 CURRENCY_NAME = "Money"
 
 # regexes
-
 RE_EMOJI = re.compile(r"<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>")
 RE_URL = re.compile(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+")
 RE_INVITE = re.compile(r"(?:https?://)?discord(?:app)?\.(?:com/invite|gg)/[a-zA-Z0-9]+/?")
@@ -2415,14 +2414,16 @@ GUILDS = [
 
 ]
 
-with open('apikeys.yml','r') as f:
-    try:
-        config = dict(yaml.safe_load(f))
-        BLOXLINK_API_KEY = config.get('bloxlink_api',None)
-        ROVER_API_KEY = config.get('rover_api',None)
-    except: pass
+dt_fmt = '%Y-%m-%d %H:%M:%S'
+formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
 
-
+if os.path.exists('apikeys.yml'):
+    with open('apikeys.yml','r') as f:
+        try:
+            config = dict(yaml.safe_load(f))
+            BLOXLINK_API_KEY = config.get('bloxlink_api',None)
+            ROVER_API_KEY = config.get('rover_api',None)
+        except: pass
 
 class Snowflake:
     __binary: str
