@@ -6,9 +6,11 @@ Taken from https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/time.py
 from __future__ import annotations
 
 import datetime
-from typing import TYPE_CHECKING, Any, Optional, Union, Dict
+from typing import TYPE_CHECKING, Any, Optional, Union
 import parsedatetime as pdt
 from dateutil.relativedelta import relativedelta
+
+from .context import ContextU
 from .danny_formats import plural, human_join, format_dt as format_dt
 from discord.ext import commands
 from discord import app_commands
@@ -22,7 +24,6 @@ units['seconds'].append('secs')
 if TYPE_CHECKING:
     from typing_extensions import Self
     from context import ContextU as Context
-
 
 class ShortTime:
     compiled = re.compile(
@@ -231,7 +232,7 @@ class UserFriendlyTime(commands.Converter):
         self.converter: commands.Converter = converter  # type: ignore  # It doesn't understand this narrowing
         self.default: Any = default
 
-    async def convert(self, ctx: Context, argument: str) -> FriendlyTimeResult:
+    async def convert(self, ctx: ContextU, argument: str) -> FriendlyTimeResult: # type: ignore
         calendar = HumanTime.calendar
         regex = ShortTime.compiled
         now = ctx.message.created_at
