@@ -74,7 +74,7 @@ def _backup_command_embed(command: CommandType, prefix: str) -> discord.Embed:
 
     embed.add_field(
         name="How to use",
-        value=f"`{command.qualified_name} {command.signature}".strip() + "`",
+        value=f"`{prefix}{command.qualified_name} {command.signature}".strip() + "`",
     )
 
     if subcommands := getattr(command, "commands", None):
