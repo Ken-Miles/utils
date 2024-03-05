@@ -6,7 +6,7 @@ Taken from https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/time.py
 from __future__ import annotations
 
 import datetime
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union, Dict
 import parsedatetime as pdt
 from dateutil.relativedelta import relativedelta
 
@@ -24,6 +24,7 @@ units['seconds'].append('secs')
 if TYPE_CHECKING:
     from typing_extensions import Self
     from context import ContextU as Context
+
 
 class ShortTime:
     compiled = re.compile(
@@ -125,11 +126,8 @@ class HumanTime:
         self._past: bool = self.dt < now
 
     @classmethod
-    async def convert(cls, ctx: Context, argument: str) -> Self:
+    async def convert(cls, ctx: ContextU, argument: str) -> Self:
         tzinfo = datetime.timezone.utc
-        reminder = ctx.bot.reminder
-        if reminder is not None:
-            tzinfo = await reminder.get_tzinfo(ctx.author.id)
         return cls(argument, now=ctx.message.created_at, tzinfo=tzinfo)
 
 
@@ -232,7 +230,7 @@ class UserFriendlyTime(commands.Converter):
         self.converter: commands.Converter = converter  # type: ignore  # It doesn't understand this narrowing
         self.default: Any = default
 
-    async def convert(self, ctx: ContextU, argument: str) -> FriendlyTimeResult: # type: ignore
+    async def convert(self, ctx: ContextU, argument: str) -> FriendlyTimeResult:
         calendar = HumanTime.calendar
         regex = ShortTime.compiled
         now = ctx.message.created_at
