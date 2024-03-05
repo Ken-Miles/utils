@@ -13,7 +13,7 @@ from .checks import * # context
 from .paginator import * # context
 from .requests_http import * # constants
 from .context import * # requests
-from .help_command import HelpCommand
+from .help_command import *
 
 # check if custom_constants exists, if so import
 try: from .custom_constants import *
