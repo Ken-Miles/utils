@@ -66,7 +66,7 @@ def _find_home(view: BaseView) -> Optional[BaseView]:
     return home
 
 
-def _backup_command_embed(command: CommandType) -> discord.Embed:
+def _backup_command_embed(command: CommandType, prefix: str) -> discord.Embed:
     embed = discord.Embed(
         title=command.qualified_name,
         description=command.help,
@@ -74,7 +74,7 @@ def _backup_command_embed(command: CommandType) -> discord.Embed:
 
     embed.add_field(
         name="How to use",
-        value=f"`?{command.qualified_name} {command.signature}".strip() + "`",
+        value=f"`{command.qualified_name} {command.signature}".strip() + "`",
     )
 
     if subcommands := getattr(command, "commands", None):
@@ -407,7 +407,7 @@ class HelpGroup(BaseView):
     @property
     def embed(self) -> discord.Embed:
         """:class:`discord.Embed`: Returns an embed representing the help for the group."""
-        return _backup_command_embed(self.group)
+        return _backup_command_embed(self.group, self.context.clean_prefix)
 
 
 class HelpCommand(BaseView):
@@ -427,8 +427,7 @@ class HelpCommand(BaseView):
     @property
     def embed(self) -> discord.Embed:
         """:class:`discord.Embed`: Returns an embed representing the help for the group."""
-        return _backup_command_embed(self.command)
-
+        return _backup_command_embed(self.command, self.context.clean_prefix)
 
 class HelpCog(BaseView):
     """The view representing help for a specific Cog.
