@@ -495,7 +495,7 @@ class HelpView(BaseView):
     @property
     def embed(self) -> discord.Embed:
         """:class:`discord.Embed`: The master embed for this view."""
-        try: prefix = self.context.invoked_with
+        try: prefix = self.context.clean_prefix
         except: prefix = self.context.bot.user.mention
 
         getting_help: List[str] = [
