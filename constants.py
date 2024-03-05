@@ -116,7 +116,7 @@ emojidict: emojidictionary = emojidictionary(constant_factory("\U00002753"), {
     'purple': "\U0001f7e3",
     'gray': "",
 
-    'thinking': '<a:loading:1181644325445193778>',
+    'thinking': '<a:loading:1165843833343451196>',
     'loading': "<a:loading:1191255723850596422>",
     'postgres': "<:postgresql:1191255667575623780>",
 
