@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import traceback
 from typing import Callable, Union
 from enum import Enum
@@ -2333,35 +2332,34 @@ http_codes = {
     598: "Network Read Timeout Error", # unoffical code
     599: "Network Connect Timeout Error", # unoffical code
 }
-
 class HTTPCode:
     status: int
     def __init__(self, status: int):
         self.status = status
         assert status in http_codes.keys(), f"Invalid HTTP status code {status}"
-    
+
     @property
     def name(self) -> str:
         return http_codes.get(self.status, "Unknown")
 
     @property
-    def is_100(self) -> bool:
+    def is_1xx(self) -> bool:
         return 100 <= self.status < 200
-    
+
     @property
-    def is_200(self) -> bool:
+    def is_2xx(self) -> bool:
         return 200 <= self.status < 300
-    
+
     @property
-    def is_300(self) -> bool:
+    def is_3xx(self) -> bool:
         return 300 <= self.status < 400
-    
+
     @property
-    def is_400(self) -> bool:
+    def is_4xx(self) -> bool:
         return 400 <= self.status < 500
-    
+
     @property
-    def is_500(self) -> bool:
+    def is_5xx(self) -> bool:
         return 500 <= self.status < 600
 
     def __str__(self) -> str:
@@ -2417,13 +2415,14 @@ GUILDS = [
 dt_fmt = '%Y-%m-%d %H:%M:%S'
 formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
 
-if os.path.exists('apikeys.yml'):
-    with open('apikeys.yml','r') as f:
-        try:
-            config = dict(yaml.safe_load(f))
-            BLOXLINK_API_KEY = config.get('bloxlink_api',None)
-            ROVER_API_KEY = config.get('rover_api',None)
-        except: pass
+with open('apikeys.yml','r') as f:
+    try:
+        config = dict(yaml.safe_load(f))
+        BLOXLINK_API_KEY = config.get('bloxlink_api',None)
+        ROVER_API_KEY = config.get('rover_api',None)
+    except: pass
+
+
 
 class Snowflake:
     __binary: str
