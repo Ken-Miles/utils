@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import traceback
 from typing import Callable, Union
 from enum import Enum
 from collections import defaultdict as emojidictionary
@@ -10,6 +9,7 @@ import datetime
 
 import aiohttp  
 import yaml
+import os
 
 # K = TypeVar('K')
 # V = TypeVar('V')
@@ -2415,12 +2415,16 @@ GUILDS = [
 dt_fmt = '%Y-%m-%d %H:%M:%S'
 formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
 
-with open('apikeys.yml','r') as f:
-    try:
-        config = dict(yaml.safe_load(f))
-        BLOXLINK_API_KEY = config.get('bloxlink_api',None)
-        ROVER_API_KEY = config.get('rover_api',None)
-    except: pass
+if os.path.exists('apikeys.yml'):
+    with open('apikeys.yml','r') as f:
+        try:
+            config = dict(yaml.safe_load(f))
+            BLOXLINK_API_KEY = config.get('bloxlink_api',None)
+            ROVER_API_KEY = config.get('rover_api',None)
+        except: pass
+else:
+    BLOXLINK_API_KEY = None
+    ROVER_API_KEY = None
 
 
 
