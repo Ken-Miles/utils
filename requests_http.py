@@ -46,17 +46,17 @@ async def _request(_method: Union[str, RequestType], /,  url: str, **kwargs) -> 
         status_ = HTTPCode(status)
         requests_logger.info(f"[{method}] {status} {status_.name} from {response.url} (Session {tr})")
 
-        if status_.is_200:
+        if status_.is_2xx:
             await close_sessions()
             return response
         
-        if status_.is_100:
+        if status_.is_1xx:
             requests_logger.info(f"Got a 1__ Continue, Retrying request...")
             continue
-        elif status_.is_300:
+        elif status_.is_3xx:
             requests_logger.info(f"Got a 3__ Redirect. Retrying request...")
             continue
-        elif status_.is_400:
+        elif status_.is_4xx:
             if status == 429:
                 retry_after = response.headers.get('Retry-After',None)
                 if not retry_after:
@@ -70,7 +70,7 @@ async def _request(_method: Union[str, RequestType], /,  url: str, **kwargs) -> 
                     requests_logger.info(f"We are being rate limited but no Retry-After header was found. Retrying in 5 seconds.")
                     await asyncio.sleep(5)
                     continue
-        elif status_.is_500:
+        elif status_.is_5xx:
             requests_logger.info(f"Got a 5__ Server Error. Retrying request...")
             continue
         else:
