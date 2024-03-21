@@ -38,10 +38,11 @@ def makeembed_bot(
         author: Optional[str]=None, 
         author_url: Optional[str]=None, 
         author_icon_url: Optional[str]=None,
-        footer: str='Made by @aidenpearce3066', 
+        footer: Optional[str]='Made by @aidenpearce3066', 
         footer_icon_url: Optional[str]=None, 
         url: Optional[str]=None,
-        image: Optional[str]=None,thumbnail: Optional[str]=None
+        image: Optional[str]=None,
+        thumbnail: Optional[str]=None
         ) -> discord.Embed:#embedtype: str='rich'):
     if not timestamp: timestamp = datetime.datetime.now()
     # i would put this in the default args, but then it will only be when the bot is started

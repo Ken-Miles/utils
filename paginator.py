@@ -336,7 +336,7 @@ def generate_pages(items: list, items_per_page: Optional[int]=None, title: Optio
         if (items_per_page and tr >= items_per_page) or (not items_per_page and len(desc)+len(str(item)) > 2000):
             pagenum += 1
             if footer:
-                if pagelen > 1:
+                if len(items) > 1:
                     __footer = f"{footer+' : ' if footer else ''}Page {pagenum+1}/{pagelen}"
                 else:
                     __footer = footer
