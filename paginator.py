@@ -337,7 +337,7 @@ def generate_pages(items: list, items_per_page: Optional[int]=None, title: Optio
             pagenum += 1
             if footer:
                 if len(items) > 1:
-                    __footer = f"{footer+' : ' if footer else ''}Page {pagenum+1}/{pagelen}"
+                    __footer = f"{footer+' : ' if footer else ''}Page {pagenum}/{pagelen}"
                 else:
                     __footer = footer
             else:
@@ -358,7 +358,8 @@ def generate_pages(items: list, items_per_page: Optional[int]=None, title: Optio
         pagenum += 1
         emb = makeembed_bot(
             title=title,
-            footer=f"{footer+' : ' if footer else ''}Page {pagenum+1}/{pagelen}" if len(items) > 1 else footer,            timestamp=timestamp,
+            footer=f"{footer+' : ' if footer else ''}Page {pagenum}/{pagelen}" if len(items) > 1 else footer,
+            timestamp=timestamp,
             color=color,
             description=desc
         )
