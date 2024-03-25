@@ -336,7 +336,7 @@ def generate_pages(items: list, items_per_page: Optional[int]=None, title: Optio
         #if len(desc)+len(str(item)) > 2000 or (items_per_page and tr >= items_per_page):
         
         # if items per page is provided, use that, otherwise use 2000 characters
-        if (items_per_page and items_on_page >= items_per_page) or (not items_per_page and len(desc)+len(str(item)) > 2000):
+        if (items_per_page and items_on_page == items_per_page) or (not items_per_page and len(desc)+len(str(item)) > 2000):
             pagenum += 1
             items_on_page = 0
             if footer:
