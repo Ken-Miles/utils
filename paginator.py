@@ -304,7 +304,7 @@ async def create_paginator(ctx: ContextU, pages: Sequence[Any], paginator: type[
     await pg.start(ctx)
     return pg
 
-def generate_pages(items: list, items_per_page: Optional[int]=None, title: Optional[str]=None, footer: Optional[str]='Made by @aidenpearce3066', color: Optional[discord.Colour]=None, timestamp: Optional[datetime.datetime]=None) -> list[Embed]:
+def generate_pages(items: list, items_per_page: Optional[int]=None, add_page_nums: bool=True, title: Optional[str]=None, footer: Optional[str]='Made by @aidenpearce3066', color: Optional[discord.Colour]=None, timestamp: Optional[datetime.datetime]=None) -> list[Embed]:
     """Generate pages for an Embed Paginator
 
     Args:
@@ -338,16 +338,16 @@ def generate_pages(items: list, items_per_page: Optional[int]=None, title: Optio
         if (items_per_page and items_on_page == items_per_page) or (not items_per_page and len(desc)+len(str(item)) > 2000):
             pagenum += 1
             items_on_page = 0
-            if footer:
-                if len(items) > 1:
-                    __footer = f"{footer+' : ' if footer else ''}Page {pagenum}/{pagelen}"
-                else:
-                    __footer = footer
-            else:
-                __footer = None
+            # if footer:
+            #     if len(items) > 1:
+            #         __footer = f"{footer+' : ' if footer else ''}Page {pagenum}/{pagelen}"
+            #     else:
+            #         __footer = footer
+            # else:
+            #     __footer = None
             emb = makeembed_bot(
                 title=title,
-                footer=__footer,
+                footer=footer,
                 timestamp=timestamp,
                 color=color,
                 description=desc
@@ -362,7 +362,8 @@ def generate_pages(items: list, items_per_page: Optional[int]=None, title: Optio
         pagenum += 1
         emb = makeembed_bot(
             title=title,
-            footer=f"{footer+' : ' if footer else ''}Page {pagenum}/{pagelen}" if len(items) > 1 else footer,
+            #footer=f"{footer+' | ' if footer else ''}Page {pagenum}/{pagelen}" if len(items) > 1 else footer,
+            footer=footer,
             timestamp=timestamp,
             color=color,
             description=desc
@@ -370,13 +371,13 @@ def generate_pages(items: list, items_per_page: Optional[int]=None, title: Optio
         embeds.append(emb)
     
     # verify page numbers
-
-    for embed in embeds:
-        if not embed.footer or not embed.footer.text:
-            continue
-        if ' | page' in embed.footer.text.lower():
-            footer = embed.footer.text[embed.footer.text.lower().find(' | page'):]
-        else:
-            footer = f"{embed.footer.text.strip()} | Page {embeds.index(embed)+1}/{len(embeds)}"
-        embed.set_footer(text=footer)
+    if add_page_nums:
+        for embed in embeds:
+            if not embed.footer or not embed.footer.text:
+                continue
+            if ' | page' in embed.footer.text.lower():
+                footer = embed.footer.text[embed.footer.text.lower().find(' | page'):]
+            else:
+                footer = f"{embed.footer.text.strip()} | Page {embeds.index(embed)+1}/{len(embeds)}"
+            embed.set_footer(text=footer)
     return embeds
