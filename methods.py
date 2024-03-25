@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from typing import Optional, Union, Literal, ClassVar, Sequence, List
+from typing import Optional, Union, Literal, Sequence, List
 import datetime
 
 import discord
-from discord.ext import commands
 from discord import app_commands
 import traceback
 import difflib

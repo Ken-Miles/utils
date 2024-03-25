@@ -6,7 +6,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
-
+from discord.utils import escape_markdown
 T = TypeVar('T')
 
 from .context import BotU, ContextU
@@ -59,7 +59,6 @@ def has_permissions(*, check=all, **perms: bool):
         return await check_permissions(ctx, perms, check=check)
     return commands.check(pred)
 
-
 async def check_guild_permissions(ctx: ContextU, perms: dict[str, bool], *, check=all):
     is_owner = await ctx.bot.is_owner(ctx.author)
     if is_owner:
@@ -74,11 +73,9 @@ async def check_guild_permissions(ctx: ContextU, perms: dict[str, bool], *, chec
     resolved = ctx.author.guild_permissions
     return check(getattr(resolved, name, None) == value for name, value in perms.items())
 
-
 def has_guild_permissions(*, check=all, **perms: bool):
     async def pred(ctx: ContextU):
         return await check_guild_permissions(ctx, perms, check=check)
-
     return commands.check(pred)
 
 
@@ -93,7 +90,6 @@ def hybrid_permissions_check(**perms: bool) -> Callable[[T], T]:
         commands.check(pred)(func)
         app_commands.default_permissions(**perms)(func)
         return func
-
     return decorator
 
 

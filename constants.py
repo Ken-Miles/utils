@@ -2332,6 +2332,7 @@ http_codes = {
     598: "Network Read Timeout Error", # unoffical code
     599: "Network Connect Timeout Error", # unoffical code
 }
+
 class HTTPCode:
     status: int
     def __init__(self, status: int):
