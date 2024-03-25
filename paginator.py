@@ -369,4 +369,13 @@ def generate_pages(items: list, items_per_page: Optional[int]=None, title: Optio
         )
         embeds.append(emb)
     
+    # verify page numbers
+
+    for embed in embeds:
+        if not embed.footer or not embed.footer.text:
+            continue
+        if ' | page' in embed.footer.text.lower():
+            footer = embed.footer.text[:embed.footer.text.lower().find(' | page')]
+        footer = f"{embed.footer.text.strip()} | Page {embeds.index(embed)+1}/{len(embeds)}"
+        embed.set_footer(text=footer)
     return embeds
