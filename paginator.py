@@ -328,7 +328,7 @@ def generate_pages(items: list, items_per_page: Optional[int]=None, title: Optio
     else:
         pagelen = len(items)//items_per_page+1
 
-    items_on_page = -1
+    items_on_page = -1 # when it was 0 it was always 1 behind the actual count
 
     for item in items:
         tr += 1
