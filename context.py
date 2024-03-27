@@ -86,6 +86,7 @@ class ConfirmationView(discord.ui.View):
 
 class ContextU(commands.Context):
     """Context Subclass to add some extra functionality."""
+    bot: BotU
     defer_reaction: Optional[discord.Reaction] = None
 
     async def defer(self, *args, **kwargs):
