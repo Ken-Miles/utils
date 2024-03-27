@@ -164,7 +164,7 @@ class FutureTime(Time):
         super().__init__(argument, now=now, tzinfo=tzinfo)
 
         if self._past:
-            raise commands.BadArgument('this time is in the past')
+            raise commands.BadArgument('This time is in the past.')
 
 
 class BadTimeTransform(app_commands.AppCommandError):

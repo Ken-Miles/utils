@@ -99,7 +99,6 @@ def grouper(n: int, iterable: Iterable[T]) -> Generator[Tuple[T, ...], None, Non
 
         yield chunk
 
-
 class Stop(discord.ui.Button["BaseView"]):
     """A button used to stop the help command.
     Attributes
