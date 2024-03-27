@@ -9,7 +9,6 @@ from discord.ext import commands
 from discord.ext.commands import Bot, Cog
 from discord import Interaction, Message, Guild, User, Member, DMChannel, TextChannel, VoiceChannel, CategoryChannel, StageChannel, ForumChannel, Thread
 from discord.abc import GuildChannel, PrivateChannel
-from discord.ext.commands.core import functools
 import functools
 
 from .tree import MentionableTree
