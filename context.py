@@ -1,13 +1,16 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional, Union, Literal, ClassVar
+from typing import TYPE_CHECKING, Callable, Optional, ParamSpec, TypeVar, Union, Literal, ClassVar
 
 import aiohttp
+import asyncio
 import discord
 from discord.ext import commands
 from discord.ext.commands import Bot, Cog
 from discord import Interaction, Message, Guild, User, Member, DMChannel, TextChannel, VoiceChannel, CategoryChannel, StageChannel, ForumChannel, Thread
 from discord.abc import GuildChannel, PrivateChannel
+from discord.ext.commands.core import functools
+import functools
 
 from .tree import MentionableTree
 from .constants import LOADING_EMOJI
@@ -15,6 +18,9 @@ from .requests_http import _get, _post, _patch, _put, _delete
 
 if TYPE_CHECKING:
     assert isinstance(LOADING_EMOJI, str)
+
+T = TypeVar('T')
+P = ParamSpec('P')
 
 class CogU(Cog):
     """A subclass of Cog that includes a `hidden` attribute.
@@ -273,3 +279,8 @@ class BotU(Bot):
         return user.dm_channel
     
     getorfetch_dm = getorfetch_dmchannel
+
+    def wrap(
+        self, func: Callable[P, T], *args: P.args, **kwargs: P.kwargs
+    ):
+        return asyncio.to_thread(functools.partial(func, *args, **kwargs))
