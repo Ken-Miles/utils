@@ -56,7 +56,7 @@ class BaseButtonPaginator(discord.ui.View):
         self.max_pages: int = total_pages
 
         if go_to_button:
-            self.go_to_page = GoToPageButton(self, row=1)
+            self.go_to_page = GoToPageButton(self, row=2)
             self.add_item(self.go_to_page)
 
     def stop(self) -> None:
