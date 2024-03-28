@@ -251,10 +251,10 @@ class BotU(Bot):
         user: Union[User, Member]
         if guild is not None:
             user = await self.getorfetch_member(userid, guild)
-        else:
-            user = self.get_user(userid) # type: ignore | fuck you pyright
-            if user is None:
-                user = await self.fetch_user(userid)
+            if user: return user
+        user = self.get_user(userid) # type: ignore | fuck you pyright
+        if user is None:
+            user = await self.fetch_user(userid)
         return user
 
     async def getorfetch_member(self, userid: int, guild: Guild) -> Member:
