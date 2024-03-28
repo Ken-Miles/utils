@@ -56,7 +56,7 @@ class BaseButtonPaginator(discord.ui.View):
         self.max_pages: int = total_pages
 
         if go_to_button:
-            self.go_to_page = GoToPageButton(self)
+            self.go_to_page = GoToPageButton(self, row=1)
             self.add_item(self.go_to_page)
 
     def stop(self) -> None:
@@ -241,19 +241,19 @@ class ButtonPaginator(BaseButtonPaginator):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
     
-    @discord.ui.button(label="\u200b", style=discord.ButtonStyle.blurple, emoji=emojidict.get('back'))
+    @discord.ui.button(label="\u200b", style=discord.ButtonStyle.blurple, emoji=emojidict.get('back'), row=1)
     async def previous_page(
         self, interaction: Interaction, _: discord.ui.Button
     ) -> None:
         return await self._previous_page(interaction, _)
 
-    @discord.ui.button(label="\u200b", style=discord.ButtonStyle.red, emoji=emojidict.get('stop'))
+    @discord.ui.button(label="\u200b", style=discord.ButtonStyle.red, emoji=emojidict.get('stop'), row=1)
     async def stop_paginator(
         self, interaction: Interaction, _: discord.ui.Button
     ) -> None:
         return await self._stop_paginator(interaction, _)
     
-    @discord.ui.button(label="\u200b", style=discord.ButtonStyle.blurple, emoji=emojidict.get('forward'))
+    @discord.ui.button(label="\u200b", style=discord.ButtonStyle.blurple, emoji=emojidict.get('forward'), row=1)
     async def next_page(self, interaction: Interaction, _: discord.ui.Button) -> None:
         return await self._next_page(interaction, _)
 
@@ -269,30 +269,30 @@ class FiveButtonPaginator(BaseButtonPaginator):
         super().update_buttons()
         self.last_page.disabled = self.current_page >= self.max_pages - 1
     
-    @discord.ui.button(label="\u200b", style=discord.ButtonStyle.blurple, emoji=emojidict.get('prev'))
+    @discord.ui.button(label="\u200b", style=discord.ButtonStyle.blurple, emoji=emojidict.get('prev'), row=1)
     async def first_page(
         self, interaction: Interaction, _: discord.ui.Button
     ) -> None:
         self.current_page = 1
         await self.update_page(interaction)
 
-    @discord.ui.button(label="\u200b", style=discord.ButtonStyle.blurple, emoji=emojidict.get('back'))
+    @discord.ui.button(label="\u200b", style=discord.ButtonStyle.blurple, emoji=emojidict.get('back'), row=1)
     async def previous_page(
         self, interaction: Interaction, _: discord.ui.Button
     ) -> None:
         return await self._previous_page(interaction, _)
     
-    @discord.ui.button(label="\u200b", style=discord.ButtonStyle.red, emoji=emojidict.get('stop'))
+    @discord.ui.button(label="\u200b", style=discord.ButtonStyle.red, emoji=emojidict.get('stop'), row=1)
     async def stop_paginator(
         self, interaction: Interaction, _: discord.ui.Button
     ) -> None:
         return await self._stop_paginator(interaction, _)
     
-    @discord.ui.button(label="\u200b", style=discord.ButtonStyle.blurple, emoji=emojidict.get('forward'))
+    @discord.ui.button(label="\u200b", style=discord.ButtonStyle.blurple, emoji=emojidict.get('forward'), row=1)
     async def next_page(self, interaction: Interaction, _: discord.ui.Button) -> None:
         return await self._next_page(interaction, _)
     
-    @discord.ui.button(label="\u200b", style=discord.ButtonStyle.blurple, emoji=emojidict.get('next'))
+    @discord.ui.button(label="\u200b", style=discord.ButtonStyle.blurple, emoji=emojidict.get('next'), row=1)
     async def last_page(
         self, interaction: Interaction, _: discord.ui.Button
     ) -> None:
@@ -322,11 +322,6 @@ def generate_pages(items: list, items_per_page: Optional[int]=None, add_page_num
     desc = ''
     pagenum = 0
     tr = 0
-
-    if not items_per_page: 
-        pagelen = len(''.join([str(item) for item in items]))//2000
-    else:
-        pagelen = len(items)//items_per_page+1
 
     items_on_page = -1 # when it was 0 it was always 1 behind the actual count
 
