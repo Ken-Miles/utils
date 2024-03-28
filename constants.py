@@ -1848,7 +1848,7 @@ emojidict: emojidictionary = emojidictionary(constant_factory("\U00002753"), {
     "curly_loop": "\u27b0",
     "loop": "\u27bf",
     "end": "\U0001f51a",
-    "back": "\U0001f519",
+    "back_arrow": "\U0001f519",
     "on": "\U0001f51b",
     "top": "\U0001f51d",
     "soon": "\U0001f51c",
