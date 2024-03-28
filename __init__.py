@@ -17,5 +17,8 @@ from .help_command import *
 
 from .danny_time import *
 # check if custom_constants exists, if so import
-try: from .custom_constants import *
+try: 
+    from .custom_constants import *
+    emojidict = constants.emojidict
 except: pass
+
