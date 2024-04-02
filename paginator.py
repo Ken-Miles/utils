@@ -185,6 +185,12 @@ class BaseButtonPaginator(discord.ui.View):
             )
 
         return self.message
+    
+    async def on_timeout(self) -> None:
+        for button in self.children:
+            if isinstance(button, discord.ui.Button):
+                button.disabled = True
+        return await super().on_timeout()
 
 class GoToPageModal(discord.ui.Modal):
 
