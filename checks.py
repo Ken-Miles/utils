@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-from typing import Union, Callable, TypeVar
+from typing import Callable, TypeVar, Union
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
-from discord.utils import escape_markdown
-T = TypeVar('T')
 
-from .context import BotU, ContextU
 from .constants import GUILDS, TRUSTED_USERS
+from .context import BotU, ContextU
+
+T = TypeVar('T')
 
 def is_owner(user: Union[discord.User, discord.Member], bot: BotU):
     assert bot.owner_ids is not None

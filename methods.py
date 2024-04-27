@@ -1,31 +1,31 @@
 from __future__ import annotations
 
-from typing import Optional, Union, Literal, Sequence, List
 import datetime
+import difflib
+from functools import lru_cache
+import traceback
+from typing import Any, List, Literal, Optional, Sequence, Tuple, Union
 
 import discord
 from discord import app_commands
-import traceback
-import difflib
-from functools import lru_cache
 
 #from async_lru import alru_cache
 
 def makeembed(title: Optional[str]=None,timestamp: Optional[datetime.datetime]=None,
     color: Optional[discord.Colour]=None,description: Optional[str]=None, author: Optional[str]=None, 
     author_url: Optional[str]=None, author_icon_url: Optional[str]=None, footer: Optional[str]=None, 
-    footer_icon_url: Optional[str]=None, url: Optional[str]=None,image: Optional[str]=None,
+    footer_icon_url: Optional[str]=None, url: Optional[str]=None, image: Optional[str]=None,
     thumbnail: Optional[str]=None,) -> discord.Embed:#embedtype: str='rich'):
     embed = discord.Embed()
-    if title is not None:        embed.title = title
-    if timestamp is not None:    embed.timestamp = timestamp
-    if color is not None:        embed.color = color
-    if description is not None:  embed.description = description
-    if url is not None:          embed.url = url
-    if author is not None:       embed.set_author(name=author,url=author_url,icon_url=author_icon_url)
-    if footer is not None:       embed.set_footer(text=footer,icon_url=footer_icon_url)
-    if image is not None:        embed.set_image(url=image)
-    if thumbnail is not None:    embed.set_thumbnail(url=thumbnail)
+    if title is not None:                  embed.title = title
+    if timestamp is not None:         embed.timestamp = timestamp
+    if color is not None:                 embed.color = color
+    if description is not None:       embed.description = description
+    if url is not None:                    embed.url = url
+    if author is not None:              embed.set_author(name=author,url=author_url,icon_url=author_icon_url)
+    if footer is not None:              embed.set_footer(text=footer,icon_url=footer_icon_url)
+    if image is not None:               embed.set_image(url=image)
+    if thumbnail is not None:         embed.set_thumbnail(url=thumbnail)
     return embed
 
 @staticmethod
@@ -148,23 +148,40 @@ def _old_autocomplete(current: str, items: List[str]) -> List[str]:
         return []
 
 @lru_cache(maxsize=1000)
-def _autocomplete(current: str, items: Sequence[str]) -> Sequence[str]:
-    if not items: return []
+def _autocomplete(current: str, items: Sequence[Any]) -> Sequence[Tuple[str, Any]]:
+    if not items:
+        return []
 
-    current_ = current.strip()
-    current = current.lower()
+    current = current.lower().strip()
 
-    if not current_:
-        return items[:24]
-    
-    allmatches = difflib.get_close_matches(current, items, n=24, cutoff=0.5)
+    if not current:
+        if isinstance(items[0], tuple) and len(items[0]) == 2:
+            return items[:24]
+        else:
+            return [(str(item), item) for item in items[:24]]
 
-    return allmatches
+    if isinstance(items[0], tuple) and len(items[0]) == 2:
+        item_names = [x[0] for x in items]
+    else:
+        item_names = items
+
+    allmatches = difflib.get_close_matches(current, item_names, n=24, cutoff=0.5)
+
+    matched_items = []
+    for match in allmatches:
+        if isinstance(items[0], tuple) and len(items[0]) == 2:
+            for item in items:
+                if item[0] == match:
+                    matched_items.append(item)
+        else:
+            matched_items.append((match, match))
+
+    return matched_items
 
 #@alru_cache(maxsize=1000)
-async def generic_autocomplete(current: str, items: Sequence[str], interaction: Optional[discord.Interaction]=None) -> List[app_commands.Choice]:
+async def generic_autocomplete(current: str, items: Union[Sequence[Any], Sequence[Tuple[Any, Any]]], interaction: Optional[discord.Interaction]=None) -> List[app_commands.Choice]:
     allmatches = _autocomplete(current, tuple(items))
-    return [app_commands.Choice(name=x,value=x) for x in allmatches]
+    return [app_commands.Choice(name=x[0],value=x[1]) for x in allmatches]
 
 def merge_permissions(overwrite: discord.PermissionOverwrite, permissions: discord.Permissions, **perms: bool) -> None:
     for perm, value in perms.items():

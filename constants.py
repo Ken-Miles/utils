@@ -1,37 +1,15 @@
 from __future__ import annotations
 
-from typing import Callable, Union
-from enum import Enum
 from collections import defaultdict as emojidictionary
-import logging
-import re
 import datetime
-
-import aiohttp  
-import yaml
+from enum import Enum
+import logging
 import os
+import re
+from typing import Callable, Union
 
-# K = TypeVar('K')
-# V = TypeVar('V')
-
-# class emojidictionary(Generic[K, V], dict):
-#     def __init__(self, *args: Any, **kwargs: Any) -> None:
-#         if args and isinstance(args[0], dict):
-#             super().__init__(args[0].items()) 
-#         else:
-#             super().__init__(*args, **kwargs)
-
-#     # Overloading get method for different types of keys
-#     @overload
-#     def get(self, key: K) -> V | None: ...
-    
-#     @overload
-#     def get(self, key: K, default: V) -> V: ...
-
-#     def get(self, key: K, default: Optional[V] = None) -> V | None:
-#         if r := super().get(key):
-#             return r
-#         return super().get(default, None)
+import aiohttp
+import yaml
 
 def constant_factory(value):
     return lambda: value

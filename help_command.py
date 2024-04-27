@@ -1,37 +1,32 @@
 from __future__ import annotations
 
-from typing import (
-    TYPE_CHECKING,
-    Generator,
-    Iterable,
-    Sequence,
-    Union,
-    Dict,
-    Mapping,
-    List,
-    Any,
-    TypeVar,
-    Callable,
-    Type,
-    Optional,
-    Tuple,
-)
-from typing_extensions import Concatenate, ParamSpec, Self, TypeAlias
-
 import abc
 import difflib
-import itertools
 import functools
+import itertools
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    TYPE_CHECKING,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
 
 import discord
 from discord.ext import commands
-from discord.ext.commands import Context, Cog
+from discord.ext.commands import Cog, Context
+from typing_extensions import Concatenate, ParamSpec, Self, TypeAlias
 
-from .context import CogU, ContextU, BotU
-
-    #from bot import Bot
-    #from .context import Context
-
+from .context import BotU, CogU
 
 T = TypeVar("T")
 P = ParamSpec("P")
@@ -495,7 +490,7 @@ class HelpView(BaseView):
     def embed(self) -> discord.Embed:
         """:class:`discord.Embed`: The master embed for this view."""
         try: prefix = self.context.clean_prefix
-        except: prefix = self.context.bot.user.mention
+        except: prefix = self.context.bot.user.mention # type: ignore
 
         getting_help: List[str] = [
             f"Use `{prefix}help <command>` for more info on a command.",
@@ -506,10 +501,10 @@ class HelpView(BaseView):
 
         embed = discord.Embed(
             title="Bot Help Menu",
-            description=f"Hello, I'm {self.context.bot.user.mention}! A general purpose bot for all your needs.",
+            description=f"Hello, I'm {self.context.bot.user.mention}! A general purpose bot for all your needs.", # type: ignore
         )
         embed.set_author(
-            name=self.context.bot.user.name, icon_url=self.context.bot.user.display_avatar.url
+            name=self.context.bot.user.name, icon_url=self.context.bot.user.display_avatar.url # type: ignore
         )
         embed.add_field(
             name="Getting Help", value="\n".join(getting_help), inline=False

@@ -12,7 +12,6 @@ Taken from https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/formats.p
 from __future__ import annotations
 
 import datetime
-
 from typing import Any, Iterable, Optional, Sequence
 
 
