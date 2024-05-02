@@ -1,0 +1,5 @@
+aiohttp
+discord.py
+parsedatetime
+python-dateutil
+PyYAML
