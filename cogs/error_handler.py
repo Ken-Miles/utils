@@ -94,13 +94,13 @@ class ErrorHandler(CogU, hidden=True):
             message = f"Missing required argument: `{error.param.name}`"
         
         elif isinstance(error, commands.TooManyArguments):
-            message = f"Too many arguments. Please try again."
+            message = "Too many arguments. Please try again."
         
         elif isinstance(error, commands.CheckFailure):
-            message = f"The check for this command failed. You most likely do not have permission to use this command or are using it in the wrong channel."
+            message = "The check for this command failed. You most likely do not have permission to use this command or are using it in the wrong channel."
         
         elif isinstance(error, commands.CommandInvokeError):
-            message = f"An error occured while running this command. Please try again later."
+            message = "An error occured while running this command. Please try again later."
             traceback.print_exc()
         
         # verification errors
