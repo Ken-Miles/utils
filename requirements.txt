@@ -3,3 +3,4 @@ discord.py
 parsedatetime
 python-dateutil
 PyYAML
+typing_extensions

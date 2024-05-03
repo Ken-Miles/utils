@@ -2219,7 +2219,7 @@ try:
     from .custom_constants import emojidict as new_emojidict
     for k,v in new_emojidict.items():
         emojidict[k] = v
-except: pass
+except ImportError: pass
 
 LOADING_EMOJI = emojidict.get('thinking')
 
@@ -2396,11 +2396,9 @@ formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', 
 
 if os.path.exists('apikeys.yml'):
     with open('apikeys.yml','r') as f:
-        try:
-            config = dict(yaml.safe_load(f))
-            BLOXLINK_API_KEY = config.get('bloxlink_api',None)
-            ROVER_API_KEY = config.get('rover_api',None)
-        except: pass
+        config = dict(yaml.safe_load(f))
+        BLOXLINK_API_KEY = config.get('bloxlink_api',None)
+        ROVER_API_KEY = config.get('rover_api',None)
 else:
     BLOXLINK_API_KEY = None
     ROVER_API_KEY = None

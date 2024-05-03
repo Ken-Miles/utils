@@ -118,7 +118,7 @@ class ErrorHandler(CogU, hidden=True):
         emb = makeembed_failedaction(description=message)
 
         try: await ctx.reply(embed=emb,**kwargs)
-        except: pass
+        except (discord.HTTPException, discord.Forbidden): pass
 
 async def setup(bot):
     await bot.add_cog(ErrorHandler(bot))

@@ -17,5 +17,4 @@ from cogs.error_handler import *
 try: 
     from .custom_constants import *
     emojidict = constants.emojidict
-except: pass
-
+except ImportError: pass

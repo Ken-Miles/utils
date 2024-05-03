@@ -235,7 +235,7 @@ class BaseView(discord.ui.View, abc.ABC):
     @abc.abstractproperty
     def embed(self) -> discord.Embed:
         """:class:`discord.Embed`: The view's embed to display."""
-        raise NotImplemented
+        raise NotImplementedError
 
     def _add_menu_children(self) -> None:
         if self.parent is not None:
@@ -490,7 +490,7 @@ class HelpView(BaseView):
     def embed(self) -> discord.Embed:
         """:class:`discord.Embed`: The master embed for this view."""
         try: prefix = self.context.clean_prefix
-        except: prefix = self.context.bot.user.mention # type: ignore
+        except AttributeError: prefix = self.context.bot.user.mention # type: ignore
 
         getting_help: List[str] = [
             f"Use `{prefix}help <command>` for more info on a command.",

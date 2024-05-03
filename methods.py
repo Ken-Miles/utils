@@ -86,68 +86,6 @@ async def create_codeblock(content: str, lang: CodeblockLanguage='py') -> str:
     return f"{fmt}{lang}\n{content}{fmt}"
 
 @lru_cache(maxsize=1000)
-def _old_autocomplete(current: str, items: List[str]) -> List[str]:
-    try:
-        recent_matches = []
-        starting_recent_matches = []
-        exact_matches = []
-        not_exact_matches = []
-
-        allmatches = []
-
-        current_ = current.strip()
-        current = current.lower()
-
-        if not items:
-            return []
-        
-        if not current_:
-            # returnv = []
-            # for x in items:
-            #     returnv.append(app_commands.Choice(name=x,value=x))
-            #     if len(returnv) >= 24:
-            #         break
-            # return returnv
-            return items[:24]
-
-        for item in items:
-            #choice = app_commands.Choice(name=item,value=item)
-            choice = item
-            _item = item.lower().strip()
-            if current in _item:
-                if item == current:
-                    exact_matches.append(choice)
-                elif _item.startswith(current_):
-                    recent_matches.append(choice)
-                elif _item.startswith(current):
-                    starting_recent_matches.append(choice)
-                else:
-                    not_exact_matches.append(choice)
-
-            if len(recent_matches) + len(starting_recent_matches) + len(exact_matches) >= 25:
-                break
-    
-        recent_matches = list(dict.fromkeys(recent_matches).keys())
-        starting_recent_matches = list(dict.fromkeys(starting_recent_matches).keys())
-
-        exact_matches = list(dict.fromkeys(exact_matches).keys())
-
-        allmatches.extend(recent_matches)
-        allmatches.extend(starting_recent_matches)
-        allmatches.extend(exact_matches)
-
-        if len(allmatches) < 25 and len(not_exact_matches) + len(allmatches) < 25:
-            allmatches.extend(not_exact_matches)
-
-        allmatches = list(dict.fromkeys(allmatches).keys())
-
-        #return [app_commands.Choice(name=x,value=x) for x in allmatches]
-        return allmatches[:24]
-    except:
-        traceback.print_exc()
-        return []
-
-@lru_cache(maxsize=1000)
 def _autocomplete(current: str, items: Sequence[Any]) -> Sequence[Tuple[str, Any]]:
     if not items:
         return []
