@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import asyncio
 from typing import Union
 
@@ -78,7 +77,7 @@ async def _request(_method: Union[str, RequestType], /,  url: str, **kwargs) -> 
             continue
     
     await close_sessions()
-    raise Exception(f"Failed to get a 2__ Success response after {tr} tries.")
+    raise aiohttp.ClientConnectionError(f"Failed to get a 2__ Success response after {tr} tries.")
 
 async def _get(url: str, **kwargs) -> aiohttp.ClientResponse:
     """Performs a GET request on the given URL."""

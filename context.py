@@ -7,7 +7,7 @@ import asyncio
 import discord
 from discord.ext import commands
 from discord.ext.commands import Bot, Cog
-from discord import Interaction, Message, Guild, User, Member, DMChannel, TextChannel, VoiceChannel, CategoryChannel, StageChannel, ForumChannel, Thread
+from discord import Interaction, InvalidData, Message, Guild, User, Member, DMChannel, TextChannel, VoiceChannel, CategoryChannel, StageChannel, ForumChannel, Thread
 from discord.abc import GuildChannel, PrivateChannel
 import functools
 
@@ -197,7 +197,7 @@ class BotU(Bot):
         ch = await self.getorfetch_channel(threadid, guild)
         if isinstance(ch, Thread):
             return ch
-        raise Exception(f"Channel {threadid} is not a Thread")
+        raise InvalidData(f"Channel {threadid} is not a Thread")
 
     async def getorfetch_textchannel(self, channelid: int, guild: Guild) -> TextChannel:
         """Gets or fetches a TextChannel from the provided guild.
@@ -205,7 +205,7 @@ class BotU(Bot):
         ch = await self.getorfetch_channel(channelid, guild)
         if isinstance(ch, TextChannel):
             return ch
-        raise Exception(f"Channel {channelid} is not a TextChannel")
+        raise InvalidData(f"Channel {channelid} is not a TextChannel")
 
     async def getorfetch_voicechannel(self, channelid: int, guild: Guild) -> VoiceChannel:
         """Gets or fetches a VoiceChannel from the provided guild.
@@ -213,7 +213,7 @@ class BotU(Bot):
         ch = await self.getorfetch_channel(channelid, guild)
         if isinstance(ch, VoiceChannel):
             return ch
-        raise Exception(f"Channel {channelid} is not a VoiceChannel")
+        raise InvalidData(f"Channel {channelid} is not a VoiceChannel")
     
     async def getorfetch_categorychannel(self, channelid: int, guild: Guild) -> CategoryChannel:
         """Gets or fetches a CategoryChannel from the provided guild.
@@ -221,7 +221,7 @@ class BotU(Bot):
         ch = await self.getorfetch_channel(channelid, guild)
         if isinstance(ch, CategoryChannel):
             return ch
-        raise Exception(f"Channel {channelid} is not a CategoryChannel")
+        raise InvalidData(f"Channel {channelid} is not a CategoryChannel")
 
     
     getorfetch_category = getorfetch_categorychannel
@@ -232,7 +232,7 @@ class BotU(Bot):
         ch = await self.getorfetch_channel(channelid, guild)
         if isinstance(ch, StageChannel):
             return ch
-        raise Exception(f"Channel {channelid} is not a StageChannel")
+        raise InvalidData(f"Channel {channelid} is not a StageChannel")
     
     getorfetch_stage = getorfetch_stagechannel
     
@@ -242,7 +242,7 @@ class BotU(Bot):
         ch = await self.getorfetch_channel(channelid, guild)
         if isinstance(ch, ForumChannel):
             return ch
-        raise Exception(f"Channel {channelid} is not a ForumChannel")
+        raise InvalidData(f"Channel {channelid} is not a ForumChannel")
     
     getorfetch_forum = getorfetch_forumchannel
 
