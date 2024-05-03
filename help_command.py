@@ -80,7 +80,7 @@ def _backup_command_embed(command: CommandType, prefix: str) -> discord.Embed:
         )
 
     if isinstance(command, commands.Group):
-        embed.set_footer(text=f"Select a subcommand to get more information about it.")
+        embed.set_footer(text="Select a subcommand to get more information about it.")
 
     return embed
 
@@ -641,7 +641,7 @@ class Help(commands.HelpCommand):
 
         fmt = [f'There was no subcommand named "{string}" found on that command.']
         if isinstance(command, commands.Group):
-            maybe_found = await self.context.bot.wrap(difflib.get_close_matches, string, [c.qualified_name for commmand in command.commands], n=1, cutoff=0.01)  # type: ignore
+            maybe_found = await self.context.bot.wrap(difflib.get_close_matches, string, [c.qualified_name for c in command.commands], n=1, cutoff=0.01)  # type: ignore
             fmt.append(f"Maybe you meant `{maybe_found[0]}`?")
 
         return "".join(fmt)

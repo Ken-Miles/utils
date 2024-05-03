@@ -148,7 +148,7 @@ class Time(HumanTime):
     ):
         try:
             o = ShortTime(argument, now=now, tzinfo=tzinfo)
-        except Exception as e:
+        except Exception:
             super().__init__(argument, now=now, tzinfo=tzinfo)
         else:
             self.dt = o.dt
@@ -288,7 +288,7 @@ class UserFriendlyTime(commands.Converter):
         # foo date time
 
         # first the first two cases:
-        dt, status, begin, end, dt_string = elements[0]
+        dt, status, begin, end, _ = elements[0]
 
         if not status.hasDateOrTime:
             raise commands.BadArgument('Invalid time provided, try e.g. "tomorrow" or "3 days".')

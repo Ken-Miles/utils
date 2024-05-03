@@ -3,7 +3,6 @@ from __future__ import annotations
 import datetime
 import difflib
 from functools import lru_cache
-import traceback
 from typing import Any, List, Literal, Optional, Sequence, Tuple, Union
 
 import discord
@@ -125,45 +124,3 @@ def merge_permissions(overwrite: discord.PermissionOverwrite, permissions: disco
     for perm, value in perms.items():
         if getattr(permissions, perm):
             setattr(overwrite, perm, value)
-
-# async def create_leaderboard(ctx: commands.Context, items: List[str], title: str, description: str, 
-#     color: Optional[discord.Colour]=None, timestamp: Optional[datetime.datetime]=None,)
-# try:
-#             await ctx.defer()
-
-#             topusers = await CurrentRecords.filter(~Q(lookup_count=0)).order_by('-lookup_count','-rankvalue', 'username')
-            
-#             desclist = []
-            
-#             desc = ''
-#             tr = 0
-#             for tr, user in enumerate(topusers,start=1):
-#                 if tr == 1:
-#                     desc = '## Users:\n'
-
-#                 rank = Rank(user.rankid)
-#                 if tr in range(1,4):
-#                     emoji = emojidict.get(str(humanize.ordinal(tr)))
-#                 elif tr in range(4,11): 
-#                     emoji = emojidict.get(str(tr))
-#                 else:
-#                     emoji = f'`{tr}`'
-
-#                 desc += f"> {emoji}: {rank.emoji} `{user.username}` (`{user.lookup_count}` lookup{'s' if abs(user.lookup_count) != 1 else ''})\n"
-
-#                 if tr % 10 == 0:
-#                     emb = makeembed_bot(title=f"Most Looked Up Users ({tr-9} - {tr})",description=desc, color=discord.Colour.brand_green(), 
-#                         timestamp=datetime.datetime.now(), author=f'Requested by {ctx.author}',author_icon_url=ctx.author.avatar.url)
-#                     desclist.append(emb)
-#                     desc = ''
-            
-#             if desc.strip() != '':
-#                 emb = makeembed_bot(title=f"Most Looked Up Users ({tr-tr%10} - {tr})",description=desc, color=discord.Colour.brand_green(), 
-#                         timestamp=datetime.datetime.now(), author=f'Requested by {ctx.author}',author_icon_url=ctx.author.avatar.url)
-#                 desclist.append(emb)
-            
-#             paginator = ButtonPaginator(desclist, author_id=ctx.author.id,delete_message_after=True)
-
-#             await paginator.start(ctx)
-#         except:
-#             traceback.print_exc()

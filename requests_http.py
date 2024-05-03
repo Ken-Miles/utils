@@ -66,11 +66,11 @@ async def _request(_method: Union[str, RequestType], /,  url: str, **kwargs) -> 
                     await asyncio.sleep(retry_after)
                     continue
                 else:
-                    requests_logger.info(f"We are being rate limited but no Retry-After header was found. Retrying in 5 seconds.")
+                    requests_logger.info("We are being rate limited but no Retry-After header was found. Retrying in 5 seconds.")
                     await asyncio.sleep(5)
                     continue
         elif status_.is_5xx:
-            requests_logger.info(f"Got a 5__ Server Error. Retrying request...")
+            requests_logger.info("Got a 5__ Server Error. Retrying request...")
             continue
         else:
             requests_logger.warning(f"Got an unknown status code {status}. Retrying request...")

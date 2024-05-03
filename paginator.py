@@ -327,12 +327,10 @@ def generate_pages(items: list, items_per_page: Optional[int]=None, add_page_num
     
     desc = ''
     pagenum = 0
-    tr = 0
 
     items_on_page = -1 # when it was 0 it was always 1 behind the actual count
 
     for item in items:
-        tr += 1
         #if len(desc)+len(str(item)) > 2000 or (items_per_page and tr >= items_per_page):
         
         # if items per page is provided, use that, otherwise use 2000 characters
