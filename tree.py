@@ -46,8 +46,10 @@ class MentionableTree(CommandTree):
             found_commands = self.application_commands[guild]
             root_parent = command.root_parent or command
             command_id_found = discord.utils.get(found_commands, name=root_parent.name)
-            if command_id_found:
+            if command_id_found and isinstance(command_id_found, (int, str)):
                 return f"</{command.qualified_name}:{command_id_found}>"
+            elif command_id_found:
+                return f"</{command.qualified_name}:{command_id_found.id}>"
             return None
         except KeyError:
             return None
