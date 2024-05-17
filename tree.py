@@ -1,55 +1,85 @@
-from __future__ import annotations
-
-from typing import List, Optional
+# fmt: off
+from typing import Optional, List
 
 import discord
-from discord.app_commands import AppCommand, Command, CommandTree
+from discord import app_commands
 
-class MentionableTree(CommandTree):
-    """
+__all__ = ('MentionableTree',)
+
+class MentionableTree(app_commands.CommandTree):
+    """"
     This was written by @leocx1000 on Discord   
     Copied from https://gist.github.com/LeoCx1000/021dc52981299b95ea7790416e4f5ca4
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.application_commands: dict[Optional[discord.abc.Snowflake], List[AppCommand]] = {}
+        self.application_commands: dict[Optional[int], List[app_commands.AppCommand]] = {}
 
     async def sync(self, *, guild: Optional[discord.abc.Snowflake] = None):
         """Method overwritten to store the commands."""
         ret = await super().sync(guild=guild)
-        self.application_commands[guild] = ret
+        self.application_commands[guild.id if guild else None] = ret
         return ret
 
     async def fetch_commands(self, *, guild: Optional[discord.abc.Snowflake] = None):
         """Method overwritten to store the commands."""
         ret = await super().fetch_commands(guild=guild)
-        self.application_commands[guild] = ret
+        self.application_commands[guild.id if guild else None] = ret
         return ret
 
-    def get_mention_for(
+    async def find_mention_for(
         self,
-        command: Command,
+        command: app_commands.Command | app_commands.Group | str,
         *,
         guild: Optional[discord.abc.Snowflake] = None,
     ) -> Optional[str]:
-        """Retrieves the mention of an AppCommand given a specific Command and optionally, a guild.
-        Note that for this to work, the :meth:`.sync` or :meth:`.fetch_commands` must be called.
+        """Retrieves the mention of an AppCommand given a specific command name, and optionally, a guild.
         Parameters
         ----------
-        command: :class:`app_commands.Command`
+        name: Union[:class:`app_commands.Command`, :class:`app_commands.Group`, str]
             The command which it's mention we will attempt to retrieve.
         guild: Optional[:class:`discord.abc.Snowflake`]
-            The scope (guild) from which to retrieve the commands from.
-            If None is given or not passed, the global scope will be used.
+            The scope (guild) from which to retrieve the commands from. If None is given or not passed,
+            only the global scope will be searched, however the global scope will also be searched if
+            a guild is passed.
         """
-        try:
-            found_commands = self.application_commands[guild]
-            root_parent = command.root_parent or command
-            command_id_found = discord.utils.get(found_commands, name=root_parent.name)
-            if command_id_found and isinstance(command_id_found, (int, str)):
-                return f"</{command.qualified_name}:{command_id_found}>"
-            elif command_id_found:
-                return f"</{command.qualified_name}:{command_id_found.id}>"
+
+        check_global = self.fallback_to_global is True or guild is not None
+
+        if isinstance(command, str):
+            # Try and find a command by that name. discord.py does not return children from tree.get_command, but
+            # using walk_commands and utils.get is a simple way around that.
+            _command = discord.utils.get(self.walk_commands(guild=guild), qualified_name=command)
+
+            if check_global and not _command:
+                _command = discord.utils.get(self.walk_commands(), qualified_name=command)
+
+        else:
+            _command = command
+
+        if not _command:
             return None
-        except KeyError:
+
+        if guild:
+            try:
+                local_commands = self.application_commands[guild.id]
+            except KeyError:
+                local_commands = await self.fetch_commands(guild=guild)
+
+            app_command_found = discord.utils.get(local_commands, name=(_command.root_parent or _command).name)
+
+        else:
+            app_command_found = None
+
+        if check_global and not app_command_found:
+            try:
+                global_commands = self.application_commands[None]
+            except KeyError:
+                global_commands = await self.fetch_commands()
+
+            app_command_found = discord.utils.get(global_commands, name=(_command.root_parent or _command).name)
+
+        if not app_command_found:
             return None
+
+        return f"</{_command.qualified_name}:{app_command_found.id}>"
