@@ -190,6 +190,8 @@ class BaseButtonPaginator(discord.ui.View):
         for button in self.children:
             if isinstance(button, discord.ui.Button):
                 button.disabled = True
+        if self.message:
+            await self.message.edit(view=self)
         return await super().on_timeout()
 
 class GoToPageModal(discord.ui.Modal):
@@ -358,16 +360,27 @@ def generate_pages(items: list, items_per_page: Optional[int]=None, add_page_num
         items_on_page += 1
     
     if desc:
-        pagenum += 1
-        emb = makeembed_bot(
-            title=title,
-            #footer=f"{footer+' | ' if footer else ''}Page {pagenum}/{pagelen}" if len(items) > 1 else footer,
-            footer=footer,
-            timestamp=timestamp,
-            color=color,
-            description=desc
-        )
-        embeds.append(emb)
+        if pagenum == 0:
+            emb = makeembed_bot(
+                title=title,
+                footer=footer,
+                timestamp=timestamp,
+                color=color,
+                description=desc
+            )
+            embeds.append(emb)
+            add_page_nums = False
+        else:
+            pagenum += 1
+            emb = makeembed_bot(
+                title=title,
+                #footer=f"{footer+' | ' if footer else ''}Page {pagenum}/{pagelen}" if len(items) > 1 else footer,
+                footer=footer,
+                timestamp=timestamp,
+                color=color,
+                description=desc
+            )
+            embeds.append(emb)
     
     # verify page numbers
     if add_page_nums:
