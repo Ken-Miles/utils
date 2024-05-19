@@ -64,6 +64,8 @@ class BaseButtonPaginator(discord.ui.View):
         self.ctx = None
         self.interaction = None
 
+
+
         super().stop()
 
     async def interaction_check(self, interaction: Interaction) -> bool:
@@ -141,7 +143,12 @@ class BaseButtonPaginator(discord.ui.View):
             if self.message is not None:
                 await self.message.delete()
         else:
-            await interaction.response.send_message("Stopped the paginator.")
+            for button in self.children:
+                if isinstance(button, discord.ui.Button):
+                    button.disabled = True
+            if self.message:
+               #await self.message.edit(view=self)
+                await interaction.response.edit_message(view=self)
             
         self.stop()
     
