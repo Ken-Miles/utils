@@ -51,22 +51,25 @@ class CogU(Cog):
         """Performs a DELETE request on the given URL."""
         return await _delete(url, **kwargs)
 
-    async def get_command_mention(self, command_name: str):
+    async def get_command_mention(self, command: Union[str, commands.Command]):
         """Gets the Mention string for a command. If the tree is a MentionableTree, it will return the mention string for the command.
         If the command ID cannot be found, it will return a string with the command name in backticks.
 
         Args:
-            command_name (str): The name of the command to get the mention for.
+            command_name (Union[str, commands.Command]): The command/name of the command to get the mention for.
         """
         # # command_name = command_name.strip().lstrip('/').lower()
         # # cmd_name = command_name.split(' ')[0]
         # cmd = self.bot.tree.get_command(cmd_name)
         if isinstance(self.bot.tree, MentionableTree):
             tree: MentionableTree = self.bot.tree
-            cmd = await tree.find_mention_for(command_name) # type: ignore
+            cmd = await tree.find_mention_for(command) # type: ignore
         else: cmd = None
         if not cmd:
-            cmd = f"`/{command_name}`"
+            if isinstance(command, str):
+                cmd = f"`/{command}`"
+            else:
+                cmd = f"`/{command.name}`"
         return cmd
     
 class ConfirmationView(discord.ui.View):
