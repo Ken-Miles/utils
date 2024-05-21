@@ -2,6 +2,7 @@ aiohttp
 discord.py
 parsedatetime
 python-dateutil
+python-environ
 PyYAML
-typing_extensions
 sentry-sdk
+typing_extensions
