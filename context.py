@@ -26,6 +26,8 @@ class CogU(Cog):
     Intended for use in Help commands where entire cogs shouldn't be shown by default."""
     hidden: ClassVar[bool]
 
+    bot: BotU
+
     def __init_subclass__(cls, *, hidden: bool=False):
         cls.hidden = hidden
     
@@ -49,6 +51,24 @@ class CogU(Cog):
         """Performs a DELETE request on the given URL."""
         return await _delete(url, **kwargs)
 
+    async def get_command_mention(self, command_name: str):
+        """Gets the Mention string for a command. If the tree is a MentionableTree, it will return the mention string for the command.
+        If the command ID cannot be found, it will return a string with the command name in backticks.
+
+        Args:
+            command_name (str): The name of the command to get the mention for.
+        """
+        # # command_name = command_name.strip().lstrip('/').lower()
+        # # cmd_name = command_name.split(' ')[0]
+        # cmd = self.bot.tree.get_command(cmd_name)
+        if isinstance(self.bot.tree, MentionableTree):
+            tree: MentionableTree = self.bot.tree
+            cmd = await tree.find_mention_for(command_name) # type: ignore
+        else: cmd = None
+        if not cmd:
+            cmd = f"`/{command_name}`"
+        return cmd
+    
 class ConfirmationView(discord.ui.View):
     """
     Taken from https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/context.py#L280
