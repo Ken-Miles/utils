@@ -319,7 +319,7 @@ async def create_paginator(ctx: ContextU, pages: Sequence[Any], paginator: type[
     await pg.start(ctx)
     return pg
 
-def generate_pages(items: list, items_per_page: Optional[int]=None, add_page_nums: bool=True, title: Optional[str]=None, footer: Optional[str]='Made by @aidenpearce3066', color: Optional[discord.Colour]=None, timestamp: Optional[datetime.datetime]=None) -> list[Embed]:
+def generate_pages(items: list, items_per_page: Optional[int]=None, add_page_nums: bool=True, **kwargs) -> list[Embed]:
     """Generate pages for an Embed Paginator
 
     Args:
@@ -329,8 +329,9 @@ def generate_pages(items: list, items_per_page: Optional[int]=None, add_page_num
         footer (Optional[str], optional): The base Footer to show on the Embed. Page number will be appended to this if provided.. Defaults to 'Made by @aidenpearce3066'.
         color (Optional[discord.Colour], optional): The color to show on the Embed. Defaults to None.
         timestamp (Optional[datetime.datetime], optional): The timestamp to show on the embed. Defaults to the current time.
+        Other kwargs are passed to the embed.
     """
-    if not timestamp: timestamp = datetime.datetime.now()
+    if not kwargs.get('timestamp',None): kwargs['timestamp'] = datetime.datetime.now()
 
     embeds = []
     
@@ -354,11 +355,8 @@ def generate_pages(items: list, items_per_page: Optional[int]=None, add_page_num
             # else:
             #     __footer = None
             emb = makeembed_bot(
-                title=title,
-                footer=footer,
-                timestamp=timestamp,
-                color=color,
-                description=desc
+                description=desc,
+                **kwargs
             )
             embeds.append(emb)
             desc = ''
@@ -369,23 +367,16 @@ def generate_pages(items: list, items_per_page: Optional[int]=None, add_page_num
     if desc:
         if pagenum == 0:
             emb = makeembed_bot(
-                title=title,
-                footer=footer,
-                timestamp=timestamp,
-                color=color,
-                description=desc
+                description=desc,
+                **kwargs,
             )
             embeds.append(emb)
             add_page_nums = False
         else:
             pagenum += 1
             emb = makeembed_bot(
-                title=title,
-                #footer=f"{footer+' | ' if footer else ''}Page {pagenum}/{pagelen}" if len(items) > 1 else footer,
-                footer=footer,
-                timestamp=timestamp,
-                color=color,
-                description=desc
+                description=desc,
+                **kwargs,
             )
             embeds.append(emb)
     
