@@ -4,3 +4,4 @@ parsedatetime
 python-dateutil
 PyYAML
 typing_extensions
+sentry-sdk
