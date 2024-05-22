@@ -198,7 +198,10 @@ class BaseButtonPaginator(discord.ui.View):
             if isinstance(button, discord.ui.Button):
                 button.disabled = True
         if self.message:
-            await self.message.edit(view=self)
+            try:
+                await self.message.edit(view=self)
+            except discord.HTTPException:
+                pass
         return await super().on_timeout()
 
 class GoToPageModal(discord.ui.Modal):
