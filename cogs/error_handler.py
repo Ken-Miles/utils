@@ -128,6 +128,9 @@ class ErrorHandler(CogU, hidden=True):
                             scope.set_tag('shard_id', ctx.guild.shard_id)
                     scope.set_tag('user_id', ctx.author.id)
                     scope.set_level('error')
+                    scope.set_context('command', ctx.command.name)
+                    scope.set_context('args', ctx.args)
+                    scope.set_context('kwargs', ctx.kwargs)
                     capture_exception(error)
             except Exception as e: pass
             if isinstance(error, commands.CommandError):
