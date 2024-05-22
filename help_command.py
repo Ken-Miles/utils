@@ -344,17 +344,29 @@ class CogSelecter(discord.ui.Select["BaseView"]):
             c.qualified_name.lower(): c for c in cogs
         }
 
-        super().__init__(
-            placeholder="Select a group...",
-            options=[
+        options = []
+
+        for cog in cogs:
+            if getattr(cog, 'hidden', False):
+                continue
+            
+            # check if the cog is jishaku and if it's hidden
+            if hasattr(cog, 'jsk') and cog.qualified_name == 'Jishaku':
+                if getattr(getattr(cog, 'jsk'), 'hidden', False):
+                    continue
+            
+            description = cog.description or cog.__doc__ or "No description."
+            options.append(
                 discord.SelectOption(
                     label=cog.qualified_name,
                     value=cog.qualified_name.lower(),
-                    description=cog.__doc__,
-                ) 
-                for cog in cogs
-                if not (getattr(cog, 'hidden', False))
-            ]
+                    description=description[:100],
+                )
+            )
+
+        super().__init__(
+            placeholder="Select a group...",
+            options=options
         )
 
     async def callback(self, interaction: discord.Interaction) -> None:
