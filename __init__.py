@@ -11,6 +11,8 @@ from .context import * # requests
 
 from .danny_time import *
 
+from .views import *
+
 from .cogs.error_handler import *
 
 # check if custom_constants exists, if so import
