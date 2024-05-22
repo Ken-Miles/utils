@@ -355,12 +355,12 @@ class CogSelecter(discord.ui.Select["BaseView"]):
                 if getattr(getattr(cog, 'jsk'), 'hidden', False):
                     continue
             
-            description = cog.description or cog.__doc__ or "No description."
+            description = cog.description or cog.__doc__
             options.append(
                 discord.SelectOption(
                     label=cog.qualified_name,
                     value=cog.qualified_name.lower(),
-                    description=description[:100],
+                    description=description[:100] if description else "",
                 )
             )
 
