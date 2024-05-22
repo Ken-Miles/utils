@@ -333,7 +333,7 @@ class CogSelecter(discord.ui.Select["BaseView"]):
     Attributes
     ----------
     parent: :class:`BaseView`
-        The parent thaty created this view.
+        The parent that created this view.
     """
 
     __slots__: Tuple[str, ...] = ("parent", "_cog_mapping")
@@ -353,7 +353,7 @@ class CogSelecter(discord.ui.Select["BaseView"]):
                     description=cog.__doc__,
                 ) 
                 for cog in cogs
-                if not (isinstance(cog, CogU) and cog.hidden)
+                if not (getattr(cog, 'hidden', False))
             ]
         )
 
