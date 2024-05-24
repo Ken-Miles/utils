@@ -291,7 +291,7 @@ class FiveButtonPaginator(BaseButtonPaginator):
     async def first_page(
         self, interaction: Interaction, _: discord.ui.Button
     ) -> None:
-        self.current_page = 1
+        self.current_page = 0
         await self.update_page(interaction)
 
     @discord.ui.button(label="\u200b", style=discord.ButtonStyle.blurple, emoji=emojidict.get('back'), row=1)
