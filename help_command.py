@@ -26,7 +26,7 @@ from discord.ext import commands
 from discord.ext.commands import Cog, Context
 from typing_extensions import Concatenate, ParamSpec, Self, TypeAlias
 
-from .context import BotU, CogU
+from .context import BotU
 
 T = TypeVar("T")
 P = ParamSpec("P")
@@ -75,7 +75,7 @@ def _backup_command_embed(command: CommandType, prefix: str) -> discord.Embed:
     if subcommands := getattr(command, "commands", None):
         embed.add_field(
             name="Subcommands",
-            value=",".join([f"`{c.name}`" for c in subcommands]),
+            value=",".join([f"`{c.name}`" for c in subcommands if not c.hidden]),
             inline=False,
         )
 
@@ -355,6 +355,9 @@ class CogSelecter(discord.ui.Select["BaseView"]):
                 if getattr(getattr(cog, 'jsk'), 'hidden', False):
                     continue
             
+            if all([command.hidden for command in cog.get_commands()]): # if all commands in a cog are hidden
+                continue
+            
             description = cog.description or cog.__doc__
             options.append(
                 discord.SelectOption(
@@ -474,7 +477,7 @@ class HelpCog(BaseView):
         embed.add_field(
             name="Commands",
             value=",".join(
-                [f"`{command.qualified_name}`" for command in cog.get_commands()],
+                [f"`{command.qualified_name}`" for command in cog.get_commands() if not command.hidden],
             )
             or "No commands...",
         )
