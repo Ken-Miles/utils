@@ -1,6 +1,6 @@
 from __future__ import annotations
 import datetime
-from typing import Any, Dict, Optional, Sequence, Union
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 import discord
 from discord import Embed, Interaction, InteractionMessage, Message, WebhookMessage
@@ -120,7 +120,7 @@ class BaseButtonPaginator(discord.ui.View):
             return formatted_page
         else:
             raise TypeError(
-                "Page content must be one of str, discord.Embed, list[discord.Embed], or dict"
+                "Page content must be one of str, discord.Embed, List[discord.Embed], or dict"
             )
 
         return kwargs
@@ -420,15 +420,15 @@ async def create_paginator(
 
 
 def generate_pages(
-    items: list,
+    items: List[str],
     items_per_page: Optional[int] = None,
     add_page_nums: bool = True,
     **kwargs,
-) -> list[Embed]:
+) -> List[Embed]:
     """Generate pages for an Embed Paginator
 
     Args:
-        items (list): A list of items to paginate.
+        items (List[str]): A list of items to paginate.
         items_per_page (int): The number of lines/items to show per page. Default is when the page is at 2000 characters.
         title (Optional[str], optional): The title to show on the Embed. Defaults to None.
         footer (Optional[str], optional): The base Footer to show on the Embed. Page number will be appended to this if provided.. Defaults to 'Made by @aidenpearce3066'.
