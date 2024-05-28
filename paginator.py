@@ -254,7 +254,7 @@ class GoToPageModal(discord.ui.Modal):
             )
         try:
             page_num = int(self.page_num.value)
-            #page_num += 1 # 0-indexed
+            # page_num += 1 # 0-indexed
         except ValueError:
             return await interaction.followup.send(
                 "Page number must be an integer.", ephemeral=True
@@ -275,6 +275,8 @@ class GoToPageModal(discord.ui.Modal):
                 str(e),
                 ephemeral=True,
             )
+
+
 class GoToPageButton(discord.ui.Button):
     def __init__(
         self,

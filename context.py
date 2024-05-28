@@ -1,52 +1,77 @@
 from __future__ import annotations
-
-from typing import TYPE_CHECKING, Callable, Optional, ParamSpec, TypeVar, Union, Literal, ClassVar
+import asyncio
+import functools
+from typing import (
+    Callable,
+    ClassVar,
+    Literal,
+    Optional,
+    ParamSpec,
+    TYPE_CHECKING,
+    TypeVar,
+    Union,
+)
 
 import aiohttp
-import asyncio
 import discord
+from discord import (
+    CategoryChannel,
+    DMChannel,
+    ForumChannel,
+    Guild,
+    Interaction,
+    InvalidData,
+    Member,
+    Message,
+    StageChannel,
+    TextChannel,
+    Thread,
+    User,
+    VoiceChannel,
+)
+from discord.abc import GuildChannel, PrivateChannel
 from discord.ext import commands
 from discord.ext.commands import Bot, Cog
-from discord import Interaction, InvalidData, Message, Guild, User, Member, DMChannel, TextChannel, VoiceChannel, CategoryChannel, StageChannel, ForumChannel, Thread
-from discord.abc import GuildChannel, PrivateChannel
-import functools
 
-from .tree import MentionableTree
 from .constants import LOADING_EMOJI
-from .requests_http import _get, _post, _patch, _put, _delete
+from .requests_http import _delete, _get, _patch, _post, _put
+from .tree import MentionableTree
 
 if TYPE_CHECKING:
     assert isinstance(LOADING_EMOJI, str)
 
-T = TypeVar('T')
-P = ParamSpec('P')
+T = TypeVar("T")
+P = ParamSpec("P")
+
 
 class CogU(Cog):
     """A subclass of Cog that includes a `hidden` attribute.
-    Intended for use in Help commands where entire cogs shouldn't be shown by default."""
+    Intended for use in Help commands where entire cogs shouldn't be shown by default.
+    """
+
     hidden: ClassVar[bool]
 
     bot: BotU
 
-    def __init_subclass__(cls, *, hidden: bool=False):
+    def __init_subclass__(cls, *, hidden: bool = False):
         cls.hidden = hidden
-    
+
     async def _get(self, url: str, **kwargs) -> aiohttp.ClientResponse:
         """Performs a GET request on the given URL."""
         return await _get(url, **kwargs)
-    
+
     async def _post(self, url: str, **kwargs) -> aiohttp.ClientResponse:
         """Performs a POST request on the given URL."""
         return await _post(url, **kwargs)
-    
+
     async def _patch(self, url: str, **kwargs) -> aiohttp.ClientResponse:
         """Performs a PATCH request on the given URL."""
         return await _patch(url, **kwargs)
-    
+
     async def _put(self, url: str, **kwargs) -> aiohttp.ClientResponse:
         """Performs a PUT request on the given URL."""
         return await _put(url, **kwargs)
-    
+
     async def _delete(self, url: str, **kwargs) -> aiohttp.ClientResponse:
         """Performs a DELETE request on the given URL."""
         return await _delete(url, **kwargs)
@@ -63,22 +88,31 @@ class CogU(Cog):
         # cmd = self.bot.tree.get_command(cmd_name)
         if isinstance(self.bot.tree, MentionableTree):
             tree: MentionableTree = self.bot.tree
-            cmd = await tree.find_mention_for(command) # type: ignore
-        else: cmd = None
+            cmd = await tree.find_mention_for(command)  # type: ignore
+        else:
+            cmd = None
         if not cmd:
             if isinstance(command, str):
                 cmd = f"`/{command}`"
             else:
                 cmd = f"`/{command.name}`"
         return cmd
-    
+
+
 class ConfirmationView(discord.ui.View):
     """
     Taken from https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/context.py#L280
     Written by @danny on Discord
     """
 
-    def __init__(self, *, author_id: int, delete_after: bool, timeout: float=30.0, text: Optional[str]=None) -> None:
+    def __init__(
+        self,
+        *,
+        author_id: int,
+        delete_after: bool,
+        timeout: float = 30.0,
+        text: Optional[str] = None,
+    ) -> None:
         super().__init__(timeout=timeout)
         self.value: Optional[bool] = None
         self.delete_after: bool = delete_after
@@ -89,14 +123,16 @@ class ConfirmationView(discord.ui.View):
         if interaction.user and interaction.user.id == self.author_id:
             return True
         else:
-            await interaction.response.send_message('This button is not for you.', ephemeral=True)
+            await interaction.response.send_message(
+                "This button is not for you.", ephemeral=True
+            )
             return False
 
     async def on_timeout(self) -> None:
         if self.delete_after and self.message:
             await self.message.delete()
 
-    @discord.ui.button(label='Confirm', style=discord.ButtonStyle.green)
+    @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
     async def confirm(self, interaction: discord.Interaction, _: discord.ui.Button):
         self.value = True
         await interaction.response.defer()
@@ -104,7 +140,7 @@ class ConfirmationView(discord.ui.View):
             await interaction.delete_original_response()
         self.stop()
 
-    @discord.ui.button(label='Cancel', style=discord.ButtonStyle.red)
+    @discord.ui.button(label="Cancel", style=discord.ButtonStyle.red)
     async def cancel(self, interaction: discord.Interaction, _: discord.ui.Button):
         self.value = False
         await interaction.response.defer()
@@ -112,26 +148,32 @@ class ConfirmationView(discord.ui.View):
             await interaction.delete_original_response()
         self.stop()
 
+
 class ContextU(commands.Context):
     """Context Subclass to add some extra functionality."""
+
     bot: BotU
     defer_reaction: Optional[discord.Reaction] = None
 
     async def defer(self, *args, **kwargs):
         if not self.interaction and self.message:
-            if (self.guild and self.guild.me.guild_permissions.add_reactions) or self.guild is None:
+            if (
+                self.guild and self.guild.me.guild_permissions.add_reactions
+            ) or self.guild is None:
                 self.defer_reaction = await self.message.add_reaction(LOADING_EMOJI)
         await super().defer(*args, **kwargs)
 
     async def _remove_reaction_if_present(self):
         if not self.interaction and self.message:
-            if self.guild and LOADING_EMOJI in [str(x.emoji) for x in self.message.reactions]: ##discord.utils.get(self.message.reactions, emoji____str__=LOADING_EMOJI)
+            if self.guild and LOADING_EMOJI in [
+                str(x.emoji) for x in self.message.reactions
+            ]:  ##discord.utils.get(self.message.reactions, emoji____str__=LOADING_EMOJI)
                 if self.guild.me.guild_permissions.manage_messages:
-                    await self.message.clear_reaction(LOADING_EMOJI) # type: ignore
+                    await self.message.clear_reaction(LOADING_EMOJI)  # type: ignore
                     self.defer_reaction = None
 
             if self.defer_reaction:
-                await self.message.remove_reaction(LOADING_EMOJI,self.me) # type: ignore
+                await self.message.remove_reaction(LOADING_EMOJI, self.me)  # type: ignore
                 self.defer_reaction = None
 
     async def send(self, *args, **kwargs):
@@ -141,7 +183,7 @@ class ContextU(commands.Context):
     async def reply(self, *args, **kwargs):
         await self._remove_reaction_if_present()
         return await super().reply(*args, **kwargs)
-    
+
     async def prompt(
         self,
         message: str,
@@ -182,12 +224,13 @@ class ContextU(commands.Context):
         await view.wait()
         return view.value
 
+
 class BotU(Bot):
     tree_cls: MentionableTree
 
     def __init__(self, *args, **kwargs) -> None:
-        if kwargs.get('cls',None):
-            assert issubclass(kwargs['cls'], MentionableTree)
+        if kwargs.get("cls", None):
+            assert issubclass(kwargs["cls"], MentionableTree)
         super().__init__(*args, **kwargs)
 
     async def setup_hook(self):
@@ -197,11 +240,18 @@ class BotU(Bot):
                 self.owner_ids = [x.id for x in self.application.team.members]
             else:
                 self.owner_ids = [self.application.owner.id]
-    
-    async def get_context(self, origin: Union[Message, Interaction], *, cls: type[commands.Context] = ContextU) -> commands.Context:
+
+    async def get_context(
+        self,
+        origin: Union[Message, Interaction],
+        *,
+        cls: type[commands.Context] = ContextU,
+    ) -> commands.Context:
         return await super().get_context(origin, cls=cls)
 
-    async def getorfetch_channel(self, channelid: int, guild: Optional[Guild]=None) -> Union[GuildChannel, Thread, PrivateChannel]:
+    async def getorfetch_channel(
+        self, channelid: int, guild: Optional[Guild] = None
+    ) -> Union[GuildChannel, Thread, PrivateChannel]:
         """Gets a channel from a guild (if provided) or bot's cache, else fetches it. Will error if fetch fails."""
         channel: Optional[Union[GuildChannel, Thread, PrivateChannel]] = None
         if guild is not None:
@@ -230,15 +280,19 @@ class BotU(Bot):
             return ch
         raise InvalidData(f"Channel {channelid} is not a TextChannel")
 
-    async def getorfetch_voicechannel(self, channelid: int, guild: Guild) -> VoiceChannel:
+    async def getorfetch_voicechannel(
+        self, channelid: int, guild: Guild
+    ) -> VoiceChannel:
         """Gets or fetches a VoiceChannel from the provided guild.
         If None or a non-VoiceChannel is returned, raises AssertionError"""
         ch = await self.getorfetch_channel(channelid, guild)
         if isinstance(ch, VoiceChannel):
             return ch
         raise InvalidData(f"Channel {channelid} is not a VoiceChannel")
-    
-    async def getorfetch_categorychannel(self, channelid: int, guild: Guild) -> CategoryChannel:
+
+    async def getorfetch_categorychannel(
+        self, channelid: int, guild: Guild
+    ) -> CategoryChannel:
         """Gets or fetches a CategoryChannel from the provided guild.
         If None or a non-CategoryChannel is returned, raises AssertionError"""
         ch = await self.getorfetch_channel(channelid, guild)
@@ -246,36 +300,42 @@ class BotU(Bot):
             return ch
         raise InvalidData(f"Channel {channelid} is not a CategoryChannel")
 
-    
     getorfetch_category = getorfetch_categorychannel
-    
-    async def getorfetch_stagechannel(self, channelid: int, guild: Guild) -> StageChannel:
+
+    async def getorfetch_stagechannel(
+        self, channelid: int, guild: Guild
+    ) -> StageChannel:
         """Gets or fetches a StageChannel from the provided guild.
         If None or a non-StageChannel is returned, raises AssertionError"""
         ch = await self.getorfetch_channel(channelid, guild)
         if isinstance(ch, StageChannel):
             return ch
         raise InvalidData(f"Channel {channelid} is not a StageChannel")
-    
+
     getorfetch_stage = getorfetch_stagechannel
-    
-    async def getorfetch_forumchannel(self, channelid: int, guild: Guild) -> ForumChannel:
+
+    async def getorfetch_forumchannel(
+        self, channelid: int, guild: Guild
+    ) -> ForumChannel:
         """Gets or fetches a StageChannel from the provided guild.
         If None or a non-StageChannel is returned, raises A"""
         ch = await self.getorfetch_channel(channelid, guild)
         if isinstance(ch, ForumChannel):
             return ch
         raise InvalidData(f"Channel {channelid} is not a ForumChannel")
-    
+
     getorfetch_forum = getorfetch_forumchannel
 
-    async def getorfetch_user(self, userid: int, guild: Optional[Guild]) -> Union[User, Member]:
+    async def getorfetch_user(
+        self, userid: int, guild: Optional[Guild]
+    ) -> Union[User, Member]:
         """Gets a user from a guild (if provided) or bot's cache, else fetches it. Will error if fetch fails."""
         user: Union[User, Member]
         if guild is not None:
             user = await self.getorfetch_member(userid, guild)
-            if user: return user
-        user = self.get_user(userid) # type: ignore | fuck you pyright
+            if user:
+                return user
+        user = self.get_user(userid)  # type: ignore | fuck you pyright
         if user is None:
             user = await self.fetch_user(userid)
         return user
@@ -292,17 +352,15 @@ class BotU(Bot):
         guild = self.get_guild(guildid)
         if guild is None:
             guild = await self.fetch_guild(guildid)
-        return guild 
-    
-    async def getorfetch_dmchannel(self, user: Union[User,Member]) -> DMChannel:
+        return guild
+
+    async def getorfetch_dmchannel(self, user: Union[User, Member]) -> DMChannel:
         """Gets a DM channel from the cache, else fetches it. Will error if fetch fails."""
         if user.dm_channel is None:
             return await user.create_dm()
         return user.dm_channel
-    
+
     getorfetch_dm = getorfetch_dmchannel
 
-    def wrap(
-        self, func: Callable[P, T], *args: P.args, **kwargs: P.kwargs
-    ):
+    def wrap(self, func: Callable[P, T], *args: P.args, **kwargs: P.kwargs):
         return asyncio.to_thread(functools.partial(func, *args, **kwargs))

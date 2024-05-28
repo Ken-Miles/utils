@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import abc
 import difflib
 import functools
@@ -347,17 +346,19 @@ class CogSelecter(discord.ui.Select["BaseView"]):
         options = []
 
         for cog in cogs:
-            if getattr(cog, 'hidden', False):
+            if getattr(cog, "hidden", False):
                 continue
-            
+
             # check if the cog is jishaku and if it's hidden
-            if hasattr(cog, 'jsk') and cog.qualified_name == 'Jishaku':
-                if getattr(getattr(cog, 'jsk'), 'hidden', False):
+            if hasattr(cog, "jsk") and cog.qualified_name == "Jishaku":
+                if getattr(getattr(cog, "jsk"), "hidden", False):
                     continue
-            
-            if all([command.hidden for command in cog.get_commands()]): # if all commands in a cog are hidden
+
+            if all(
+                [command.hidden for command in cog.get_commands()]
+            ):  # if all commands in a cog are hidden
                 continue
-            
+
             description = cog.description or cog.__doc__
             options.append(
                 discord.SelectOption(
@@ -367,10 +368,7 @@ class CogSelecter(discord.ui.Select["BaseView"]):
                 )
             )
 
-        super().__init__(
-            placeholder="Select a group...",
-            options=options
-        )
+        super().__init__(placeholder="Select a group...", options=options)
 
     async def callback(self, interaction: discord.Interaction) -> None:
         """|coro|
@@ -439,6 +437,7 @@ class HelpCommand(BaseView):
         """:class:`discord.Embed`: Returns an embed representing the help for the group."""
         return _backup_command_embed(self.command, self.context.clean_prefix)
 
+
 class HelpCog(BaseView):
     """The view representing help for a specific Cog.
     Parameters
@@ -477,7 +476,11 @@ class HelpCog(BaseView):
         embed.add_field(
             name="Commands",
             value=",".join(
-                [f"`{command.qualified_name}`" for command in cog.get_commands() if not command.hidden],
+                [
+                    f"`{command.qualified_name}`"
+                    for command in cog.get_commands()
+                    if not command.hidden
+                ],
             )
             or "No commands...",
         )
@@ -504,8 +507,10 @@ class HelpView(BaseView):
     @property
     def embed(self) -> discord.Embed:
         """:class:`discord.Embed`: The master embed for this view."""
-        try: prefix = self.context.clean_prefix
-        except AttributeError: prefix = self.context.bot.user.mention # type: ignore
+        try:
+            prefix = self.context.clean_prefix
+        except AttributeError:
+            prefix = self.context.bot.user.mention  # type: ignore
 
         getting_help: List[str] = [
             f"Use `{prefix}help <command>` for more info on a command.",
@@ -516,10 +521,10 @@ class HelpView(BaseView):
 
         embed = discord.Embed(
             title="Bot Help Menu",
-            description=f"Hello, I'm {self.context.bot.user.mention}! A general purpose bot for all your needs.", # type: ignore
+            description=f"Hello, I'm {self.context.bot.user.mention}! A general purpose bot for all your needs.",  # type: ignore
         )
         embed.set_author(
-            name=self.context.bot.user.name, icon_url=self.context.bot.user.display_avatar.url # type: ignore
+            name=self.context.bot.user.name, icon_url=self.context.bot.user.display_avatar.url  # type: ignore
         )
         embed.add_field(
             name="Getting Help", value="\n".join(getting_help), inline=False
@@ -664,6 +669,7 @@ class Help(commands.HelpCommand):
 
 async def setup(bot: BotU) -> None:
     bot.help_command = Help()
+
 
 async def teardown(bot: BotU) -> None:
     bot.help_command = commands.MinimalHelpCommand()

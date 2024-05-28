@@ -1,5 +1,5 @@
 # fmt: off
-from typing import Optional, List
+from typing import List, Optional
 
 import discord
 from discord import app_commands
