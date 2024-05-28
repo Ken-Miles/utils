@@ -142,7 +142,7 @@ class BaseButtonPaginator(discord.ui.View):
         kwargs = await self.get_page_kwargs(self.get_page(self.current_page))
         try:
             await interaction.response.edit_message(**kwargs)
-        except (discord.HTTPException, discord.NotFound):
+        except (discord.HTTPException, discord.NotFound, discord.InteractionResponded):
             if self.message:
                 await self.message.edit(**kwargs)
 
