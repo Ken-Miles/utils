@@ -140,7 +140,11 @@ class BaseButtonPaginator(discord.ui.View):
 
         self.update_buttons()
         kwargs = await self.get_page_kwargs(self.get_page(self.current_page))
-        await interaction.response.edit_message(**kwargs)
+        try:
+            await interaction.response.edit_message(**kwargs)
+        except (discord.HTTPException, discord.NotFound):
+            if self.message:
+                await self.message.edit(**kwargs)
 
     async def _stop_paginator(
         self, interaction: Interaction, _: discord.ui.Button
