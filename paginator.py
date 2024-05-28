@@ -169,9 +169,10 @@ class BaseButtonPaginator(discord.ui.View):
         await self.update_page(interaction)
 
     async def _go_to_page(self, interaction: Interaction, page_num: int) -> None:
-        if page_num < 1 or page_num >= self.max_pages:
-            raise ValueError(f"Page number must be between 1 and {self.max_pages}")
-        self.current_page = page_num-1
+        page_num -= 1
+        if page_num < 0 or page_num >= self.max_pages+1:
+            raise ValueError(f"Page number must be between 0 and {self.max_pages}")
+        self.current_page = page_num
         await self.update_page(interaction)
 
     async def start(
