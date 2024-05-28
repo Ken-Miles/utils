@@ -116,8 +116,8 @@ def _autocomplete(current: str, items: Sequence[Any], cutoff: float=.4) -> Seque
     return matched_items
 
 #@alru_cache(maxsize=1000)
-async def generic_autocomplete(current: str, items: Union[Sequence[Any], Sequence[Tuple[Any, Any]]], interaction: Optional[discord.Interaction]=None) -> List[app_commands.Choice]:
-    allmatches = _autocomplete(current, tuple(items))
+async def generic_autocomplete(current: str, items: Union[Sequence[Any], Sequence[Tuple[Any, Any]]], interaction: Optional[discord.Interaction]=None, cutoff: float=.4) -> List[app_commands.Choice]:
+    allmatches = _autocomplete(current, tuple(items), cutoff=cutoff)
     return [app_commands.Choice(name=x[0],value=x[1]) for x in allmatches]
 
 def merge_permissions(overwrite: discord.PermissionOverwrite, permissions: discord.Permissions, **perms: bool) -> None:
