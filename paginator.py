@@ -268,7 +268,7 @@ class GoToPageModal(discord.ui.Modal):
             await self.paginatior._go_to_page(interaction, page_num)
         except ValueError as e:
             return await interaction.followup.send(
-                e,
+                str(e),
                 ephemeral=True,
             )
 class GoToPageButton(discord.ui.Button):
