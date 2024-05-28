@@ -85,7 +85,7 @@ async def create_codeblock(content: str, lang: CodeblockLanguage='py') -> str:
     return f"{fmt}{lang}\n{content}{fmt}"
 
 @lru_cache(maxsize=1000)
-def _autocomplete(current: str, items: Sequence[Any]) -> Sequence[Tuple[str, Any]]:
+def _autocomplete(current: str, items: Sequence[Any], cutoff: float=.4) -> Sequence[Tuple[str, Any]]:
     if not items:
         return []
 
@@ -102,7 +102,7 @@ def _autocomplete(current: str, items: Sequence[Any]) -> Sequence[Tuple[str, Any
     else:
         item_names = items
 
-    allmatches = difflib.get_close_matches(current, item_names, n=24, cutoff=0.5)
+    allmatches = difflib.get_close_matches(current, item_names, n=24, cutoff=cutoff)
 
     matched_items = []
     for match in allmatches:
