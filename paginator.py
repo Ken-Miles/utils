@@ -171,7 +171,7 @@ class BaseButtonPaginator(discord.ui.View):
     async def _go_to_page(self, interaction: Interaction, page_num: int) -> None:
         page_num -= 1
         if page_num < 0 or page_num > self.max_pages:
-            raise ValueError(f"Page number must be between 0 and {self.max_pages}")
+            raise ValueError(f"Page number must be between `0` and `{self.max_pages}`.")
         self.current_page = page_num
         await self.update_page(interaction)
 
@@ -256,17 +256,21 @@ class GoToPageModal(discord.ui.Modal):
                 "Page number must be an integer.", ephemeral=True
             )
 
-        min_pages, max_pages = 1, self.paginatior.max_pages+1
+        min_pages, max_pages = 1, self.paginatior.max_pages
 
         if not min_pages <= page_num <= max_pages:
             return await interaction.followup.send(
-                f"Page number must be between {min_pages} and {max_pages}.",
+                f"Page number must be between `{min_pages}` and `{max_pages}`.",
                 ephemeral=True,
             )
 
-        await self.paginatior._go_to_page(interaction, page_num)
-
-
+        try:
+            await self.paginatior._go_to_page(interaction, page_num)
+        except ValueError as e:
+            return await interaction.followup.send(
+                e,
+                ephemeral=True,
+            )
 class GoToPageButton(discord.ui.Button):
     def __init__(
         self,
