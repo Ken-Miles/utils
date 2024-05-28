@@ -317,8 +317,8 @@ class FiveButtonPaginator(BaseButtonPaginator):
         self.current_page = self.max_pages - 1
         await self.update_page(interaction)
 
-async def create_paginator(ctx: ContextU, pages: Sequence[Any], paginator: type[BaseButtonPaginator]=BaseButtonPaginator, author_id: Optional[int]=None, timeout: Optional[float]=180.0, delete_message_after: bool=False, per_page: int=1) -> BaseButtonPaginator:
-    pg = paginator(pages, author_id=author_id, timeout=timeout, delete_message_after=delete_message_after, per_page=per_page)
+async def create_paginator(ctx: ContextU, pages: Sequence[Any], paginator: type[BaseButtonPaginator]=BaseButtonPaginator, author_id: Optional[int]=None, timeout: Optional[float]=180.0, go_to_button: bool=False, delete_message_after: bool=False, per_page: int=1) -> BaseButtonPaginator:
+    pg = paginator(pages, author_id=author_id, timeout=timeout, delete_message_after=delete_message_after, go_to_button=go_to_button, per_page=per_page)
     await pg.start(ctx)
     return pg
 
