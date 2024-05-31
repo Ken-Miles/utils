@@ -165,13 +165,12 @@ class ContextU(commands.Context):
 
     async def _remove_reaction_if_present(self):
         if not self.interaction and self.message:
-            if self.guild and LOADING_EMOJI in [
-                str(x.emoji) for x in self.message.reactions
-            ]:  ##discord.utils.get(self.message.reactions, emoji____str__=LOADING_EMOJI)
+            if self.guild and LOADING_EMOJI in [str(x.emoji) for x in self.message.reactions]:  ##discord.utils.get(self.message.reactions, emoji____str__=LOADING_EMOJI)
                 if self.guild.me.guild_permissions.manage_messages:
                     await self.message.clear_reaction(LOADING_EMOJI)  # type: ignore
-                    self.defer_reaction = None
-
+                else:
+                    await self.message.remove_reaction(LOADING_EMOJI, self.me)
+                self.defer_reaction = None
             if self.defer_reaction:
                 await self.message.remove_reaction(LOADING_EMOJI, self.me)  # type: ignore
                 self.defer_reaction = None
