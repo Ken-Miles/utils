@@ -33,6 +33,7 @@ from discord.abc import GuildChannel, PrivateChannel
 from discord.ext import commands
 from discord.ext.commands import Bot, Cog
 
+from . import USE_DEFER_EMOJI
 from .constants import LOADING_EMOJI
 from .requests_http import _delete, _get, _patch, _post, _put
 from .tree import MentionableTree
@@ -156,24 +157,29 @@ class ContextU(commands.Context):
     defer_reaction: Optional[discord.Reaction] = None
 
     async def defer(self, *args, **kwargs):
-        if not self.interaction and self.message:
-            if (
-                self.guild and self.guild.me.guild_permissions.add_reactions
-            ) or self.guild is None:
-                self.defer_reaction = await self.message.add_reaction(LOADING_EMOJI)
+        if USE_DEFER_EMOJI:
+            if not self.interaction and self.message:
+                if (
+                    self.guild and self.guild.me.guild_permissions.add_reactions
+                ) or self.guild is None:
+                    self.defer_reaction = await self.message.add_reaction(LOADING_EMOJI)
+        else:
+            if not self.interaction and self.message:
+                await self.message.channel.typing()
         await super().defer(*args, **kwargs)
 
     async def _remove_reaction_if_present(self):
         if not self.interaction and self.message:
-            if self.guild and LOADING_EMOJI in [str(x.emoji) for x in self.message.reactions]:  ##discord.utils.get(self.message.reactions, emoji____str__=LOADING_EMOJI)
-                if self.guild.me.guild_permissions.manage_messages:
-                    await self.message.clear_reaction(LOADING_EMOJI)  # type: ignore
-                else:
-                    await self.message.remove_reaction(LOADING_EMOJI, self.me)
-                self.defer_reaction = None
-            if self.defer_reaction:
-                await self.message.remove_reaction(LOADING_EMOJI, self.me)  # type: ignore
-                self.defer_reaction = None
+            if USE_DEFER_EMOJI:
+                if self.guild and LOADING_EMOJI in [str(x.emoji) for x in self.message.reactions]:  ##discord.utils.get(self.message.reactions, emoji____str__=LOADING_EMOJI)
+                    if self.guild.me.guild_permissions.manage_messages:
+                        await self.message.clear_reaction(LOADING_EMOJI)  # type: ignore
+                    else:
+                        await self.message.remove_reaction(LOADING_EMOJI, self.me)
+                    self.defer_reaction = None
+                if self.defer_reaction:
+                    await self.message.remove_reaction(LOADING_EMOJI, self.me)  # type: ignore
+                    self.defer_reaction = None
 
     async def send(self, *args, **kwargs):
         await self._remove_reaction_if_present()
