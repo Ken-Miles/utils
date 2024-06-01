@@ -285,10 +285,6 @@ class BotU(AutoShardedBot):
         #log.info('Shard ID %s has connected...', shard_id)
         self.identifies[shard_id].append(discord.utils.utcnow())
 
-    async def on_ready(self):
-        if not hasattr(self, 'uptime'):
-            self.uptime = discord.utils.utcnow()
-
     def _clear_gateway_data(self) -> None:
         one_week_ago = discord.utils.utcnow() - datetime.timedelta(days=7)
         for shard_id, dates in self.identifies.items():
