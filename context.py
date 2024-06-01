@@ -279,13 +279,15 @@ class BotU(AutoShardedBot):
     
     async def on_shard_resumed(self, shard_id: int):
         #log.info('Shard ID %s has resumed...', shard_id)
-        self.bot.resumes[shard_id].append(discord.utils.utcnow())
+        self.resumes[shard_id].append(discord.utils.utcnow())
     
     async def on_shard_ready(self, shard_id: int):
         #log.info('Shard ID %s has connected...', shard_id)
-        self.bot.identifies[shard_id].append(discord.utils.utcnow())
+        self.identifies[shard_id].append(discord.utils.utcnow())
 
-
+    async def on_ready(self):
+        if not hasattr(self, 'uptime'):
+            self.uptime = discord.utils.utcnow()
 
     def _clear_gateway_data(self) -> None:
         one_week_ago = discord.utils.utcnow() - datetime.timedelta(days=7)
