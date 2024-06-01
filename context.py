@@ -273,6 +273,9 @@ class BotU(Bot):
                 self.owner_ids = [x.id for x in self.application.team.members]
             else:
                 self.owner_ids = [self.application.owner.id]
+    
+        self.bot_app_info = await self.application_info()
+        self.owner_id = self.bot_app_info.owner.id
 
     def _clear_gateway_data(self) -> None:
         one_week_ago = discord.utils.utcnow() - datetime.timedelta(days=7)
