@@ -35,7 +35,7 @@ from discord import (
 )
 from discord.abc import GuildChannel, PrivateChannel
 from discord.ext import commands
-from discord.ext.commands import Bot, Cog
+from discord.ext.commands import AutoShardedBot, Bot, Cog
 
 from . import USE_DEFER_EMOJI
 from .constants import LOADING_EMOJI
@@ -233,7 +233,7 @@ class ContextU(commands.Context):
         await view.wait()
         return view.value
 
-class BotU(Bot):
+class BotU(AutoShardedBot):
     tree_cls: MentionableTree
 
     user: discord.ClientUser # type: ignore
