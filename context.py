@@ -252,7 +252,7 @@ class BotU(Bot):
             assert issubclass(kwargs["cls"], MentionableTree)
         #kwargs["pm_help"] = None
         super().__init__(*args, **kwargs)
-        
+
         # in case of even further spam, add a cooldown mapping
         # for people who excessively spam commands
         self.spam_control = commands.CooldownMapping.from_cooldown(10, 12.0, commands.BucketType.user)
@@ -392,3 +392,9 @@ class BotU(Bot):
 
     def wrap(self, func: Callable[P, T], *args: P.args, **kwargs: P.kwargs):
         return asyncio.to_thread(functools.partial(func, *args, **kwargs))
+
+    async def on_ready(self):
+        if not hasattr(self, 'uptime'):
+            self.uptime = discord.utils.utcnow()
+
+        #log.info('Ready: %s (ID: %s)', self.user, self.user.id)
