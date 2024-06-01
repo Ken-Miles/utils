@@ -1,19 +1,21 @@
 from __future__ import annotations
 import asyncio
+from collections import Counter, defaultdict
+import datetime
 import functools
 from typing import (
+    Any,
     Callable,
     ClassVar,
+    Coroutine,
     List,
     Optional,
     ParamSpec,
     TYPE_CHECKING,
     TypeVar,
     Union,
-    Coroutine,
-    Any
 )
-import datetime
+
 import aiohttp
 import discord
 from discord import (
@@ -34,8 +36,6 @@ from discord import (
 from discord.abc import GuildChannel, PrivateChannel
 from discord.ext import commands
 from discord.ext.commands import Bot, Cog
-
-from collections import Counter, defaultdict
 
 from . import USE_DEFER_EMOJI
 from .constants import LOADING_EMOJI
@@ -233,7 +233,6 @@ class ContextU(commands.Context):
         await view.wait()
         return view.value
 
-
 class BotU(Bot):
     tree_cls: MentionableTree
 
@@ -300,6 +299,10 @@ class BotU(Bot):
     #         await self.blacklist.remove(object_id)
     #     except KeyError:
     #         pass
+
+    @property
+    def owner(self) -> discord.User:
+        return self.bot_app_info.owner
 
     async def get_context(
         self,
@@ -430,3 +433,6 @@ class BotU(Bot):
             self.uptime = discord.utils.utcnow()
 
         #log.info('Ready: %s (ID: %s)', self.user, self.user.id)
+
+# class AutoShardedBotU(commands.AutoShardedBot, BotU):
+#     pass
