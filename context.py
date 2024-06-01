@@ -276,6 +276,16 @@ class BotU(AutoShardedBot):
     
         self.bot_app_info = await self.application_info()
         self.owner_id = self.bot_app_info.owner.id
+    
+    async def on_shard_resumed(self, shard_id: int):
+        #log.info('Shard ID %s has resumed...', shard_id)
+        self.bot.resumes[shard_id].append(discord.utils.utcnow())
+    
+    async def on_shard_ready(self, shard_id: int):
+        #log.info('Shard ID %s has connected...', shard_id)
+        self.bot.identifies[shard_id].append(discord.utils.utcnow())
+
+
 
     def _clear_gateway_data(self) -> None:
         one_week_ago = discord.utils.utcnow() - datetime.timedelta(days=7)
