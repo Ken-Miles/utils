@@ -4,12 +4,13 @@ import functools
 from typing import (
     Callable,
     ClassVar,
-    Literal,
     Optional,
     ParamSpec,
     TYPE_CHECKING,
     TypeVar,
     Union,
+    Coroutine,
+    Any
 )
 
 import aiohttp
@@ -32,6 +33,8 @@ from discord import (
 from discord.abc import GuildChannel, PrivateChannel
 from discord.ext import commands
 from discord.ext.commands import Bot, Cog
+
+from collections import Counter
 
 from . import USE_DEFER_EMOJI
 from .constants import LOADING_EMOJI
@@ -233,10 +236,30 @@ class ContextU(commands.Context):
 class BotU(Bot):
     tree_cls: MentionableTree
 
-    def __init__(self, *args, **kwargs) -> None:
+    user: discord.ClientUser # type: ignore
+    command_stats: Counter[str]
+    socket_stats: Counter[str]
+    command_types_used: Counter[bool]
+    logging_handler: Any
+    bot_app_info: discord.AppInfo
+    old_tree_error = Callable[[discord.Interaction, discord.app_commands.AppCommandError], Coroutine[Any, Any, None]]
+
+    def __init__(self, 
+        *args, 
+        **kwargs
+    ) -> None:
         if kwargs.get("cls", None):
             assert issubclass(kwargs["cls"], MentionableTree)
+        #kwargs["pm_help"] = None
         super().__init__(*args, **kwargs)
+        
+        # in case of even further spam, add a cooldown mapping
+        # for people who excessively spam commands
+        self.spam_control = commands.CooldownMapping.from_cooldown(10, 12.0, commands.BucketType.user)
+
+        # A counter to auto-ban frequent spammers
+        # Triggering the rate limit 5 times in a row will auto-ban the user from the bot.
+        self._auto_spam_count = Counter()
 
     async def setup_hook(self):
         if not self.owner_ids:
