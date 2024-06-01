@@ -4,6 +4,7 @@ import functools
 from typing import (
     Callable,
     ClassVar,
+    List,
     Optional,
     ParamSpec,
     TYPE_CHECKING,
@@ -12,7 +13,7 @@ from typing import (
     Coroutine,
     Any
 )
-
+import datetime
 import aiohttp
 import discord
 from discord import (
@@ -34,7 +35,7 @@ from discord.abc import GuildChannel, PrivateChannel
 from discord.ext import commands
 from discord.ext.commands import Bot, Cog
 
-from collections import Counter
+from collections import Counter, defaultdict
 
 from . import USE_DEFER_EMOJI
 from .constants import LOADING_EMOJI
@@ -253,6 +254,11 @@ class BotU(Bot):
         #kwargs["pm_help"] = None
         super().__init__(*args, **kwargs)
 
+        # shard_id: List[datetime.datetime]
+        # shows the last attempted IDENTIFYs and RESUMEs
+        self.resumes: defaultdict[int, List[datetime.datetime]] = defaultdict(list)
+        self.identifies: defaultdict[int, List[datetime.datetime]] = defaultdict(list)
+
         # in case of even further spam, add a cooldown mapping
         # for people who excessively spam commands
         self.spam_control = commands.CooldownMapping.from_cooldown(10, 12.0, commands.BucketType.user)
@@ -268,6 +274,32 @@ class BotU(Bot):
                 self.owner_ids = [x.id for x in self.application.team.members]
             else:
                 self.owner_ids = [self.application.owner.id]
+
+    def _clear_gateway_data(self) -> None:
+        one_week_ago = discord.utils.utcnow() - datetime.timedelta(days=7)
+        for shard_id, dates in self.identifies.items():
+            to_remove = [index for index, dt in enumerate(dates) if dt < one_week_ago]
+            for index in reversed(to_remove):
+                del dates[index]
+
+        for shard_id, dates in self.resumes.items():
+            to_remove = [index for index, dt in enumerate(dates) if dt < one_week_ago]
+            for index in reversed(to_remove):
+                del dates[index]
+
+    async def before_identify_hook(self, shard_id: int, *, initial: bool): # type: ignore
+        self._clear_gateway_data()
+        self.identifies[shard_id].append(discord.utils.utcnow())
+        await super().before_identify_hook(shard_id, initial=initial)
+
+    # async def add_to_blacklist(self, object_id: int):
+    #     await self.blacklist.put(object_id, True)
+
+    # async def remove_from_blacklist(self, object_id: int):
+    #     try:
+    #         await self.blacklist.remove(object_id)
+    #     except KeyError:
+    #         pass
 
     async def get_context(
         self,
