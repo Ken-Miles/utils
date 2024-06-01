@@ -313,7 +313,10 @@ class BotU(AutoShardedBot):
 
     @property
     def owner(self) -> discord.User:
+        if getattr(self.bot_app_info, "team", None):
+            return self.bot_app_info.team.owner
         return self.bot_app_info.owner
+
 
     async def get_context(
         self,
