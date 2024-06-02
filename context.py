@@ -314,10 +314,11 @@ class BotU(AutoShardedBot):
     @property
     def owner(self) -> discord.User:
         if getattr(self.bot_app_info, "team", None):
-            return self.bot_app_info.team.owner
+            return self.bot_app_info.team.owner #type: ignore
         return self.bot_app_info.owner
 
-
+    async def is_owner(self, *args, **kwargs):
+        return await super().is_owner(*args, **kwargs)
     async def get_context(
         self,
         origin: Union[Message, Interaction],
