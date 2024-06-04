@@ -275,7 +275,8 @@ class BotU(AutoShardedBot):
                 self.owner_ids = [self.application.owner.id]
     
         self.bot_app_info = await self.application_info()
-        self.owner_id = self.bot_app_info.owner.id
+        #self.owner_id = self.bot_app_info.owner.id
+        # DO NOT UNCOMMENT, THIS WILL BREAK IS_OWNER CHECKS
     
     async def on_shard_resumed(self, shard_id: int):
         #log.info('Shard ID %s has resumed...', shard_id)
