@@ -312,7 +312,8 @@ class BotU(AutoShardedBot):
     #         pass
 
     @property
-    def owner(self) -> discord.User:
+    def owner_obj(self) -> discord.User:
+        """Renamed because is_owner doesn't work with the new application_info"""
         if getattr(self.bot_app_info, "team", None):
             user = self.get_user(self.bot_app_info.team.owner.id)
             if user:
