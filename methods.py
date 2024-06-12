@@ -3,6 +3,7 @@ import datetime
 import difflib
 from functools import lru_cache
 from typing import Any, List, Literal, Optional, Sequence, Tuple, Union
+import uuid
 
 import discord
 from discord import app_commands
@@ -568,3 +569,22 @@ def merge_permissions(
     for perm, value in perms.items():
         if getattr(permissions, perm):
             setattr(overwrite, perm, value)
+
+def generate_transaction_id(guild_id: Optional[int]=None, user_id: Optional[int]=None, length: int=36) -> str:
+    """Generates a UUID for an error.
+    Uses params passed in if provided, as well as the current time.
+
+
+    Args:
+        guild_id (Optional[int], optional): The ID of the guild where this happened. Defaults to None.
+        user_id (Optional[int], optional): ID of the invoking user. Defaults to None.
+        length (int, optional): How long the UUID should be. Defaults to 36.
+
+    Returns:
+        str: The UUID for the error.
+    """ 
+    if guild_id is None:
+       guild_id = 0
+    if user_id is None:
+        user_id = 0
+    return str(uuid.uuid5(uuid.NAMESPACE_DNS, f"{guild_id}-{user_id}-{time.time()}"))[:length]
