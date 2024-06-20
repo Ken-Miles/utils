@@ -472,12 +472,40 @@ class CustomBaseView(discord.ui.View):
         self.message = message
         self.delete_message_after = delete_message_after
 
+    def stop(self, *args, **kwargs):
+        if self.delete_message_after:
+            # try:
+            #     self.message.delete()
+            # except discord.HTTPException:
+            #     pass
+            self.stop()
+        else:
+            self.disable_buttons()
+            # try:
+            #     self.message.edit(view=self)
+            # except discord.HTTPException:
+            #     pass
+            super().stop(*args, **kwargs)
+
     async def on_timeout(self) -> None:
+        if self.delete_message_after:
+            try:
+                await self.message.delete()
+            except discord.HTTPException:
+                pass
+        else:
+            self.disable_buttons()
+            try:
+                await self.message.edit(view=self)
+            except discord.HTTPException:
+                pass
+            return await super().on_timeout()
+    
+    def disable_buttons(self, disable_url_buttons: bool=False):
+        """Disables all buttons in a view. If disable_url_buttons is set to True, it will disable URL buttons as well.
+        Note that the mesasge must still be edited after calling this method for the changes to take effect."""
+
         for button in self.children:
-            if isinstance(button, discord.ui.Button) and not getattr(button, "url", None): # ensure it's not a URL button
-                button.disabled = True
-        try:
-            await self.message.edit(view=self)
-        except discord.HTTPException:
-            pass
-        return await super().on_timeout()
+            # if disable_url_buttons set to True and button is a URL button, or a normal button is set to enabled, disable it
+            if (disable_url_buttons and getattr(button, "url", None)) or getattr(button, "disabled", False):
+                button.disabled = True # type: ignore
