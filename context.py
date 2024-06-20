@@ -455,3 +455,29 @@ class BotU(AutoShardedBot):
 
 # class AutoShardedBotU(commands.AutoShardedBot, BotU):
 #     pass
+
+class CustomBaseView(discord.ui.View):
+    """Subclass of discord.ui.View that includes additional functionality:
+    - on_timeout disables all non-url buttons
+    - self.message stored by default (must be passed in)
+    - delete_message_after param (deletes message once view times out)
+    - additional features
+    """
+
+    message: discord.Message
+    delete_message_after: bool
+
+    def __init__(self, *args,  message: discord.Message, delete_message_after: bool=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.message = message
+        self.delete_message_after = delete_message_after
+
+    async def on_timeout(self) -> None:
+        for button in self.children:
+            if isinstance(button, discord.ui.Button) and not getattr(button, "url", None): # ensure it's not a URL button
+                button.disabled = True
+        try:
+            await self.message.edit(view=self)
+        except discord.HTTPException:
+            pass
+        return await super().on_timeout()
