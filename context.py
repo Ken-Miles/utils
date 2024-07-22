@@ -35,7 +35,7 @@ from discord import (
 )
 from discord.abc import GuildChannel, PrivateChannel
 from discord.ext import commands
-from discord.ext.commands import AutoShardedBot, Bot, Cog
+from discord.ext.commands import AutoShardedBot, Cog
 
 from . import USE_DEFER_EMOJI
 from .constants import LOADING_EMOJI
@@ -464,41 +464,41 @@ class CustomBaseView(discord.ui.View):
     - additional features
     """
 
-    message: discord.Message
+    message: Optional[discord.Message]
     delete_message_after: bool
 
-    def __init__(self, *args,  message: discord.Message, delete_message_after: bool=False, **kwargs):
+    def __init__(self, *args,  message: Optional[discord.Message]=None, delete_message_after: bool=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.message = message
         self.delete_message_after = delete_message_after
 
     def stop(self, *args, **kwargs):
-        if self.delete_message_after:
+        #if self.delete_message_after and self.message:
             # try:
             #     self.message.delete()
             # except discord.HTTPException:
             #     pass
-            self.stop()
-        else:
-            self.disable_buttons()
+        #else:
+        #    self.disable_buttons()
             # try:
             #     self.message.edit(view=self)
             # except discord.HTTPException:
             #     pass
-            super().stop(*args, **kwargs)
+        super().stop(*args, **kwargs)
 
     async def on_timeout(self) -> None:
-        if self.delete_message_after:
+        if self.delete_message_after and self.message:
             try:
                 await self.message.delete()
             except discord.HTTPException:
                 pass
         else:
             self.disable_buttons()
-            try:
-                await self.message.edit(view=self)
-            except discord.HTTPException:
-                pass
+            if self.message:
+                try:
+                    await self.message.edit(view=self)
+                except discord.HTTPException:
+                    pass
             return await super().on_timeout()
     
     def disable_buttons(self, disable_url_buttons: bool=False):

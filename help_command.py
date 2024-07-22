@@ -25,7 +25,7 @@ from discord.ext import commands
 from discord.ext.commands import Cog, Context
 from typing_extensions import Concatenate, ParamSpec, Self, TypeAlias
 
-from .context import BotU
+from .context import BotU, ContextU
 
 T = TypeVar("T")
 P = ParamSpec("P")
@@ -539,7 +539,7 @@ class Help(commands.HelpCommand):
     """
 
     if TYPE_CHECKING:
-        context: Context
+        context: ContextU
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs, verify_checks=False)
