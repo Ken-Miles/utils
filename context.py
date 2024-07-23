@@ -551,6 +551,9 @@ async def prompt(
             "content": message if isinstance(message, str) else None,
             "embed": message if isinstance(message, discord.Embed) else None,
         }
-        view.message = await interaction.response.send_message(**message_kwargs, view=view, ephemeral=delete_after)
+        if interaction.response.is_done():
+            view.message = await interaction.followup.send(**message_kwargs, view=view, ephemeral=delete_after)
+        else:
+            view.message = await interaction.response.send_message(**message_kwargs, view=view, ephemeral=delete_after)
         await view.wait()
         return view.value
