@@ -509,3 +509,48 @@ class CustomBaseView(discord.ui.View):
             # if disable_url_buttons set to True and button is a URL button, or a normal button is set to enabled, disable it
             if (disable_url_buttons and getattr(button, "url", None)) or getattr(button, "disabled", False):
                 button.disabled = True # type: ignore
+
+async def prompt(
+        interaction: discord.Interaction,
+        message: Union[str, discord.Embed],
+        *,
+        timeout: float = 60.0,
+        delete_after: bool = True,
+        author_id: Optional[int] = None,
+    ) -> Optional[bool]:
+        """An interactive reaction confirmation dialog.
+
+        Parameters
+        -----------
+        message: str
+            The message to show along with the prompt.
+        timeout: float
+            How long to wait before returning.
+        delete_after: bool
+            Whether to delete the confirmation message after we're done.
+        author_id: Optional[int]
+            The member who should respond to the prompt. Defaults to the author of the
+            Context's message.
+
+        Returns
+        --------
+        Optional[bool]
+            ``True`` if explicit confirm,
+            ``False`` if explicit deny,
+            ``None`` if deny due to timeout
+        """
+
+        author_id = author_id or interaction.user.id
+        view = ConfirmationView(
+            timeout=timeout,
+            delete_after=delete_after,
+            author_id=author_id,
+        )
+
+        message_kwargs = {
+            "content": message if isinstance(message, str) else None,
+            "embed": message if isinstance(message, discord.Embed) else None,
+        }
+        view.message = await interaction.response.send_message(**message_kwargs, view=view, ephemeral=delete_after)
+        await view.wait()
+        return view.value
