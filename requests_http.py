@@ -56,11 +56,9 @@ async def _request(
             return response
 
         if status_.is_1xx:
-            requests_logger.info(f"Got a 1__ Continue, Retrying request...")
-            continue
+            requests_logger.info("Got a 1__ Continue, Retrying request...")
         elif status_.is_3xx:
-            requests_logger.info(f"Got a 3__ Redirect. Retrying request...")
-            continue
+            requests_logger.info("Got a 3__ Redirect. Retrying request...")
         elif status_.is_4xx:
             if status == 429:
                 retry_after = response.headers.get("Retry-After", None)
@@ -72,23 +70,29 @@ async def _request(
                         f"We are being rate limited. Retrying in {retry_after} seconds."
                     )
                     await asyncio.sleep(retry_after)
-                    continue
                 else:
                     requests_logger.info(
                         "We are being rate limited but no Retry-After header was found. Retrying in 5 seconds."
                     )
                     await asyncio.sleep(5)
-                    continue
+            else:
+                requests_logger.info("Got a 4__ Client Error.")
+                raise aiohttp.ClientResponseError(
+                    response.request_info,
+                    response.history,
+                    status,
+                    response.reason,
+                    response.headers,
+                )
         elif status_.is_5xx:
             requests_logger.info("Got a 5__ Server Error. Retrying request...")
-            continue
         else:
             requests_logger.warning(
                 f"Got an unknown status code {status}. Retrying request..."
             )
-            continue
 
-    await close_sessions()
+        await session.close()
+
     raise aiohttp.ClientConnectionError(
         f"Failed to get a 2__ Success response after {tr} tries."
     )
