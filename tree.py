@@ -1,8 +1,9 @@
 # fmt: off
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import discord
 from discord import app_commands
+from discord.ext import commands
 
 __all__ = ('MentionableTree',)
 
@@ -83,3 +84,21 @@ class MentionableTree(app_commands.CommandTree):
             return None
 
         return f"</{_command.qualified_name}:{app_command_found.id}>"
+    
+    async def get_command_mention(self, command: Union[str, commands.Command]):
+        """Gets the Mention string for a command. If the tree is a MentionableTree, it will return the mention string for the command.
+        If the command ID cannot be found, it will return a string with the command name in backticks.
+
+        Args:
+            command_name (Union[str, commands.Command]): The command/name of the command to get the mention for.
+        """
+        # # command_name = command_name.strip().lstrip('/').lower()
+        # # cmd_name = command_name.split(' ')[0]
+        # cmd = self.bot.tree.get_command(cmd_name)
+        cmd = await self.find_mention_for(command)  # type: ignore
+        if not cmd:
+            if isinstance(command, str):
+                cmd = f"`/{command}`"
+            else:
+                cmd = f"`/{command.name}`"
+        return cmd

@@ -88,21 +88,7 @@ class CogU(Cog):
         Args:
             command_name (Union[str, commands.Command]): The command/name of the command to get the mention for.
         """
-        # # command_name = command_name.strip().lstrip('/').lower()
-        # # cmd_name = command_name.split(' ')[0]
-        # cmd = self.bot.tree.get_command(cmd_name)
-        if isinstance(self.bot.tree, MentionableTree):
-            tree: MentionableTree = self.bot.tree
-            cmd = await tree.find_mention_for(command)  # type: ignore
-        else:
-            cmd = None
-        if not cmd:
-            if isinstance(command, str):
-                cmd = f"`/{command}`"
-            else:
-                cmd = f"`/{command.name}`"
-        return cmd
-
+        return await self.bot.get_command_mention(command)
 
 class ConfirmationView(discord.ui.View):
     """
@@ -450,6 +436,29 @@ class BotU(AutoShardedBot):
     async def on_ready(self):
         if not hasattr(self, 'uptime'):
             self.uptime = discord.utils.utcnow()
+
+    async def get_command_mention(self, command: Union[str, commands.Command]):
+        """Gets the Mention string for a command. If the tree is a MentionableTree, it will return the mention string for the command.
+        If the command ID cannot be found, it will return a string with the command name in backticks.
+
+        Args:
+            command_name (Union[str, commands.Command]): The command/name of the command to get the mention for.
+        """
+        # # command_name = command_name.strip().lstrip('/').lower()
+        # # cmd_name = command_name.split(' ')[0]
+        # cmd = self.bot.tree.get_command(cmd_name)
+        if isinstance(self.tree, MentionableTree):
+            tree: MentionableTree = self.tree
+            cmd = await tree.find_mention_for(command)  # type: ignore
+        else:
+            cmd = None
+
+        if not cmd:
+            if isinstance(command, str):
+                cmd = f"`/{command}`"
+            else:
+                cmd = f"`/{command.name}`"
+        return cmd
 
         #log.info('Ready: %s (ID: %s)', self.user, self.user.id)
 
