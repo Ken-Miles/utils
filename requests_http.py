@@ -20,8 +20,13 @@ async def _request(
 
     rover = kwargs.pop("rover", False)
     bloxlink = kwargs.pop("bloxlink", False)
-
-    SESSIONS = [aiohttp.ClientSession() for _ in range(3)]
+    
+    if 'session' in kwargs.keys() or 'sessions' in kwargs.keys():
+        CUSTOM_SESSIONS = True
+        SESSIONS = [kwargs.pop('session', None)] if 'session' in kwargs.keys() else kwargs.pop('sessions', None)
+    else:
+        CUSTOM_SESSIONS = False
+        SESSIONS = [aiohttp.ClientSession() for _ in range(3)]
 
     if rover:
         kwargs["headers"] = {"Authorization": f"Bearer {ROVER_API_KEY}"}
@@ -52,7 +57,8 @@ async def _request(
         )
 
         if status_.is_2xx:
-            await close_sessions()
+            if not CUSTOM_SESSIONS:
+                await close_sessions()
             return response
 
         if status_.is_1xx:
@@ -91,7 +97,8 @@ async def _request(
                 f"Got an unknown status code {status}. Retrying request..."
             )
 
-        await session.close()
+        if not CUSTOM_SESSIONS:
+            await session.close()
 
     raise aiohttp.ClientConnectionError(
         f"Failed to get a 2__ Success response after {tr} tries."

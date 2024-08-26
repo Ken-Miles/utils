@@ -2,12 +2,14 @@ from __future__ import annotations
 import datetime
 import difflib
 from functools import lru_cache
+import time
 from typing import Any, List, Literal, Optional, Sequence, Tuple, Union
 import uuid
-import time
 
 import discord
 from discord import app_commands
+
+from . import emojidict
 
 # from async_lru import alru_cache
 
@@ -80,6 +82,28 @@ def makeembed_bot(
         image=image,
         thumbnail=thumbnail,
     )
+
+def makeembed_failedaction(*args, **kwargs):
+    kwargs["title"] = kwargs.get("title", f"{emojidict.get(False)} Action Failed")
+    kwargs["color"] = kwargs.get("color", discord.Color.brand_red())
+    emb = makeembed_bot(*args, **kwargs)
+    return emb
+
+
+def makeembed_partialaction(*args, **kwargs):
+    kwargs["title"] = kwargs.get(
+        "title", f'{emojidict.get("yellow")} Action Partially Successful'
+    )
+    kwargs["color"] = kwargs.get("color", discord.Color.gold())
+    emb = makeembed_bot(*args, **kwargs)
+    return emb
+
+
+def makeembed_successfulaction(*args, **kwargs):
+    kwargs["title"] = kwargs.get("title", f"{emojidict.get(True)} Action Successful")
+    emb = makeembed_bot(*args, **kwargs)
+    return emb
+
 
 
 timestamptype = Literal["t", "T", "d", "D", "f", "F", "R"]

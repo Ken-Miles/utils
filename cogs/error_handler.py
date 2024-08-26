@@ -8,30 +8,7 @@ from sentry_sdk import capture_exception, push_scope
 
 from ..constants import emojidict
 from ..context import BotU, CogU, ContextU
-from ..methods import dctimestamp, makeembed_bot
-
-
-def makeembed_failedaction(*args, **kwargs):
-    kwargs["title"] = kwargs.get("title", f"{emojidict.get(False)} Action Failed")
-    kwargs["color"] = kwargs.get("color", discord.Color.brand_red())
-    emb = makeembed_bot(*args, **kwargs)
-    return emb
-
-
-def makeembed_partialaction(*args, **kwargs):
-    kwargs["title"] = kwargs.get(
-        "title", f'{emojidict.get("yellow")} Action Partially Successful'
-    )
-    kwargs["color"] = kwargs.get("color", discord.Color.gold())
-    emb = makeembed_bot(*args, **kwargs)
-    return emb
-
-
-def makeembed_successfulaction(*args, **kwargs):
-    kwargs["title"] = kwargs.get("title", f"{emojidict.get(True)} Action Successful")
-    emb = makeembed_bot(*args, **kwargs)
-    return emb
-
+from ..methods import dctimestamp, makeembed_bot, makeembed_failedaction, makeembed_successfulaction
 
 class ErrorHandler(CogU, hidden=True):
     bot: BotU
@@ -105,10 +82,10 @@ class ErrorHandler(CogU, hidden=True):
             message = f"Missing required argument: `{error.param.name}`"
 
         elif isinstance(error, commands.TooManyArguments):
-            message = f"Too many arguments. Please try again."
+            message = "Too many arguments. Please try again."
 
         elif isinstance(error, commands.CheckFailure):
-            message = f"The check for this command failed. You most likely do not have permission to use this command or are using it in the wrong channel."
+            message = "The check for this command failed. You most likely do not have permission to use this command or are using it in the wrong channel."
 
         # elif isinstance(error, commands.CommandInvokeError):
         #     #message = f"An error occured while running this command. Please try again later."
