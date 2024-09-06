@@ -163,12 +163,23 @@ class ContextU(commands.Context):
             if USE_DEFER_EMOJI:
                 if self.guild and LOADING_EMOJI in [str(x.emoji) for x in self.message.reactions]:  ##discord.utils.get(self.message.reactions, emoji____str__=LOADING_EMOJI)
                     if self.guild.me.guild_permissions.manage_messages:
-                        await self.message.clear_reaction(LOADING_EMOJI)  # type: ignore
+                        try:
+                            await self.message.clear_reaction(LOADING_EMOJI)  # type: ignore
+                        except discord.HTTPException: # message deleted
+                            self.defer_reaction = None
+                            return
                     else:
-                        await self.message.remove_reaction(LOADING_EMOJI, self.me)
+                        try:
+                            await self.message.remove_reaction(LOADING_EMOJI, self.me)
+                        except discord.HTTPException: # message deleted
+                            self.defer_reaction = None
+                            return
                     self.defer_reaction = None
                 if self.defer_reaction:
-                    await self.message.remove_reaction(LOADING_EMOJI, self.me)  # type: ignore
+                    try:
+                        await self.message.remove_reaction(LOADING_EMOJI, self.me)  # type: ignore
+                    except discord.HTTPException: # message deleted
+                        pass
                     self.defer_reaction = None
 
     async def send(self, *args, **kwargs):
