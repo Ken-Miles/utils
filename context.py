@@ -32,6 +32,7 @@ from discord import (
     Thread,
     User,
     VoiceChannel,
+    integrations,
 )
 from discord.abc import GuildChannel, PrivateChannel
 from discord.ext import commands
@@ -486,11 +487,13 @@ class CustomBaseView(discord.ui.View):
 
     message: Optional[discord.Message]
     delete_message_after: bool
+    author_id: Optional[integrations]
 
-    def __init__(self, *args,  message: Optional[discord.Message]=None, delete_message_after: bool=False, **kwargs):
+    def __init__(self, *args,  message: Optional[discord.Message]=None, delete_message_after: bool=False, author_id: Optional[int]=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.message = message
         self.delete_message_after = delete_message_after
+        self.author_id = author_id
 
     def stop(self, *args, **kwargs):
         #if self.delete_message_after and self.message:
@@ -529,6 +532,12 @@ class CustomBaseView(discord.ui.View):
             # if disable_url_buttons set to True and button is a URL button, or a normal button is set to enabled, disable it
             if (disable_url_buttons and getattr(button, "url", None)) or getattr(button, "disabled", False):
                 button.disabled = True # type: ignore
+
+    async def interaction_check(self, interaction: Interaction) -> bool:
+        if self.author_id is not None and interaction.user.id != self.author_id:
+            await interaction.response.send_message("This button is not for you.", ephemeral=True)
+            return False
+        return await super().interaction_check(interaction)
 
 async def prompt(
         interaction: discord.Interaction,
