@@ -522,7 +522,7 @@ class CustomBaseView(discord.ui.View):
                     await self.message.edit(view=self)
                 except discord.HTTPException:
                     pass
-            return await super().on_timeout()
+        return await super().on_timeout()
     
     def disable_buttons(self, disable_url_buttons: bool=False):
         """Disables all buttons in a view. If disable_url_buttons is set to True, it will disable URL buttons as well.
