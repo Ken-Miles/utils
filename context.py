@@ -32,11 +32,11 @@ from discord import (
     Thread,
     User,
     VoiceChannel,
-    integrations,
 )
 from discord.abc import GuildChannel, PrivateChannel
 from discord.ext import commands
 from discord.ext.commands import AutoShardedBot, Cog
+from discord.ui import Select
 
 from . import USE_DEFER_EMOJI
 from .constants import LOADING_EMOJI
@@ -487,7 +487,7 @@ class CustomBaseView(discord.ui.View):
 
     message: Optional[discord.Message]
     delete_message_after: bool
-    author_id: Optional[integrations]
+    author_id: Optional[int]
 
     def __init__(self, *args,  message: Optional[discord.Message]=None, delete_message_after: bool=False, author_id: Optional[int]=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -495,19 +495,19 @@ class CustomBaseView(discord.ui.View):
         self.delete_message_after = delete_message_after
         self.author_id = author_id
 
-    def stop(self, *args, **kwargs):
-        #if self.delete_message_after and self.message:
-            # try:
-            #     self.message.delete()
-            # except discord.HTTPException:
-            #     pass
-        #else:
+    # def stop(self, *args, **kwargs):
+        # if self.delete_message_after and self.message:
+        #     try:
+        #         self.message.delete()
+        #     except discord.HTTPException:
+        #         pass
+        # else:
         #    self.disable_buttons()
-            # try:
-            #     self.message.edit(view=self)
-            # except discord.HTTPException:
-            #     pass
-        super().stop(*args, **kwargs)
+        #     try:
+        #         self.message.edit(view=self)
+        #     except discord.HTTPException:
+        #         pass
+        # return super().stop(*args, **kwargs)
 
     async def on_timeout(self) -> None:
         if self.delete_message_after and self.message:
@@ -530,8 +530,10 @@ class CustomBaseView(discord.ui.View):
 
         for button in self.children:
             # if disable_url_buttons set to True and button is a URL button, or a normal button is set to enabled, disable it
-            if (disable_url_buttons and getattr(button, "url", None)) or getattr(button, "disabled", False):
-                button.disabled = True # type: ignore
+            if isinstance(button, (discord.ui.Button, discord.ui.Select)):
+                if not disable_url_buttons and hasattr(button, "url"):
+                    continue
+                button.disabled = True
 
     async def interaction_check(self, interaction: Interaction) -> bool:
         if self.author_id is not None and interaction.user.id != self.author_id:
