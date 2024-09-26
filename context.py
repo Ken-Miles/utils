@@ -130,6 +130,10 @@ class ConfirmationView(discord.ui.View):
         await interaction.response.defer()
         if self.delete_after:
             await interaction.delete_original_response()
+        else:
+            _.disabled = True
+            self.cancel.disabled = True
+            await interaction.response.edit_message(view=self)
         self.stop()
 
     @discord.ui.button(label="Cancel", style=discord.ButtonStyle.red)
@@ -138,6 +142,10 @@ class ConfirmationView(discord.ui.View):
         await interaction.response.defer()
         if self.delete_after:
             await interaction.delete_original_response()
+        else:
+            _.disabled = True
+            self.confirm.disabled = True
+            await interaction.response.edit_message(view=self)
         self.stop()
 
 
