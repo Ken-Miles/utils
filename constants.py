@@ -2348,6 +2348,8 @@ RE_GIFT = re.compile(r"(https?://)?discord((app)?.com/gifts|.gifts)/[a-zA-Z0-9-]
 RE_HEX = re.compile(r"^(#|0x)[A-Fa-f0-9]{6}$")
 RE_SNOWFLAKE = re.compile(r"^[0-9]{15,19}$")
 
+RE_DCTIMESTAMP = re.compile(r"^<t:(?P<timestamp>[0-9]+)(?::(?P<style>[tTdDfFR]))?>$")
+
 DISCORD_EPOCH = 1420070400000
 
 TRUSTED_USERS = []
