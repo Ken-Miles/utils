@@ -153,19 +153,22 @@ class ContextU(commands.Context):
     """Context Subclass to add some extra functionality."""
 
     bot: BotU
+    has_been_deferred: bool = False
     defer_reaction: Optional[discord.Reaction] = None
 
     async def defer(self, *args, **kwargs):
-        if USE_DEFER_EMOJI:
-            if not self.interaction and self.message:
-                if (
-                    self.guild and self.guild.me.guild_permissions.add_reactions
-                ) or self.guild is None:
-                    self.defer_reaction = await self.message.add_reaction(LOADING_EMOJI)
-        else:
-            if not self.interaction and self.message:
-                await self.message.channel.typing()
-        await super().defer(*args, **kwargs)
+        if not self.has_been_deferred:
+            self.has_been_deferred = True
+            if USE_DEFER_EMOJI:
+                if not self.interaction and self.message:
+                    if (
+                        self.guild and self.guild.me.guild_permissions.add_reactions
+                    ) or self.guild is None:
+                        self.defer_reaction = await self.message.add_reaction(LOADING_EMOJI)
+            else:
+                if not self.interaction and self.message:
+                    await self.message.channel.typing()
+            await super().defer(*args, **kwargs)
 
     async def _remove_reaction_if_present(self):
         if not self.interaction and self.message:
