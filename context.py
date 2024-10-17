@@ -10,7 +10,6 @@ from typing import (
     Any,
     Awaitable,
     Callable,
-    ClassVar,
     Concatenate,
     Coroutine,
     Dict,
@@ -47,7 +46,7 @@ from discord import (
 )
 from discord.abc import GuildChannel, PrivateChannel
 from discord.ext import commands
-from discord.ext.commands import AutoShardedBot, Cog
+from discord.ext.commands import AutoShardedBot, Cog, HybridCommand, HybridGroup
 from discord.ext.commands._types import CogT, ContextT, Coro
 from discord.ext.commands.core import hooked_wrapped_callback
 from discord.utils import MISSING
@@ -1003,7 +1002,6 @@ class GroupU(commands.GroupMixin[CogT], CommandU[CogT, P, T]):
             view.previous = previous
             await super().reinvoke(ctx, call_hooks=call_hooks)
 
-
 @discord.utils.copy_doc(commands.HybridCommand)
 class HybridCommandU(commands.HybridCommand, CommandU):
     def autocomplete(self, name: str, slash: bool = True, message: bool = False):
@@ -1012,7 +1010,6 @@ class HybridCommandU(commands.HybridCommand, CommandU):
         elif message is True:
             return CommandU.autocomplete(self, name)
 
-
 @discord.utils.copy_doc(commands.HybridGroup)
 class HybridGroupU(commands.HybridGroup, GroupU):
     def autocomplete(self, name: str, slash: bool = True, message: bool = False):
@@ -1020,7 +1017,6 @@ class HybridGroupU(commands.HybridGroup, GroupU):
             return commands.HybridGroup.autocomplete(self, name)
         elif message is True:
             return GroupU.autocomplete(self, name)
-
 
 def command(
     name: str = MISSING,
