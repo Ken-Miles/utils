@@ -6,6 +6,7 @@ numpydoc
 parsedatetime
 python-dateutil
 python-environ
+python-Levenshtein
 PyYAML
 sentry-sdk
 typing_extensions
