@@ -86,9 +86,9 @@ async def _request(
                 raise aiohttp.ClientResponseError(
                     response.request_info,
                     response.history,
-                    status,
-                    response.reason,
-                    response.headers,
+                    status=status,
+                    message=response.reason,
+                    headers=response.headers,
                 )
         elif status_.is_5xx:
             requests_logger.info("Got a 5__ Server Error. Retrying request...")
