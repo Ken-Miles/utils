@@ -1,6 +1,8 @@
 aiohttp
 discord.py
+fuzzywuzzy # i promise, this exists for a good reason
 jishaku
+numpydoc
 parsedatetime
 python-dateutil
 python-environ
