@@ -4,6 +4,7 @@ from collections import Counter, defaultdict
 import datetime
 import functools
 import inspect
+import logging
 import re
 from typing import (
     Any,
@@ -21,9 +22,11 @@ from typing import (
     ParamSpec,
     TYPE_CHECKING,
     Tuple,
+    Type,
     TypeVar,
     Union,
 )
+import uuid
 
 import aiohttp
 import discord
@@ -225,12 +228,37 @@ class CogU(Cog):
     Intended for use in Help commands where entire cogs shouldn't be shown by default.
     """
 
-    hidden: ClassVar[bool]
+    hidden: bool
+    emoji: Optional[str]
+    brief: Optional[str]
 
-    bot: BotU
+    def __init_subclass__(cls: Type[CogU], **kwargs: Any) -> None:
+        """
+        This is called when a subclass is created.
+        Its purpose is to add parameters to the cog
+        that will later be used in the help command.
+        """
+        cls.emoji = kwargs.pop("emoji", None)
+        cls.brief = kwargs.pop("brief", None)
+        cls.hidden = kwargs.pop("hidden", False)
+        return super().__init_subclass__(**kwargs)
 
-    def __init_subclass__(cls, *, hidden: bool = False):
-        cls.hidden = hidden
+    def __init__(self, bot: BotU, *args: Any, **kwargs: Any) -> None:
+        self.bot: BotU = bot
+        self.id: int = int(str(int(uuid.uuid4()))[:20])
+
+        next_in_mro = next(iter(self.__class__.__mro__))
+        if hasattr(next_in_mro, "__is_jishaku__") or isinstance(next_in_mro, self.__class__):
+            kwargs["bot"] = bot
+
+        super().__init__(*args, **kwargs)
+
+    @property
+    def logger(self):
+        return logging.getLogger(f"{__name__}.{self.__class__.__name__}")
+
+    def get_commands(self) -> List[CommandU[Self, ..., Any]]:
+        return super().get_commands()  # type: ignore
 
     async def _get(self, url: str, **kwargs) -> aiohttp.ClientResponse:
         """Performs a GET request on the given URL."""
