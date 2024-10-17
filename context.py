@@ -3,15 +3,24 @@ import asyncio
 from collections import Counter, defaultdict
 import datetime
 import functools
+import inspect
+import re
 from typing import (
     Any,
+    Awaitable,
     Callable,
     ClassVar,
+    Concatenate,
     Coroutine,
+    Dict,
+    Generic,
+    Iterable,
     List,
+    Mapping,
     Optional,
     ParamSpec,
     TYPE_CHECKING,
+    Tuple,
     TypeVar,
     Union,
 )
@@ -36,12 +45,19 @@ from discord import (
 from discord.abc import GuildChannel, PrivateChannel
 from discord.ext import commands
 from discord.ext.commands import AutoShardedBot, Cog
-from discord.ui import Select
+from discord.ext.commands._types import CogT, ContextT, Coro
+from discord.ext.commands.core import hooked_wrapped_callback
+from discord.utils import MISSING
+from fuzzywuzzy import process
+from numpydoc.docscrape import NumpyDocString as process_doc, Parameter
+from typing_extensions import Self
 
 from . import USE_DEFER_EMOJI
 from .constants import LOADING_EMOJI
+from .danny_formats import human_join
 from .requests_http import _delete, _get, _patch, _post, _put
 from .tree import MentionableTree
+from .views import CustomBaseView
 
 if TYPE_CHECKING:
     assert isinstance(LOADING_EMOJI, str)
@@ -49,49 +65,104 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 P = ParamSpec("P")
 
+AutocompleteCallbackTypeReturn = Union[Iterable[Any], Awaitable[Iterable[Any]]]
+RestrictedType = Union[Iterable[Any], Callable[[ContextT], AutocompleteCallbackTypeReturn]]
 
-class CogU(Cog):
-    """A subclass of Cog that includes a `hidden` attribute.
-    Intended for use in Help commands where entire cogs shouldn't be shown by default.
-    """
+AutocompleteCallbackType = Union[
+    Callable[[CogT, ContextT, str], AutocompleteCallbackTypeReturn],
+    Callable[[ContextT, str], AutocompleteCallbackTypeReturn],
+]
 
-    hidden: ClassVar[bool]
+NUMPY_ITEM_REGEX = re.compile(r'(?P<type>\:[a-z]{1,}\:)\`(?P<name>[a-z\.]{1,})\`', flags=re.IGNORECASE)
+DOC_HEADER_REGEX = re.compile(r'\|[a-z]{1,}\|', flags=re.IGNORECASE)
 
-    bot: BotU
+def _subber(match: re.Match) -> str:
+    _, name = match.groups()
+    return name
 
-    def __init_subclass__(cls, *, hidden: bool = False):
-        cls.hidden = hidden
+class PromptSelect(discord.ui.Select):
+    def __init__(self, parent: PromptView, matches: List[Tuple[int, str]]) -> None:
+        super().__init__(
+            placeholder='Select an option below...',
+            options=[
+                discord.SelectOption(label=str(match), description=f'{probability}% chance.')
+                for match, probability in matches
+            ],
+        )
+        self.parent: PromptView = parent
 
-    async def _get(self, url: str, **kwargs) -> aiohttp.ClientResponse:
-        """Performs a GET request on the given URL."""
-        return await _get(url, **kwargs)
+    async def callback(self, interaction: discord.Interaction[BotU]) -> None:
+        assert interaction.message is not None
 
-    async def _post(self, url: str, **kwargs) -> aiohttp.ClientResponse:
-        """Performs a POST request on the given URL."""
-        return await _post(url, **kwargs)
+        await interaction.response.defer(thinking=True)
+        selected = self.values
+        if not selected:
+            return
 
-    async def _patch(self, url: str, **kwargs) -> aiohttp.ClientResponse:
-        """Performs a PATCH request on the given URL."""
-        return await _patch(url, **kwargs)
+        self.parent.item = selected[0]
+        await interaction.delete_original_response()
+        await interaction.message.delete()
 
-    async def _put(self, url: str, **kwargs) -> aiohttp.ClientResponse:
-        """Performs a PUT request on the given URL."""
-        return await _put(url, **kwargs)
+        self.parent.stop()
 
-    async def _delete(self, url: str, **kwargs) -> aiohttp.ClientResponse:
-        """Performs a DELETE request on the given URL."""
-        return await _delete(url, **kwargs)
+class PromptView(CustomBaseView):
+    def __init__(
+        self,
+        *,
+        ctx: ContextU,
+        matches: List[Tuple[int, str]],
+        param: inspect.Parameter,
+        value: str,
+    ) -> None:
+        super().__init__()
+        self.ctx: ContextU = ctx
+        self.matches: List[Tuple[int, str]] = matches
+        self.param: inspect.Parameter = param
+        self.value: str = value
+        self.item: Optional[str] = None
 
-    async def get_command_mention(self, command: Union[str, commands.Command]):
-        """Gets the Mention string for a command. If the tree is a MentionableTree, it will return the mention string for the command.
-        If the command ID cannot be found, it will return a string with the command name in backticks.
+        self.add_item(PromptSelect(self, matches))
 
-        Args:
-            command_name (Union[str, commands.Command]): The command/name of the command to get the mention for.
-        """
-        return await self.bot.get_command_mention(command)
+    async def interaction_check(self, interaction: discord.Interaction[BotU]) -> bool:
+        return interaction.user == self.ctx.author
 
-class ConfirmationView(discord.ui.View):
+    @property
+    def embed(self) -> discord.Embed:
+        embed = discord.Embed(title='That\'s not quite right!')
+        if self.value is not None:
+            embed.description = f'`{self.value}` is not a valid response to the option named `{self.param.name}`, you need to select one of the following options below.'
+        else:
+            embed.description = f'You did not enter a value for the option named `{self.param.name}`, you need to select one of the following options below.'
+
+        return embed
+
+class AutoComplete:
+    def __init__(self, func: Callable[..., Any], param_name: str) -> None:
+        self.callback: Callable[..., Any] = func
+        self.param_name: str = param_name
+
+    async def prompt_correct_input(
+        self, ctx: ContextU, param: inspect.Parameter, /, *, value: str, constricted: Iterable[Any]
+    ) -> str:
+        assert ctx.command is not None
+
+        # The user did not enter a correct value
+        # Find a suggestion
+        if isinstance(value, (str, bytes)):
+            result = await ctx.bot.wrap(process.extract, value, constricted)
+        else:
+            result = [(item, 0) for item in constricted]
+
+        view = PromptView(ctx=ctx, matches=result, param=param, value=value)  # type: ignore
+        await ctx.send(embed=view.embed, view=view)
+        await view.wait()
+
+        if view.item is None:
+            raise commands.CommandError('You took too long, you need to redo this command.')
+
+        return view.item
+
+class ConfirmationView(CustomBaseView):
     """
     Taken from https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/context.py#L280
     Written by @danny on Discord
@@ -148,7 +219,49 @@ class ConfirmationView(discord.ui.View):
             await interaction.response.edit_message(view=self)
         self.stop()
 
+@discord.utils.copy_doc(commands.Cog)
+class CogU(Cog):
+    """A subclass of Cog that includes a `hidden` attribute.
+    Intended for use in Help commands where entire cogs shouldn't be shown by default.
+    """
 
+    hidden: ClassVar[bool]
+
+    bot: BotU
+
+    def __init_subclass__(cls, *, hidden: bool = False):
+        cls.hidden = hidden
+
+    async def _get(self, url: str, **kwargs) -> aiohttp.ClientResponse:
+        """Performs a GET request on the given URL."""
+        return await _get(url, **kwargs)
+
+    async def _post(self, url: str, **kwargs) -> aiohttp.ClientResponse:
+        """Performs a POST request on the given URL."""
+        return await _post(url, **kwargs)
+
+    async def _patch(self, url: str, **kwargs) -> aiohttp.ClientResponse:
+        """Performs a PATCH request on the given URL."""
+        return await _patch(url, **kwargs)
+
+    async def _put(self, url: str, **kwargs) -> aiohttp.ClientResponse:
+        """Performs a PUT request on the given URL."""
+        return await _put(url, **kwargs)
+
+    async def _delete(self, url: str, **kwargs) -> aiohttp.ClientResponse:
+        """Performs a DELETE request on the given URL."""
+        return await _delete(url, **kwargs)
+
+    async def get_command_mention(self, command: Union[str, commands.Command]):
+        """Gets the Mention string for a command. If the tree is a MentionableTree, it will return the mention string for the command.
+        If the command ID cannot be found, it will return a string with the command name in backticks.
+
+        Args:
+            command_name (Union[str, commands.Command]): The command/name of the command to get the mention for.
+        """
+        return await self.bot.get_command_mention(command)
+
+@discord.utils.copy_doc(commands.Context)
 class ContextU(commands.Context):
     """Context Subclass to add some extra functionality."""
 
@@ -204,7 +317,8 @@ class ContextU(commands.Context):
 
     async def prompt(
         self,
-        message: str,
+        message: Optional[str] = None,
+        embed: Optional[discord.Embed] = None,
         *,
         timeout: float = 60.0,
         delete_after: bool = True,
@@ -238,10 +352,11 @@ class ContextU(commands.Context):
             delete_after=delete_after,
             author_id=author_id,
         )
-        view.message = await self.send(message, view=view, ephemeral=delete_after)
+        view.message = await self.send(content=message, embed=embed, view=view, ephemeral=delete_after)
         await view.wait()
         return view.value
 
+@discord.utils.copy_doc(commands.AutoShardedBot)
 class BotU(AutoShardedBot):
     tree_cls: MentionableTree
 
@@ -485,72 +600,499 @@ class BotU(AutoShardedBot):
 
         #log.info('Ready: %s (ID: %s)', self.user, self.user.id)
 
-# class AutoShardedBotU(commands.AutoShardedBot, BotU):
-#     pass
+@discord.utils.copy_doc(commands.Command)
+class CommandU(commands.Command, Generic[CogT, P, T]):
+    """Implements the front end CommandU functionality. This subclasses
+    :class:`~commands.Command` to add some fun utility functions.
 
-class CustomBaseView(discord.ui.View):
-    """Subclass of discord.ui.View that includes additional functionality:
-    - on_timeout disables all non-url buttons
-    - self.message stored by default (must be passed in)
-    - delete_message_after param (deletes message once view times out)
-    - additional features
+    Attributes
+    ----------
+    autocompletes: Dict[:class:`str`, :class:`AutoComplete`]
+        A mapping of parameter name to autocomplete objects. This is so
+        autocomplete can be added to the command.
     """
 
-    message: Optional[discord.Message]
-    delete_message_after: bool
-    author_id: Optional[int]
+    def __init__(
+        self,
+        func: Union[
+            Callable[Concatenate[CogT, ContextT, P], Coro[T]],
+            Callable[Concatenate[ContextT, P], Coro[T]],
+        ],
+        /,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(func, **kwargs)  # type: ignore
+        self.autocompletes: Dict[str, AutoComplete] = {}
 
-    def __init__(self, *args,  message: Optional[discord.Message]=None, delete_message_after: bool=False, author_id: Optional[int]=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.message = message
-        self.delete_message_after = delete_message_after
-        self.author_id = author_id
+    @property
+    def help_mapping(self) -> Mapping[str, str]:
+        """Parses the :class:`CommandU`'s help text into a mapping
+        that can be used to generate a help embed or give the user more
+        inforamtion about the command.
 
-    # def stop(self, *args, **kwargs):
-        # if self.delete_message_after and self.message:
-        #     try:
-        #         self.message.delete()
-        #     except discord.HTTPException:
-        #         pass
-        # else:
-        #    self.disable_buttons()
-        #     try:
-        #         self.message.edit(view=self)
-        #     except discord.HTTPException:
-        #         pass
-        # return super().stop(*args, **kwargs)
+        Returns
+        -------
+            Mapping[:class:`str`, :class:`str`]
+        """
+        mapping = {}
 
-    async def on_timeout(self) -> None:
-        if self.delete_message_after and self.message:
+        help_doc = self.help
+        if not help_doc:
+            return mapping
+
+        help_doc = NUMPY_ITEM_REGEX.sub(_subber, help_doc)
+        help_doc = DOC_HEADER_REGEX.sub('', help_doc).lstrip()
+
+        processed = process_doc(help_doc)
+        for name, value in processed._parsed_data.items():
+            if not value or (isinstance(value, list) and not value[0]) or value == '':
+                continue
+
+            if isinstance(value, list) and isinstance(value[0], Parameter):
+                fmt = []
+                for item in value:
+                    fmt.append('- `{0}`: {1}'.format(item.name, ' '.join(item.desc)))  # type: ignore
+
+                value = '\n'.join(fmt)
+            elif isinstance(value, list):
+                value = '\n'.join(value)
+
+            mapping[name.lower()] = value
+
+        return mapping
+
+    @property
+    def help_embed(self) -> discord.Embed:
+        """:class:`discord.Embed`: Creates a help embed for the command."""
+        embed = discord.Embed(
+            title=self.qualified_name,
+        )
+
+        for key, value in self.help_mapping.items():
+            embed.add_field(name=key.title(), value=value, inline=False)
+
+        embed.add_field(name='How to use', value=f'`db.{self.qualified_name} {self.signature}'.strip() + '`')
+
+        if commands := getattr(self, 'commands', None):
+            embed.add_field(
+                name='Subcommands', value=human_join([f'`{c.name}`' for c in commands], final='and'), inline=False
+            )
+
+        if isinstance(self, GroupU):
+            embed.set_footer(text='Select a subcommand to get more information about it.')
+
+        return embed
+
+    def _ensure_assignment_on_copy(self, other: Self) -> Self:
+        other = super()._ensure_assignment_on_copy(other)
+        other.autocompletes = self.autocompletes
+        return other
+
+    def add_autocomplete(
+        self,
+        /,
+        *,
+        callback: AutocompleteCallbackType,
+        param: str,
+    ) -> AutoComplete:
+        """Adds an autocomplete callback to the command for a given parameter.
+
+        Parameters
+        ----------
+        callback: Callable
+            The callback to be used for the parameter. This should take
+            only two parameters, `ctx` and `value`.
+        param: :class:`str`
+            The name of the parameter to add the autocomplete to.
+
+        Returns
+        -------
+        :class:`AutoComplete`
+            The autocomplete object that was created.
+
+        Raises
+        ------
+        ValueError
+            The parameter is already assigned an autocomplete, or
+            the parameter is not in the list of parameters registered to the
+            command.
+        """
+        if param in self.autocompletes:
+            raise ValueError(f'{param} is already autocompleted')
+        if param not in self.clean_params:
+            raise ValueError(f'{param} is not a valid parameter')
+
+        new = AutoComplete(callback, param)
+        self.autocompletes[param] = new
+        return new
+
+    def autocomplete(self, param: str) -> Callable[[AutocompleteCallbackType], AutocompleteCallbackType]:
+        """A decorator to register a callback as an autocomplete for a parameter.
+
+        .. code-block:: python3
+
+            @commands.command()
+            async def foo(self, ctx: ContextU, argument: str) -> None:
+                return await ctx.send(f'You selected {argument!}')
+
+            @foo.autocomplete('argument')
+            async def foo_autocomplete(ctx: ContextU, value: str) -> Iterable[str]:
+                data: Tuple[str, ...] = await self.bot.get_some_data(ctx.guild.id)
+                return data
+
+        Parameters
+        ----------
+        param: :class:`str`
+            The name of the parameter to add the autocomplete to.
+        """
+
+        def decorator(callback: AutocompleteCallbackType) -> AutocompleteCallbackType:
+            self.add_autocomplete(callback=callback, param=param)
+            return callback
+
+        return decorator
+
+    async def invoke(self, ctx: ContextU, /) -> None:
+        """|coro|
+
+        An internal helper used to invoke the command under a given context. This should
+        not be called by the user, but can be used if needed.
+
+        Parameters
+        ----------
+        ctx: :class:`ContextU`
+            The context to invoke the command under.
+        """
+        await self.prepare(ctx)
+
+        original_args = ctx.args[: 2 if self.cog else 1 :]
+        args = ctx.args[2 if self.cog else 1 :]
+
+        kwargs = ctx.kwargs
+        parameters = self.clean_params
+
+        constricted_args = [ctx] if not self.cog else [self.cog, ctx]
+        for index, (name, parameter) in enumerate(parameters.items()):
+            if not (autocomplete := self.autocompletes.get(name)):
+                continue
+
+            # Let's find the current value based upon the parameter
+            if parameter.kind is parameter.POSITIONAL_OR_KEYWORD:
+                value = args[index]
+
+                constricted_args.append(value)
+                constricted = await discord.utils.maybe_coroutine(autocomplete.callback, *constricted_args)
+
+                if value not in constricted:
+                    try:
+                        new_value = await autocomplete.prompt_correct_input(
+                            ctx, parameter, value=value, constricted=constricted
+                        )
+                    except commands.CommandError as exc:
+                        return await self.dispatch_error(ctx, exc)
+
+                    args[index] = new_value
+            elif parameter.kind is parameter.KEYWORD_ONLY:
+                value = kwargs[name]
+
+                constricted_args.append(value)
+                constricted = await discord.utils.maybe_coroutine(autocomplete.callback, *constricted_args)
+
+                if value not in constricted:
+                    try:
+                        new_value = await autocomplete.prompt_correct_input(
+                            ctx, parameter, value=value, constricted=constricted
+                        )
+                    except commands.CommandError as exc:
+                        return await self.dispatch_error(ctx, exc)
+
+                    kwargs[name] = new_value
+            else:
+                continue
+
+        ctx.args = original_args + args
+        ctx.kwargs = kwargs
+
+        # terminate the invoked_subcommand chain.
+        # since we're in a regular command (and not a group) then
+        # the invoked subcommand is None.
+        ctx.invoked_subcommand = None
+        ctx.subcommand_passed = None
+        injected = hooked_wrapped_callback(self, ctx, self.callback)
+        await injected(*ctx.args, **ctx.kwargs)
+
+# Due to autocomplete, we can't directly inherit from `commands.Group`
+# because calling super().invoke won't go to the correct method.
+# I'm going to patch it like this for now and search for better
+# optimizations later.
+@discord.utils.copy_doc(commands.Group)
+class GroupU(commands.GroupMixin[CogT], CommandU[CogT, P, T]):
+    """The front end implementation of a group command.
+
+    This intherits both :class:`CommandU` and :class:`~commands.GroupMixin` to add
+    functionality of command management.
+    """
+
+    def __init__(self, *args: Any, **attrs: Any) -> None:
+        self.invoke_without_command: bool = attrs.pop('invoke_without_command', False)
+        super().__init__(*args, **attrs)
+
+    def copy(self) -> Self:
+        """Creates a copy of this :class:`Group`.
+
+        Returns
+        --------
+        :class:`Group`
+            A new instance of this group.
+        """
+        ret = super().copy()
+        for cmd in self.commands:
+            ret.add_command(cmd.copy())
+        return ret
+
+    def command(self, *args: Any, **kwargs: Any) -> Callable[..., CommandU]:
+        """
+        Register a function as a :class:`CommandU`.
+
+        Parameters
+        ----------
+        name: Optional[:class:`str`]
+            The name of the command, or ``None`` to use the function's name.
+        description: Optional[:class:`str`]
+            The description of the command, or ``None`` to use the function's docstring.
+        brief: Optional[:class:`str`]
+            The brief description of the command, or ``None`` to use the first line of the function's docstring.
+        aliases: Optional[Iterable[:class:`str`]]
+            The aliases of the command, or ``None`` to use the function's name.
+        **attrs: Any
+            The keyword arguments to pass to the :class:`CommandU`.
+        """
+
+        def wrapped(func) -> CommandU:
+            kwargs.setdefault('parent', self)
+            result = command(*args, **kwargs)(func)
+            self.add_command(result)
+            return result
+
+        return wrapped
+
+    def group(self, *args: Any, **kwargs: Any) -> Callable[..., GroupU]:
+        """
+        Register a function as a :class:`GroupU`.
+
+        Parameters
+        ----------
+        name: Optional[:class:`str`]
+            The name of the command, or ``None`` to use the function's name.
+        description: Optional[:class:`str`]
+            The description of the command, or ``None`` to use the function's docstring.
+        brief: Optional[:class:`str`]
+            The brief description of the command, or ``None`` to use the first line of the function's docstring.
+        aliases: Optional[Iterable[:class:`str`]]
+            The aliases of the command, or ``None`` to use the function's name.
+        **attrs: Any
+            The keyword arguments to pass to the :class:`GroupU`.
+        """
+
+        def wrapped(func) -> GroupU:
+            kwargs.setdefault('parent', self)
+            result = group(*args, **kwargs)(func)
+            self.add_command(result)
+            return result
+
+        return wrapped
+
+    @discord.utils.copy_doc(CommandU.invoke)
+    async def invoke(self, ctx: ContextU, /) -> None:
+        ctx.invoked_subcommand = None
+        ctx.subcommand_passed = None
+        early_invoke = not self.invoke_without_command
+        if early_invoke:
+            await self.prepare(ctx)
+
+        view = ctx.view
+        previous = view.index
+        view.skip_ws()
+        trigger = view.get_word()
+
+        if trigger:
+            ctx.subcommand_passed = trigger
+            ctx.invoked_subcommand = self.all_commands.get(trigger, None)
+
+        if early_invoke:
+            injected = hooked_wrapped_callback(self, ctx, self.callback)
+            await injected(*ctx.args, **ctx.kwargs)
+
+        ctx.invoked_parents.append(ctx.invoked_with)  # type: ignore
+
+        if trigger and ctx.invoked_subcommand:
+            ctx.invoked_with = trigger
+            await ctx.invoked_subcommand.invoke(ctx)
+        elif not early_invoke:
+            # undo the trigger parsing
+            view.index = previous
+            view.previous = previous
+            await super().invoke(ctx)
+
+    @discord.utils.copy_doc(CommandU.reinvoke)
+    async def reinvoke(self, ctx: ContextU, /, *, call_hooks: bool = False) -> None:
+        ctx.invoked_subcommand = None
+        early_invoke = not self.invoke_without_command
+        if early_invoke:
+            ctx.command = self
+            await self._parse_arguments(ctx)
+
+            if call_hooks:
+                await self.call_before_hooks(ctx)
+
+        view = ctx.view
+        previous = view.index
+        view.skip_ws()
+        trigger = view.get_word()
+
+        if trigger:
+            ctx.subcommand_passed = trigger
+            ctx.invoked_subcommand = self.all_commands.get(trigger, None)
+
+        if early_invoke:
             try:
-                await self.message.delete()
-            except discord.HTTPException:
-                pass
-        else:
-            self.disable_buttons()
-            if self.message:
-                try:
-                    await self.message.edit(view=self)
-                except discord.HTTPException:
-                    pass
-        return await super().on_timeout()
-    
-    def disable_buttons(self, disable_url_buttons: bool=False):
-        """Disables all buttons in a view. If disable_url_buttons is set to True, it will disable URL buttons as well.
-        Note that the mesasge must still be edited after calling this method for the changes to take effect."""
+                await self.callback(*ctx.args, **ctx.kwargs)
+            except:
+                ctx.command_failed = True
+                raise
+            finally:
+                if call_hooks:
+                    await self.call_after_hooks(ctx)
 
-        for button in self.children:
-            # if disable_url_buttons set to True and button is a URL button, or a normal button is set to enabled, disable it
-            if isinstance(button, (discord.ui.Button, discord.ui.Select)):
-                if not disable_url_buttons and hasattr(button, "url"):
-                    continue
-                button.disabled = True
+        ctx.invoked_parents.append(ctx.invoked_with)  # type: ignore
 
-    async def interaction_check(self, interaction: Interaction) -> bool:
-        if self.author_id is not None and interaction.user.id != self.author_id:
-            await interaction.response.send_message("This button is not for you.", ephemeral=True)
-            return False
-        return await super().interaction_check(interaction)
+        if trigger and ctx.invoked_subcommand:
+            ctx.invoked_with = trigger
+            await ctx.invoked_subcommand.reinvoke(ctx, call_hooks=call_hooks)
+        elif not early_invoke:
+            # undo the trigger parsing
+            view.index = previous
+            view.previous = previous
+            await super().reinvoke(ctx, call_hooks=call_hooks)
+
+
+@discord.utils.copy_doc(commands.HybridCommand)
+class HybridCommandU(commands.HybridCommand, CommandU):
+    def autocomplete(self, name: str, slash: bool = True, message: bool = False):
+        if slash is True:
+            return commands.HybridCommand.autocomplete(self, name)
+        elif message is True:
+            return CommandU.autocomplete(self, name)
+
+
+@discord.utils.copy_doc(commands.HybridGroup)
+class HybridGroupU(commands.HybridGroup, GroupU):
+    def autocomplete(self, name: str, slash: bool = True, message: bool = False):
+        if slash is True:
+            return commands.HybridGroup.autocomplete(self, name)
+        elif message is True:
+            return GroupU.autocomplete(self, name)
+
+
+def command(
+    name: str = MISSING,
+    description: str = MISSING,
+    brief: str = MISSING,
+    aliases: Iterable[str] = MISSING,
+    hybrid: bool = False,
+    **attrs: Any,
+) -> Callable[..., CommandU | HybridCommandU]:
+    """
+    Register a function as a :class:`CommandU`.
+
+    Parameters
+    ----------
+    name: Optional[:class:`str`]
+        The name of the command, or ``None`` to use the function's name.
+    description: Optional[:class:`str`]
+        The description of the command, or ``None`` to use the function's docstring.
+    brief: Optional[:class:`str`]
+        The brief description of the command, or ``None`` to use the first line of the function's docstring.
+    aliases: Optional[Iterable[:class:`str`]]
+        The aliases of the command, or ``None`` to use the function's name.
+    **attrs: Any
+        The keyword arguments to pass to the :class:`CommandU`.
+    """
+    cls = CommandU if hybrid is False else HybridCommandU
+
+    def decorator(func) -> CommandU:
+        if isinstance(func, CommandU):
+            raise TypeError('Callback is already a command.')
+
+        kwargs = {}
+        kwargs.update(attrs)
+        if name is not MISSING:
+            kwargs['name'] = name
+        if description is not MISSING:
+            kwargs['description'] = description
+        if brief is not MISSING:
+            kwargs['brief'] = brief
+        if aliases is not MISSING:
+            kwargs['aliases'] = aliases
+
+        return cls(func, **kwargs)
+
+    return decorator
+
+
+def group(
+    name: str = MISSING,
+    description: str = MISSING,
+    brief: str = MISSING,
+    aliases: Iterable[str] = MISSING,
+    hybrid: bool = False,
+    fallback: str | None = None,
+    invoke_without_command: bool = True,
+    **attrs: Any,
+) -> Callable[..., GroupU | HybridGroupU]:
+    """
+    Register a function as a :class:`GroupU`.
+
+    Parameters
+    ----------
+    name: Optional[:class:`str`]
+        The name of the command, or ``None`` to use the function's name.
+    description: Optional[:class:`str`]
+        The description of the command, or ``None`` to use the function's docstring.
+    brief: Optional[:class:`str`]
+        The brief description of the command, or ``None`` to use the first line of the function's docstring.
+    aliases: Optional[Iterable[:class:`str`]]
+        The aliases of the command, or ``None`` to use the function's name.
+    **attrs: Any
+        The keyword arguments to pass to the :class:`CommandU`.
+    """
+    cls = GroupU if hybrid is False else HybridGroupU
+
+    def decorator(func) -> GroupU:
+        if isinstance(func, GroupU):
+            raise TypeError('Callback is already a command.')
+
+        kwargs: Dict[str, Any] = {'invoke_without_command': invoke_without_command}
+        kwargs.update(attrs)
+        if name is not MISSING:
+            kwargs['name'] = name
+        if description is not MISSING:
+            kwargs['description'] = description
+        if brief is not MISSING:
+            kwargs['brief'] = brief
+        if aliases is not MISSING:
+            kwargs['aliases'] = aliases
+        if fallback is not None:
+            if hybrid is False:
+                raise TypeError('Fallback is only allowed for hybrid commands.')
+            kwargs['fallback'] = fallback
+
+        return cls(func, **kwargs)
+
+    return decorator
+
+# class AutoShardedBotU(commands.AutoShardedBot, BotU):
+#     pass
 
 async def prompt(
         interaction: discord.Interaction,
@@ -599,3 +1141,4 @@ async def prompt(
             view.message = await interaction.response.send_message(**message_kwargs, view=view, ephemeral=delete_after)
         await view.wait()
         return view.value
+    

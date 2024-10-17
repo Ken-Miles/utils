@@ -362,7 +362,6 @@ class UserFriendlyTime(commands.Converter):
         await result.ensure_constraints(ctx, self, now, remaining)
         return result
 
-
 def human_timedelta(
     dt: datetime.datetime,
     *,
