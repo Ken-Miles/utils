@@ -1039,6 +1039,48 @@ def command(
 
     return decorator
 
+def hybrid_command(
+    name: str = MISSING,
+    description: str = MISSING,
+    brief: str = MISSING,
+    aliases: Iterable[str] = MISSING,
+    **attrs: Any,
+) -> Callable[..., HybridCommandU]:
+    """
+    Register a function as a :class:`HybridCommandU`.
+
+    Parameters
+    ----------
+    name: Optional[:class:`str`]
+        The name of the command, or ``None`` to use the function's name.
+    description: Optional[:class:`str`]
+        The description of the command, or ``None`` to use the function's docstring.
+    brief: Optional[:class:`str`]
+        The brief description of the command, or ``None`` to use the first line of the function's docstring.
+    aliases: Optional[Iterable[:class:`str`]]
+        The aliases of the command, or ``None`` to use the function's name.
+    **attrs: Any
+        The keyword arguments to pass to the :class:`CommandU`.
+    """
+
+    def decorator(func) -> HybridCommandU:
+        if isinstance(func, HybridCommandU):
+            raise TypeError('Callback is already a command.')
+
+        kwargs = {}
+        kwargs.update(attrs)
+        if name is not MISSING:
+            kwargs['name'] = name
+        if description is not MISSING:
+            kwargs['description'] = description
+        if brief is not MISSING:
+            kwargs['brief'] = brief
+        if aliases is not MISSING:
+            kwargs['aliases'] = aliases
+
+        return HybridCommandU(func, **kwargs)
+
+    return decorator
 
 def group(
     name: str = MISSING,
