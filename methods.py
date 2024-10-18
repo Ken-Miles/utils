@@ -50,11 +50,10 @@ def makeembed(
     return embed
 
 
-@staticmethod
 def makeembed_bot(
     title: Optional[str] = None,
     timestamp: Optional[datetime.datetime] = None,
-    color: Optional[discord.Colour] = discord.Colour.green(),
+    color: Optional[discord.Colour] = discord.Colour.brand_green(),
     description: Optional[str] = None,
     author: Optional[str] = None,
     author_url: Optional[str] = None,
