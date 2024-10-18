@@ -864,18 +864,18 @@ class GroupU(commands.GroupMixin[CogT], CommandU[CogT, P, T]):
         self.invoke_without_command: bool = attrs.pop('invoke_without_command', False)
         super().__init__(*args, **attrs)
 
-    def copy(self) -> Self:
-        """Creates a copy of this :class:`Group`.
+    # def copy(self) -> Self:
+    #     """Creates a copy of this :class:`Group`.
 
-        Returns
-        --------
-        :class:`Group`
-            A new instance of this group.
-        """
-        ret = super().copy()
-        for cmd in self.commands:
-            ret.add_command(cmd.copy())
-        return ret
+    #     Returns
+    #     --------
+    #     :class:`Group`
+    #         A new instance of this group.
+    #     """
+    #     ret = super().copy()
+    #     for cmd in self.commands:
+    #         ret.add_command(cmd.copy())
+    #     return ret
 
     def command(self, *args: Any, **kwargs: Any) -> Callable[..., CommandU]:
         """
