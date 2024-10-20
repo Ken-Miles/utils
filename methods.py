@@ -1,6 +1,7 @@
 from __future__ import annotations
 import datetime
 import difflib
+from enum import Enum
 from functools import lru_cache
 import time
 from typing import Any, Iterable, List, Literal, Optional, Sequence, Tuple, Union
