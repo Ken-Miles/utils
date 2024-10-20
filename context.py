@@ -698,14 +698,14 @@ class CommandU(commands.Command, Generic[CogT, P, T]):
         for key, value in self.help_mapping.items():
             embed.add_field(name=key.title(), value=value, inline=False)
 
-        embed.add_field(name='How to use', value=f'`db.{self.qualified_name} {self.signature}'.strip() + '`')
+        embed.add_field(name='How to use', value=f'`<@{self.cog.bot.user.name}> {self.qualified_name} {self.signature}'.strip() + '`')
 
         if commands := getattr(self, 'commands', None):
             embed.add_field(
                 name='Subcommands', value=human_join([f'`{c.name}`' for c in commands], final='and'), inline=False
             )
 
-        if isinstance(self, GroupU):
+        if isinstance(self, commands.Group):
             embed.set_footer(text='Select a subcommand to get more information about it.')
 
         return embed
