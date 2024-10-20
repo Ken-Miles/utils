@@ -3,11 +3,14 @@ import datetime
 import difflib
 from functools import lru_cache
 import time
-from typing import Any, List, Literal, Optional, Sequence, Tuple, Union
+from typing import Any, Iterable, List, Literal, Optional, Sequence, Tuple, Union
+from urllib.parse import urlencode
 import uuid
 
 import discord
 from discord import app_commands
+from discord.abc import Snowflake
+from discord.utils import MISSING
 
 from . import emojidict
 
@@ -612,3 +615,81 @@ def generate_transaction_id(guild_id: Optional[int]=None, user_id: Optional[int]
     if user_id is None:
         user_id = 0
     return str(uuid.uuid5(uuid.NAMESPACE_DNS, f"{guild_id}-{user_id}-{time.time()}"))[:length]
+
+class IntegrationType(Enum):
+    guild = 0
+    user = 1
+
+    def __int__(self) -> int:
+        return self.value
+    
+    def __str__(self) -> str:
+        return self.name
+
+def oauth_url(
+    client_id: Union[int, str],
+    *,
+    permissions: discord.Permissions = MISSING,
+    guild: Snowflake = MISSING,
+    integration_type: Union[IntegrationType, int] = IntegrationType.guild,
+    redirect_uri: str = MISSING,
+    scopes: Iterable[str] = MISSING,
+    disable_guild_select: bool = False,
+    state: str = MISSING,
+) -> str:
+    """A helper function that returns the OAuth2 URL for inviting the bot
+    into guilds.
+
+    .. Note This method has been modified from the original discord.py source code.
+    It has been changed to include an `integeration_type` parameter.
+
+    .. versionchanged:: 2.0
+
+        ``permissions``, ``guild``, ``redirect_uri``, ``scopes`` and ``state`` parameters
+        are now keyword-only.
+
+    Parameters
+    -----------
+    client_id: Union[:class:`int`, :class:`str`]
+        The client ID for your bot.
+    permissions: :class:`~discord.Permissions`
+        The permissions you're requesting. If not given then you won't be requesting any
+        permissions.
+    guild: :class:`~discord.abc.Snowflake`
+        The guild to pre-select in the authorization screen, if available.
+    redirect_uri: :class:`str`
+        An optional valid redirect URI.
+    scopes: Iterable[:class:`str`]
+        An optional valid list of scopes. Defaults to ``('bot', 'applications.commands')``.
+
+        .. versionadded:: 1.7
+    disable_guild_select: :class:`bool`
+        Whether to disallow the user from changing the guild dropdown.
+
+        .. versionadded:: 2.0
+    state: :class:`str`
+        The state to return after the authorization.
+
+        .. versionadded:: 2.0
+
+    Returns
+    --------
+    :class:`str`
+        The OAuth2 URL for inviting the bot into guilds.
+    """
+    url = f'https://discord.com/oauth2/authorize?client_id={client_id}'
+    url += '&scope=' + '+'.join(scopes or ('bot', 'applications.commands'))
+    if permissions is not MISSING:
+        url += f'&permissions={permissions.value}'
+    if guild is not MISSING:
+        url += f'&guild_id={guild.id}'
+    if disable_guild_select:
+        url += '&disable_guild_select=true'
+    if redirect_uri is not MISSING:
+        url += '&response_type=code&' + urlencode({'redirect_uri': redirect_uri})
+    if state is not MISSING:
+        url += f'&{urlencode({"state": state})}'
+    if integration_type is not MISSING:
+        url += f'&integration_type={int(integration_type)}'
+
+    return url
