@@ -46,13 +46,13 @@ def makeembed(
     embed.description = description
     #if url is not None:
     embed.url = url
-    if author is not None:
+    if author is not MISSING:
         embed.set_author(name=author, url=author_url, icon_url=author_icon_url)
-    if footer is not None:
+    if footer is not MISSING:
         embed.set_footer(text=footer, icon_url=footer_icon_url)
-    if image is not None:
+    if image is not MISSING:
         embed.set_image(url=image)
-    if thumbnail is not None:
+    if thumbnail is not MISSING:
         embed.set_thumbnail(url=thumbnail)
     
     return embed
