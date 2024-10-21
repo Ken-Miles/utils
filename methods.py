@@ -13,36 +13,39 @@ from discord import app_commands
 from discord.abc import Snowflake
 from discord.utils import MISSING
 
-from . import emojidict
+
+from . import emojidict, RE_URL
 
 # from async_lru import alru_cache
 
 
 def makeembed(
-    title: Optional[str] = None,
-    timestamp: Optional[datetime.datetime] = None,
-    color: Optional[discord.Colour] = None,
-    description: Optional[str] = None,
-    author: Optional[str] = None,
-    author_url: Optional[str] = None,
-    author_icon_url: Optional[str] = None,
-    footer: Optional[str] = None,
-    footer_icon_url: Optional[str] = None,
-    url: Optional[str] = None,
-    image: Optional[str] = None,
-    thumbnail: Optional[str] = None,
+    title: Optional[str] = MISSING,
+    timestamp: Optional[datetime.datetime] = MISSING,
+    color: Optional[discord.Colour] = MISSING,
+    description: Optional[str] = MISSING,
+    author: Optional[str] = MISSING,
+    author_url: Optional[str] = MISSING,
+    author_icon_url: Optional[str] = MISSING,
+    footer: Optional[str] = MISSING,
+    footer_icon_url: Optional[str] = MISSING,
+    url: Optional[str] = MISSING,
+    image: Optional[str] = MISSING,
+    thumbnail: Optional[str] = MISSING,
 ) -> discord.Embed:  # embedtype: str='rich'):
+    """Creates an embed."""
+
     embed = discord.Embed()
-    if title is not None:
-        embed.title = title
-    if timestamp is not None:
-        embed.timestamp = timestamp
-    if color is not None:
-        embed.color = color
-    if description is not None:
-        embed.description = description
-    if url is not None:
-        embed.url = url
+    #if title is not None:
+    embed.title = title
+    #if timestamp is not None:
+    embed.timestamp = timestamp
+    #if color is not None:
+    embed.color = color
+    #if description is not None:
+    embed.description = description
+    #if url is not None:
+    embed.url = url
     if author is not None:
         embed.set_author(name=author, url=author_url, icon_url=author_icon_url)
     if footer is not None:
@@ -51,25 +54,32 @@ def makeembed(
         embed.set_image(url=image)
     if thumbnail is not None:
         embed.set_thumbnail(url=thumbnail)
+    
     return embed
 
 
 def makeembed_bot(
-    title: Optional[str] = None,
-    timestamp: Optional[datetime.datetime] = None,
+    title: Optional[str] = MISSING,
+    timestamp: Optional[datetime.datetime] = MISSING,
     color: Optional[discord.Colour] = discord.Colour.brand_green(),
-    description: Optional[str] = None,
-    author: Optional[str] = None,
-    author_url: Optional[str] = None,
-    author_icon_url: Optional[str] = None,
-    footer: Optional[str] = "Made by @aidenpearce3066",
-    footer_icon_url: Optional[str] = None,
-    url: Optional[str] = None,
-    image: Optional[str] = None,
-    thumbnail: Optional[str] = None,
+    description: Optional[str] = MISSING,
+    author: Optional[str] = MISSING,
+    author_url: Optional[str] = MISSING,
+    author_icon_url: Optional[str] = MISSING,
+    footer: Optional[str] = None,
+    footer_icon_url: Optional[str] = MISSING,
+    url: Optional[str] = MISSING,
+    image: Optional[str] = MISSING,
+    thumbnail: Optional[str] = MISSING,
 ) -> discord.Embed:  # embedtype: str='rich'):
+    """Creates an embed for the bot.
+    Changed defaults for makeembed: color, footer, timestamp.
+    """
+
     if not timestamp:
         timestamp = datetime.datetime.now()
+    if not footer:
+        footer = "Made by @aidenpearce3066"
     # i would put this in the default args, but then it will only be when the bot is started
     return makeembed(
         title=title,
@@ -86,33 +96,124 @@ def makeembed_bot(
         thumbnail=thumbnail,
     )
 
-def makeembed_failedaction(*args, **kwargs):
-    kwargs["title"] = kwargs.get("title", f"{emojidict.get(False)} Action Failed")
-    kwargs["color"] = kwargs.get("color", discord.Color.brand_red())
-    emb = makeembed_bot(*args, **kwargs)
-    return emb
 
+def makeembed_failedaction(
+    description: Optional[str] = None,
+    *,
+    title: Optional[str] = None,
+    timestamp: Optional[datetime.datetime] = None,
+    color: Optional[discord.Colour] = discord.Colour.brand_red(),
+    author: Optional[str] = None,
+    author_url: Optional[str] = None,
+    author_icon_url: Optional[str] = None,
+    footer: Optional[str] = None,
+    footer_icon_url: Optional[str] = None,
+    url: Optional[str] = None,
+    image: Optional[str] = None,
+    thumbnail: Optional[str] = None,
+) -> discord.Embed:
+    """Creates an embed for a failed action.
+    Changed defaults for makeembed_bot: color, footer.
+    """
 
-def makeembed_partialaction(*args, **kwargs):
-    kwargs["title"] = kwargs.get(
-        "title", f'{emojidict.get("yellow")} Action Partially Successful'
+    if not title:
+        title = f"{emojidict.get(False)} Action Failed"
+    # kwargs["title"] = kwargs.get("title", f"{emojidict.get(False)} Action Failed")
+    # if not color:
+    #     color = discord.Color.brand_red()
+    # kwargs["color"] = kwargs.get("color", discord.Color.brand_red())
+    emb = makeembed_bot(
+        title=title,
+        timestamp=timestamp,
+        color=color,
+        description=description,
+        author=author,
+        author_url=author_url,
+        author_icon_url=author_icon_url,
+        footer=footer,
+        footer_icon_url=footer_icon_url,
+        url=url,
+        image=image,
+        thumbnail=thumbnail,
     )
-    kwargs["color"] = kwargs.get("color", discord.Color.gold())
-    emb = makeembed_bot(*args, **kwargs)
     return emb
 
 
-def makeembed_successfulaction(*args, **kwargs):
-    kwargs["title"] = kwargs.get("title", f"{emojidict.get(True)} Action Successful")
-    emb = makeembed_bot(*args, **kwargs)
+def makeembed_partialaction(
+    description: Optional[str] = None,
+    *,
+    title: Optional[str] = None,
+    timestamp: Optional[datetime.datetime] = None,
+    color: Optional[discord.Colour] = discord.Colour.gold(),
+    author: Optional[str] = None,
+    author_url: Optional[str] = None,
+    author_icon_url: Optional[str] = None,
+    footer: Optional[str] = None,
+    footer_icon_url: Optional[str] = None,
+    url: Optional[str] = None,
+    image: Optional[str] = None,
+    thumbnail: Optional[str] = None,
+):
+
+    if not title:
+        title = f'{emojidict.get("yellow")} Action Partially Successful'
+
+    emb = makeembed_bot(
+        title=title,
+        timestamp=timestamp,
+        color=color,
+        description=description,
+        author=author,
+        author_url=author_url,
+        author_icon_url=author_icon_url,
+        footer=footer,
+        footer_icon_url=footer_icon_url,
+        url=url,
+        image=image,
+        thumbnail=thumbnail,
+    )
     return emb
 
+
+def makeembed_successfulaction(
+    description: Optional[str] = None,
+    *,
+    title: Optional[str] = None,
+    timestamp: Optional[datetime.datetime] = None,
+    color: Optional[discord.Colour] = discord.Colour.brand_green(),
+    author: Optional[str] = None,
+    author_url: Optional[str] = None,
+    author_icon_url: Optional[str] = None,
+    footer: Optional[str] = None,
+    footer_icon_url: Optional[str] = None,
+    url: Optional[str] = None,
+    image: Optional[str] = None,
+    thumbnail: Optional[str] = None,
+) -> discord.Embed:
+    """Changed defaults for makeembed_bot: color.
+    """
+    if not title:
+        title = f"{emojidict.get(True)} Action Successful"
+
+    emb = makeembed_bot(
+        title=title,
+        timestamp=timestamp,
+        color=color,
+        description=description,
+        author=author,
+        author_url=author_url,
+        author_icon_url=author_icon_url,
+        footer=footer,
+        footer_icon_url=footer_icon_url,
+        url=url,
+        image=image,
+        thumbnail=thumbnail,
+    )
+    return emb
 
 
 timestamptype = Literal["t", "T", "d", "D", "f", "F", "R"]
 
-
-@staticmethod
 def dctimestamp(
     dt: Union[datetime.datetime, int, float], format: timestamptype = "f"
 ) -> str:
@@ -133,20 +234,28 @@ def dctimestamp(
         dt = int(dt)
     return f"<t:{int(dt)}:{format[:1]}>"
 
-
-@staticmethod
 def dchyperlink(
     url: str,
     texttoclick: str,
+    *,
     hovertext: Optional[str] = None,
     suppress_embed: bool = False,
 ) -> str:
     '''Formats a Discord Hyperlink so that it can be clicked on.
+    URL and texttoclick can be switched.
+
     "[Text To Click](https://www.youtube.com/ \"Hovertext\")"'''
-    texttoclick, hovertext = f"[{texttoclick}]", (
-        f' "{hovertext}"' if hovertext is not None else ""
-    )
-    return f"{texttoclick}({'<' if suppress_embed else ''}{url}{'>' if suppress_embed else ''}{hovertext})"
+
+    # url and texttoclick could be switched
+    if RE_URL.match(texttoclick):
+        texttoclick, url = url, texttoclick
+    texttoclick = f"[{texttoclick}]" 
+    hovertext = f'"{hovertext}"' if hovertext is not None else ""
+
+    if suppress_embed:
+        url = f"<{url}>"
+
+    return f"{texttoclick}({url} {hovertext})"
 
 
 CodeblockLanguage = Literal[
@@ -598,7 +707,10 @@ def merge_permissions(
         if getattr(permissions, perm):
             setattr(overwrite, perm, value)
 
-def generate_transaction_id(guild_id: Optional[int]=None, user_id: Optional[int]=None, length: int=36) -> str:
+
+def generate_transaction_id(
+    guild_id: Optional[int] = None, user_id: Optional[int] = None, length: int = 36
+) -> str:
     """Generates a UUID for an error.
     Uses params passed in if provided, as well as the current time.
 
@@ -610,12 +722,15 @@ def generate_transaction_id(guild_id: Optional[int]=None, user_id: Optional[int]
 
     Returns:
         str: The UUID for the error.
-    """ 
+    """
     if guild_id is None:
-       guild_id = 0
+        guild_id = 0
     if user_id is None:
         user_id = 0
-    return str(uuid.uuid5(uuid.NAMESPACE_DNS, f"{guild_id}-{user_id}-{time.time()}"))[:length]
+    return str(uuid.uuid5(uuid.NAMESPACE_DNS, f"{guild_id}-{user_id}-{time.time()}"))[
+        :length
+    ]
+
 
 class IntegrationType(Enum):
     guild = 0
@@ -623,7 +738,7 @@ class IntegrationType(Enum):
 
     def __int__(self) -> int:
         return self.value
-    
+
     def __str__(self) -> str:
         return self.name
 
@@ -678,19 +793,19 @@ def oauth_url(
     :class:`str`
         The OAuth2 URL for inviting the bot into guilds.
     """
-    url = f'https://discord.com/oauth2/authorize?client_id={client_id}'
-    url += '&scope=' + '+'.join(scopes or ('bot', 'applications.commands'))
+    url = f"https://discord.com/oauth2/authorize?client_id={client_id}"
+    url += "&scope=" + "+".join(scopes or ("bot", "applications.commands"))
     if permissions is not MISSING:
-        url += f'&permissions={permissions.value}'
+        url += f"&permissions={permissions.value}"
     if guild is not MISSING:
-        url += f'&guild_id={guild.id}'
+        url += f"&guild_id={guild.id}"
     if disable_guild_select:
-        url += '&disable_guild_select=true'
+        url += "&disable_guild_select=true"
     if redirect_uri is not MISSING:
-        url += '&response_type=code&' + urlencode({'redirect_uri': redirect_uri})
+        url += "&response_type=code&" + urlencode({"redirect_uri": redirect_uri})
     if state is not MISSING:
         url += f'&{urlencode({"state": state})}'
     if integration_type is not MISSING:
-        url += f'&integration_type={int(integration_type)}'
+        url += f"&integration_type={int(integration_type)}"
 
     return url
