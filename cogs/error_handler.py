@@ -2,13 +2,13 @@ from __future__ import annotations
 import sys
 import time
 
-import discord
 from discord.ext import commands
 from sentry_sdk import capture_exception, push_scope
 
-from ..constants import emojidict
-from ..context import BotU, CogU, ContextU
-from ..methods import dctimestamp, makeembed_bot, makeembed_failedaction, makeembed_successfulaction
+from ..bot import BotU
+from ..cog import CogU
+from ..context import ContextU
+from ..methods import dctimestamp
 
 class ErrorHandler(CogU, hidden=True):
     bot: BotU
