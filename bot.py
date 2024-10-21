@@ -35,10 +35,8 @@ from discord.abc import GuildChannel, PrivateChannel
 from discord.ext import commands
 from discord.ext.commands import AutoShardedBot
 
+from .context import ContextU
 from .tree import MentionableTree
-
-if TYPE_CHECKING:
-    from .context import ContextU
 
 T = TypeVar("T")
 P = ParamSpec("P")
