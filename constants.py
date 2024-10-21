@@ -2176,7 +2176,7 @@ emojidict: emojidictionary = emojidictionary(
 )
 
 try:
-    from .custom_constants import emojidict as new_emojidict
+    from .custom_constants import emojidict as new_emojidict # type: ignore
 
     for k, v in new_emojidict.items():
         emojidict[k] = v

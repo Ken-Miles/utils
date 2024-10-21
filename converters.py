@@ -9,13 +9,14 @@ Written by @danny on Discord
 Taken from https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/mod.py
 """
 
-from discord.ext import commands
 import discord
+from discord.ext import commands
+from discord.ext.commands.core import BotT
 
 from .context import ContextU
 
 def can_execute_action(ctx: ContextU, user: discord.Member, target: discord.Member) -> bool:
-    return user.id == ctx.bot.owner_id or user == ctx.guild.owner or user.top_role > target.top_role
+    return user.id == ctx.bot.owner_id or user == getattr(ctx.guild, 'owner', None) or user.top_role > target.top_role
 
 class MemberID(commands.Converter):
     async def convert(self, ctx: ContextU, argument: str):

@@ -6,10 +6,11 @@ from .help_command import *
 
 from .checks import * # context
 from .paginator import * # context
+from .command import * # context, views, danny_formats
 from .requests_http import * # constants
 from .context import * # requests
-
-from .danny_time import *
+from .danny_time import * # context
+from .danny_formats import *
 
 from .views import *
 

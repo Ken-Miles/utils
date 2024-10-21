@@ -6,7 +6,7 @@ import discord
 from discord import Embed, Interaction, InteractionMessage, Message, WebhookMessage
 from discord.abc import Messageable
 
-from .constants import emojidict
+from . import emojidict
 from .context import ContextU
 from .methods import makeembed_bot
 

@@ -11,11 +11,10 @@ import uuid
 import discord
 from discord import app_commands
 from discord.abc import Snowflake
-from discord.utils import MISSING
 from discord.ext.commands import Bot
+from discord.utils import MISSING
 
-
-from . import emojidict, RE_URL
+from . import RE_URL, emojidict
 
 # from async_lru import alru_cache
 

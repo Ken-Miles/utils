@@ -25,7 +25,8 @@ from discord.ext import commands
 from discord.ext.commands import Cog, Context
 from typing_extensions import Concatenate, ParamSpec, Self, TypeAlias
 
-from .context import BotU, ContextU
+from .bot import BotU
+from .context import ContextU
 
 T = TypeVar("T")
 P = ParamSpec("P")

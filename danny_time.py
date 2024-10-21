@@ -12,7 +12,7 @@ Taken from https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/formats.p
 from __future__ import annotations
 import datetime
 import re
-from typing import Any, Dict, Optional, TYPE_CHECKING, Union
+from typing import Any, Optional, TYPE_CHECKING, Union
 
 from dateutil.relativedelta import relativedelta
 from discord import app_commands
@@ -29,7 +29,7 @@ units["seconds"].append("secs")
 
 if TYPE_CHECKING:
     from typing_extensions import Self
-    from context import ContextU as Context
+    from .context import ContextU as Context
 
 
 class ShortTime:

@@ -7,7 +7,6 @@ import aiohttp
 from .constants import BLOXLINK_API_KEY, HTTPCode, ROVER_API_KEY, RequestType
 from .logger import requests_logger
 
-
 async def _request(
     _method: Union[str, RequestType], /, url: str, **kwargs
 ) -> aiohttp.ClientResponse:
