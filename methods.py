@@ -115,9 +115,6 @@ def makeembed_bot(
         if not author_icon_url:
             author_icon_url = command_user.display_avatar.url
 
-    else:
-        footer = "Made by @aidenpearce3066"
-
     # i would put this in the default args, but then it will only be when the bot is started
     return makeembed(
         title=title,
