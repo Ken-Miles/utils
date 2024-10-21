@@ -92,9 +92,16 @@ def makeembed_bot(
 
     if bot:
         if bot_owner:
-            footer = f"Made by @{bot_owner}"
+            owner = bot_owner
         if app_info:
-            footer = f"Made by @{app_info.owner}"
+            # i'm not the team owner its a burner
+            owner = discord.utils.find(lambda x: x.name == 'aidenpearce3066', app_info.team.members)
+            if not owner:
+                owner = app_info.team.owner
+        else:
+            owner = bot.owner_id
+        footer = f"Made by @{owner}"
+
         if not footer_icon_url:
             if getattr(bot, "avatar_url", None):
                 footer_icon_url = bot.avatar_url
