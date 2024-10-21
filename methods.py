@@ -12,6 +12,7 @@ import discord
 from discord import app_commands
 from discord.abc import Snowflake
 from discord.utils import MISSING
+from discord.ext.commands import Bot
 
 
 from . import emojidict, RE_URL
@@ -71,15 +72,43 @@ def makeembed_bot(
     url: Optional[str] = MISSING,
     image: Optional[str] = MISSING,
     thumbnail: Optional[str] = MISSING,
+    *,
+    bot: Optional[Bot] = None,
+    app_info: Optional[discord.AppInfo] = None,
+    bot_owner: Optional[discord.User] = None,
+
+    command_user: Optional[discord.abc.User] = None,
 ) -> discord.Embed:  # embedtype: str='rich'):
     """Creates an embed for the bot.
     Changed defaults for makeembed: color, footer, timestamp.
+
+    bot, app_info, bot_owner can be provided to provide an footer text and icon.
+
+    if command_user is provided, a "requested by {user}" and author icon will be added.
+
     """
 
     if not timestamp:
         timestamp = datetime.datetime.now()
-    if not footer:
+
+    if bot:
+        if bot_owner:
+            footer = f"Made by @{bot_owner}"
+        if app_info:
+            footer = f"Made by @{app_info.owner}"
+        if not footer_icon_url:
+            if getattr(bot, "avatar_url", None):
+                footer_icon_url = bot.avatar_url
+            elif getattr(bot, 'user', None):
+                footer_icon_url = bot.user.display_avatar.url
+    if command_user:
+        author = f"Requested by {command_user}"
+        if not author_icon_url:
+            author_icon_url = command_user.display_avatar.url
+
+    else:
         footer = "Made by @aidenpearce3066"
+
     # i would put this in the default args, but then it will only be when the bot is started
     return makeembed(
         title=title,
@@ -111,6 +140,7 @@ def makeembed_failedaction(
     url: Optional[str] = None,
     image: Optional[str] = None,
     thumbnail: Optional[str] = None,
+    **kwargs,
 ) -> discord.Embed:
     """Creates an embed for a failed action.
     Changed defaults for makeembed_bot: color, footer.
@@ -135,6 +165,7 @@ def makeembed_failedaction(
         url=url,
         image=image,
         thumbnail=thumbnail,
+        **kwargs,
     )
     return emb
 
@@ -153,6 +184,7 @@ def makeembed_partialaction(
     url: Optional[str] = None,
     image: Optional[str] = None,
     thumbnail: Optional[str] = None,
+    **kwargs,
 ):
 
     if not title:
@@ -171,6 +203,7 @@ def makeembed_partialaction(
         url=url,
         image=image,
         thumbnail=thumbnail,
+        **kwargs,
     )
     return emb
 
@@ -189,6 +222,7 @@ def makeembed_successfulaction(
     url: Optional[str] = None,
     image: Optional[str] = None,
     thumbnail: Optional[str] = None,
+    **kwargs,
 ) -> discord.Embed:
     """Changed defaults for makeembed_bot: color.
     """
@@ -208,6 +242,7 @@ def makeembed_successfulaction(
         url=url,
         image=image,
         thumbnail=thumbnail,
+        **kwargs,
     )
     return emb
 
