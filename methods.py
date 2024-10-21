@@ -107,6 +107,9 @@ def makeembed_bot(
                 footer_icon_url = bot.avatar_url
             elif getattr(bot, 'user', None):
                 footer_icon_url = bot.user.display_avatar.url
+    else:
+        footer = "Made by @aidenpearce3066"
+
     if command_user:
         author = f"Requested by {command_user}"
         if not author_icon_url:
