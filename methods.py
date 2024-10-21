@@ -24,14 +24,14 @@ def makeembed(
     timestamp: Optional[datetime.datetime] = MISSING,
     color: Optional[discord.Colour] = MISSING,
     description: Optional[str] = MISSING,
-    author: Optional[str] = MISSING,
-    author_url: Optional[str] = MISSING,
-    author_icon_url: Optional[str] = MISSING,
-    footer: Optional[str] = MISSING,
-    footer_icon_url: Optional[str] = MISSING,
+    author: Optional[str] = None,
+    author_url: Optional[str] = None,
+    author_icon_url: Optional[str] = None,
+    footer: Optional[str] = None,
+    footer_icon_url: Optional[str] = None,
     url: Optional[str] = MISSING,
-    image: Optional[str] = MISSING,
-    thumbnail: Optional[str] = MISSING,
+    image: Optional[str] = None,
+    thumbnail: Optional[str] = None,
 ) -> discord.Embed:  # embedtype: str='rich'):
     """Creates an embed."""
 
@@ -46,9 +46,9 @@ def makeembed(
     embed.description = description
     #if url is not None:
     embed.url = url
-    if author is not MISSING:
+    if author is not None:
         embed.set_author(name=author, url=author_url, icon_url=author_icon_url)
-    if footer is not MISSING:
+    if footer is not None:
         embed.set_footer(text=footer, icon_url=footer_icon_url)
     if image is not MISSING:
         embed.set_image(url=image)
@@ -61,16 +61,16 @@ def makeembed(
 def makeembed_bot(
     title: Optional[str] = MISSING,
     timestamp: Optional[datetime.datetime] = MISSING,
-    color: Optional[discord.Colour] = discord.Colour.brand_green(),
+    color: Optional[discord.Colour] = MISSING,
     description: Optional[str] = MISSING,
-    author: Optional[str] = MISSING,
-    author_url: Optional[str] = MISSING,
-    author_icon_url: Optional[str] = MISSING,
+    author: Optional[str] = None,
+    author_url: Optional[str] = None,
+    author_icon_url: Optional[str] = None,
     footer: Optional[str] = None,
-    footer_icon_url: Optional[str] = MISSING,
+    footer_icon_url: Optional[str] = None,
     url: Optional[str] = MISSING,
-    image: Optional[str] = MISSING,
-    thumbnail: Optional[str] = MISSING,
+    image: Optional[str] = None,
+    thumbnail: Optional[str] = None,
     *,
     bot: Optional[Bot] = None,
     app_info: Optional[discord.AppInfo] = None,
@@ -137,15 +137,15 @@ def makeembed_failedaction(
     *,
     title: Optional[str] = MISSING,
     timestamp: Optional[datetime.datetime] = MISSING,
-    color: Optional[discord.Colour] = discord.Colour.brand_red(),
-    author: Optional[str] = MISSING,
-    author_url: Optional[str] = MISSING,
-    author_icon_url: Optional[str] = MISSING,
-    footer: Optional[str] = MISSING,
-    footer_icon_url: Optional[str] = MISSING,
+    color: Optional[discord.Colour] = MISSING,
+    author: Optional[str] = None,
+    author_url: Optional[str] = None,
+    author_icon_url: Optional[str] = None,
+    footer: Optional[str] = None,
+    footer_icon_url: Optional[str] = None,
     url: Optional[str] = MISSING,
-    image: Optional[str] = MISSING,
-    thumbnail: Optional[str] = MISSING,
+    image: Optional[str] = None,
+    thumbnail: Optional[str] = None,
     **kwargs,
 ) -> discord.Embed:
     """Creates an embed for a failed action.
@@ -181,15 +181,15 @@ def makeembed_partialaction(
     *,
     title: Optional[str] = MISSING,
     timestamp: Optional[datetime.datetime] = MISSING,
-    color: Optional[discord.Colour] = discord.Colour.gold(),
-    author: Optional[str] = MISSING,
-    author_url: Optional[str] = MISSING,
-    author_icon_url: Optional[str] = MISSING,
-    footer: Optional[str] = MISSING,
-    footer_icon_url: Optional[str] = MISSING,
+    color: Optional[discord.Colour] = MISSING,
+    author: Optional[str] = None,
+    author_url: Optional[str] = None,
+    author_icon_url: Optional[str] = None,
+    footer: Optional[str] = None,
+    footer_icon_url: Optional[str] = None,
     url: Optional[str] = MISSING,
-    image: Optional[str] = MISSING,
-    thumbnail: Optional[str] = MISSING,
+    image: Optional[str] = None,
+    thumbnail: Optional[str] = None,
     **kwargs,
 ):
 
@@ -219,15 +219,15 @@ def makeembed_successfulaction(
     *,
     title: Optional[str] = MISSING,
     timestamp: Optional[datetime.datetime] = MISSING,
-    color: Optional[discord.Colour] = discord.Colour.brand_green(),
-    author: Optional[str] = MISSING,
-    author_url: Optional[str] = MISSING,
-    author_icon_url: Optional[str] = MISSING,
-    footer: Optional[str] = MISSING,
-    footer_icon_url: Optional[str] = MISSING,
+    color: Optional[discord.Colour] = MISSING,
+    author: Optional[str] = None,
+    author_url: Optional[str] = None,
+    author_icon_url: Optional[str] = None,
+    footer: Optional[str] = None,
+    footer_icon_url: Optional[str] = None,
     url: Optional[str] = MISSING,
-    image: Optional[str] = MISSING,
-    thumbnail: Optional[str] = MISSING,
+    image: Optional[str] = None,
+    thumbnail: Optional[str] = None,
     **kwargs,
 ) -> discord.Embed:
     """Changed defaults for makeembed_bot: color.
