@@ -10,7 +10,6 @@ from typing import (
     List,
     Optional,
     ParamSpec,
-    TYPE_CHECKING,
     TypeVar,
     Union,
 )
