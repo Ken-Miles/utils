@@ -416,6 +416,12 @@ class BotU(AutoShardedBot):
         # A counter to auto-ban frequent spammers
         # Triggering the rate limit 5 times in a row will auto-ban the user from the bot.
         self._auto_spam_count = Counter()
+    
+    @property
+    def avatar_url(self) -> str:
+        if self.user.display_avatar:
+            return self.user.display_avatar.url
+        raise AttributeError("Bot has no display_avatar")
 
     async def setup_hook(self):
         if not self.owner_ids:
