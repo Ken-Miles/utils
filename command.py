@@ -19,6 +19,7 @@ from typing import (
 )
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands._types import CogT, ContextT, Coro
 from discord.ext.commands.core import hooked_wrapped_callback
@@ -527,8 +528,8 @@ class HybridGroupU(commands.HybridGroup, GroupU):
             return GroupU.autocomplete(self, name)
 
 def command(
-    name: str = MISSING,
-    description: str = MISSING,
+    name: Union[str, app_commands.locale_str] = MISSING,
+    description: Union[str, app_commands.locale_str] = MISSING,
     brief: str = MISSING,
     aliases: Iterable[str] = MISSING,
     hybrid: bool = False,
@@ -572,8 +573,8 @@ def command(
     return decorator
 
 def hybrid_command(
-    name: str = MISSING,
-    description: str = MISSING,
+    name: Union[str, app_commands.locale_str] = MISSING,
+    description: Union[str, app_commands.locale_str] = MISSING,
     brief: str = MISSING,
     aliases: Iterable[str] = MISSING,
     **attrs: Any,
@@ -615,8 +616,8 @@ def hybrid_command(
     return decorator
 
 def group(
-    name: str = MISSING,
-    description: str = MISSING,
+    name: Union[str, app_commands.locale_str] = MISSING,
+    description: Union[str, app_commands.locale_str] = MISSING,
     brief: str = MISSING,
     aliases: Iterable[str] = MISSING,
     hybrid: bool = False,
@@ -666,8 +667,8 @@ def group(
     return decorator
 
 def hybrid_group(
-    name: str = MISSING,
-    description: str = MISSING,
+    name: Union[str, app_commands.locale_str] = MISSING,
+    description: Union[str, app_commands.locale_str] = MISSING,
     brief: str = MISSING,
     aliases: Iterable[str] = MISSING,
     fallback: str | None = None,
