@@ -93,7 +93,7 @@ def makeembed_bot(
     if bot:
         if bot_owner:
             owner = bot_owner
-        if app_info:
+        if app_info and getattr(app_info, "team", None):
             # i'm not the team owner its a burner
             owner = discord.utils.find(lambda x: x.name == 'aidenpearce3066', app_info.team.members)
             if not owner:
