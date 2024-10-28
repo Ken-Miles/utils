@@ -45,6 +45,7 @@ class BotU(AutoShardedBot):
     tree_cls: MentionableTree
 
     user: discord.ClientUser # type: ignore
+    appinfo: discord.AppInfo
     command_stats: Counter[str]
     socket_stats: Counter[str]
     command_types_used: Counter[bool]
@@ -79,6 +80,12 @@ class BotU(AutoShardedBot):
         if self.user.display_avatar:
             return self.user.display_avatar.url
         raise AttributeError("Bot has no display_avatar")
+
+    @discord.utils.copy_doc(commands.Bot.application_info)
+    async def application_info(self) -> discord.AppInfo:
+        """Method updated to cache the application info when it is fetched."""
+        self.appinfo = await super().application_info()
+        return self.appinfo
 
     async def setup_hook(self):
         if not self.owner_ids:
