@@ -5,9 +5,10 @@ from enum import Enum
 import logging
 import os
 import re
-from typing import Callable, Union
+from typing import Callable, List, Union
 
 import aiohttp
+import discord
 import yaml
 
 
@@ -2445,3 +2446,12 @@ def parse_discord_snowflake(snowflake: Union[str, int]) -> Snowflake:
 
 def snowflake_timestamp(snowflake: Union[int, str]) -> datetime.datetime:
     return parse_discord_snowflake(snowflake).datetime
+
+# for discord user badges
+misc_flags_descriptions = {
+    'team_user': 'Application Team User',
+    'system': 'System User',
+    'spammer': 'Spammer',
+    'verified_bot': 'Verified Bot',
+    'bot_http_interactions': 'HTTP Interactions Bot',
+}
