@@ -10,6 +10,7 @@ import uuid
 
 import discord
 from discord import app_commands
+from discord.app_commands import locale_str as _T
 from discord.abc import Snowflake
 from discord.ext.commands import Bot
 from discord.utils import MISSING
@@ -20,19 +21,19 @@ from . import RE_URL, emojidict
 
 
 def makeembed(
-    title: Optional[str] = MISSING,
+    title: Optional[Union[str, app_commands.locale_str]] = MISSING,
     timestamp: Optional[datetime.datetime] = MISSING,
     color: Optional[discord.Colour] = None,
-    description: Optional[str] = MISSING,
-    author: Optional[str] = None,
-    author_url: Optional[str] = None,
-    author_icon_url: Optional[str] = None,
-    footer: Optional[str] = None,
-    footer_icon_url: Optional[str] = None,
-    url: Optional[str] = MISSING,
-    image: Optional[str] = None,
-    thumbnail: Optional[str] = None,
-) -> discord.Embed:  # embedtype: str='rich'):
+    description: Optional[Union[str, app_commands.locale_str]] = MISSING,
+    author: Optional[Union[str, app_commands.locale_str]] = None,
+    author_url: Optional[Union[str, app_commands.locale_str]] = None,
+    author_icon_url: Optional[Union[str, app_commands.locale_str]] = None,
+    footer: Optional[Union[str, app_commands.locale_str]] = None,
+    footer_icon_url: Optional[Union[str, app_commands.locale_str]] = None,
+    url: Optional[Union[str, app_commands.locale_str]] = MISSING,
+    image: Optional[Union[str, app_commands.locale_str]] = None,
+    thumbnail: Optional[Union[str, app_commands.locale_str]] = None,
+) -> discord.Embed:  # embedtype: Union[str, app_commands.locale_str]='rich'):
     """Creates an embed."""
 
     embed = discord.Embed()
@@ -59,25 +60,25 @@ def makeembed(
 
 
 def makeembed_bot(
-    title: Optional[str] = MISSING,
+    title: Optional[Union[str, app_commands.locale_str]] = MISSING,
     timestamp: Optional[datetime.datetime] = MISSING,
     color: Optional[discord.Colour] = None,
-    description: Optional[str] = MISSING,
-    author: Optional[str] = None,
-    author_url: Optional[str] = None,
-    author_icon_url: Optional[str] = None,
-    footer: Optional[str] = None,
-    footer_icon_url: Optional[str] = None,
-    url: Optional[str] = MISSING,
-    image: Optional[str] = None,
-    thumbnail: Optional[str] = None,
+    description: Optional[Union[str, app_commands.locale_str]] = MISSING,
+    author: Optional[Union[str, app_commands.locale_str]] = None,
+    author_url: Optional[Union[str, app_commands.locale_str]] = None,
+    author_icon_url: Optional[Union[str, app_commands.locale_str]] = None,
+    footer: Optional[Union[str, app_commands.locale_str]] = None,
+    footer_icon_url: Optional[Union[str, app_commands.locale_str]] = None,
+    url: Optional[Union[str, app_commands.locale_str]] = MISSING,
+    image: Optional[Union[str, app_commands.locale_str]] = None,
+    thumbnail: Optional[Union[str, app_commands.locale_str]] = None,
     *,
     bot: Optional[Bot] = None,
     app_info: Optional[discord.AppInfo] = None,
     bot_owner: Optional[discord.User] = None,
 
     command_user: Optional[discord.abc.User] = None,
-) -> discord.Embed:  # embedtype: str='rich'):
+) -> discord.Embed:  # embedtype: Union[str, app_commands.locale_str]='rich'):
     """Creates an embed for the bot.
     Changed defaults for makeembed: color, footer, timestamp.
 
@@ -135,19 +136,19 @@ def makeembed_bot(
 
 
 def makeembed_failedaction(
-    description: Optional[str] = MISSING,
+    description: Optional[Union[str, app_commands.locale_str]] = MISSING,
     *,
-    title: Optional[str] = MISSING,
+    title: Optional[Union[str, app_commands.locale_str]] = MISSING,
     timestamp: Optional[datetime.datetime] = MISSING,
     color: Optional[discord.Colour] = discord.Color.brand_red(),
-    author: Optional[str] = None,
-    author_url: Optional[str] = None,
-    author_icon_url: Optional[str] = None,
-    footer: Optional[str] = None,
-    footer_icon_url: Optional[str] = None,
-    url: Optional[str] = MISSING,
-    image: Optional[str] = None,
-    thumbnail: Optional[str] = None,
+    author: Optional[Union[str, app_commands.locale_str]] = None,
+    author_url: Optional[Union[str, app_commands.locale_str]] = None,
+    author_icon_url: Optional[Union[str, app_commands.locale_str]] = None,
+    footer: Optional[Union[str, app_commands.locale_str]] = None,
+    footer_icon_url: Optional[Union[str, app_commands.locale_str]] = None,
+    url: Optional[Union[str, app_commands.locale_str]] = MISSING,
+    image: Optional[Union[str, app_commands.locale_str]] = None,
+    thumbnail: Optional[Union[str, app_commands.locale_str]] = None,
     **kwargs,
 ) -> discord.Embed:
     """Creates an embed for a failed action.
@@ -179,19 +180,19 @@ def makeembed_failedaction(
 
 
 def makeembed_partialaction(
-    description: Optional[str] = MISSING,
+    description: Optional[Union[str, app_commands.locale_str]] = MISSING,
     *,
-    title: Optional[str] = MISSING,
+    title: Optional[Union[str, app_commands.locale_str]] = MISSING,
     timestamp: Optional[datetime.datetime] = MISSING,
     color: Optional[discord.Colour] = discord.Color.gold(),
-    author: Optional[str] = None,
-    author_url: Optional[str] = None,
-    author_icon_url: Optional[str] = None,
-    footer: Optional[str] = None,
-    footer_icon_url: Optional[str] = None,
-    url: Optional[str] = MISSING,
-    image: Optional[str] = None,
-    thumbnail: Optional[str] = None,
+    author: Optional[Union[str, app_commands.locale_str]] = None,
+    author_url: Optional[Union[str, app_commands.locale_str]] = None,
+    author_icon_url: Optional[Union[str, app_commands.locale_str]] = None,
+    footer: Optional[Union[str, app_commands.locale_str]] = None,
+    footer_icon_url: Optional[Union[str, app_commands.locale_str]] = None,
+    url: Optional[Union[str, app_commands.locale_str]] = MISSING,
+    image: Optional[Union[str, app_commands.locale_str]] = None,
+    thumbnail: Optional[Union[str, app_commands.locale_str]] = None,
     **kwargs,
 ):
 
@@ -217,19 +218,19 @@ def makeembed_partialaction(
 
 
 def makeembed_successfulaction(
-    description: Optional[str] = MISSING,
+    description: Optional[Union[str, app_commands.locale_str]] = MISSING,
     *,
-    title: Optional[str] = MISSING,
+    title: Optional[Union[str, app_commands.locale_str]] = MISSING,
     timestamp: Optional[datetime.datetime] = MISSING,
     color: Optional[discord.Colour] = discord.Color.brand_green(),
-    author: Optional[str] = None,
-    author_url: Optional[str] = None,
-    author_icon_url: Optional[str] = None,
-    footer: Optional[str] = None,
-    footer_icon_url: Optional[str] = None,
-    url: Optional[str] = MISSING,
-    image: Optional[str] = None,
-    thumbnail: Optional[str] = None,
+    author: Optional[Union[str, app_commands.locale_str]] = None,
+    author_url: Optional[Union[str, app_commands.locale_str]] = None,
+    author_icon_url: Optional[Union[str, app_commands.locale_str]] = None,
+    footer: Optional[Union[str, app_commands.locale_str]] = None,
+    footer_icon_url: Optional[Union[str, app_commands.locale_str]] = None,
+    url: Optional[Union[str, app_commands.locale_str]] = MISSING,
+    image: Optional[Union[str, app_commands.locale_str]] = None,
+    thumbnail: Optional[Union[str, app_commands.locale_str]] = None,
     **kwargs,
 ) -> discord.Embed:
     """Changed defaults for makeembed_bot: color.
@@ -278,10 +279,10 @@ def dctimestamp(
     return f"<t:{int(dt)}:{format[:1]}>"
 
 def dchyperlink(
-    url: str,
-    texttoclick: str,
+    url: Union[str, app_commands.locale_str],
+    texttoclick: Union[str, app_commands.locale_str],
     *,
-    hovertext: Optional[str] = None,
+    hovertext: Optional[Union[str, app_commands.locale_str]] = None,
     suppress_embed: bool = False,
 ) -> str:
     '''Formats a Discord Hyperlink so that it can be clicked on.
@@ -686,19 +687,19 @@ CodeblockLanguage = Literal[
 
 # only way to get a list of all the codeblock langs and create a type for it
 # is to use this hacky method -_-
-CODEBLOCK_LANGUAGES: List[str] = list(CodeblockLanguage.__args__)  # type: ignore
+CODEBLOCK_LANGUAGES: List[Union[str, app_commands.locale_str]] = list(CodeblockLanguage.__args__)  # type: ignore
 
 
-async def create_codeblock(content: str, lang: CodeblockLanguage = "py") -> str:
+async def create_codeblock(content: Union[str, app_commands.locale_str], lang: CodeblockLanguage = "py") -> str:
     if lang not in CODEBLOCK_LANGUAGES:
         raise ValueError(f"Invalid Language: {lang}")
-    fmt: str = "```"
+    fmt: Union[str, app_commands.locale_str] = "```"
     return f"{fmt}{lang}\n{content}{fmt}"
 
 
 @lru_cache(maxsize=1000)
 def _autocomplete(
-    current: str, items: Sequence[Any], cutoff: float = 0.4
+    current: Union[str, app_commands.locale_str], items: Sequence[Any], cutoff: float = 0.4
 ) -> Sequence[Tuple[str, Any]]:
     if not items:
         return []
@@ -732,7 +733,7 @@ def _autocomplete(
 
 # @alru_cache(maxsize=1000)
 async def generic_autocomplete(
-    current: str,
+    current: Union[str, app_commands.locale_str],
     items: Union[Sequence[Any], Sequence[Tuple[Any, Any]]],
     interaction: Optional[discord.Interaction] = None,
     cutoff: float = 0.4,
@@ -791,10 +792,10 @@ def oauth_url(
     permissions: discord.Permissions = MISSING,
     guild: Snowflake = MISSING,
     integration_type: Union[IntegrationType, int] = IntegrationType.guild,
-    redirect_uri: str = MISSING,
-    scopes: Iterable[str] = MISSING,
+    redirect_uri: Union[str, app_commands.locale_str] = MISSING,
+    scopes: Iterable[Union[str, app_commands.locale_str]] = MISSING,
     disable_guild_select: bool = False,
-    state: str = MISSING,
+    state: Union[str, app_commands.locale_str] = MISSING,
 ) -> str:
     """A helper function that returns the OAuth2 URL for inviting the bot
     into guilds.

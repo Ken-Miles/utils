@@ -20,6 +20,7 @@ from typing import (
 
 import discord
 from discord import app_commands
+from discord.app_commands import locale_str as _T
 from discord.ext import commands
 from discord.ext.commands._types import CogT, ContextT, Coro
 from discord.ext.commands.core import hooked_wrapped_callback
@@ -84,13 +85,13 @@ class PromptView(CustomBaseView):
         ctx: ContextU,
         matches: List[Tuple[int, str]],
         param: inspect.Parameter,
-        value: str,
+        value: Union[str, app_commands.locale_str],
     ) -> None:
         super().__init__()
         self.ctx: ContextU = ctx
         self.matches: List[Tuple[int, str]] = matches
         self.param: inspect.Parameter = param
-        self.value: str = value
+        self.value: Union[str, app_commands.locale_str] = value
         self.item: Optional[str] = None
 
         self.add_item(PromptSelect(self, matches))
@@ -100,11 +101,11 @@ class PromptView(CustomBaseView):
 
     @property
     def embed(self) -> discord.Embed:
-        embed = discord.Embed(title='That\'s not quite right!')
+        embed = discord.Embed(title=_T('That\'s not quite right!'))
         if self.value is not None:
-            embed.description = f'`{self.value}` is not a valid response to the option named `{self.param.name}`, you need to select one of the following options below.'
+            embed.description = _T(f'`{self.value}` is not a valid response to the option named `{self.param.name}`, you need to select one of the following options below.') # type: ignore
         else:
-            embed.description = f'You did not enter a value for the option named `{self.param.name}`, you need to select one of the following options below.'
+            embed.description = _T(f'You did not enter a value for the option named `{self.param.name}`, you need to select one of the following options below.') # type: ignore
 
         return embed
 
@@ -530,8 +531,8 @@ class HybridGroupU(commands.HybridGroup, GroupU):
 def command(
     name: Union[str, app_commands.locale_str] = MISSING,
     description: Union[str, app_commands.locale_str] = MISSING,
-    brief: str = MISSING,
-    aliases: Iterable[str] = MISSING,
+    brief: Union[str, app_commands.locale_str] = MISSING,
+    aliases: Iterable[Union[str, app_commands.locale_str]] = MISSING,
     hybrid: bool = False,
     **attrs: Any,
 ) -> Callable[..., CommandU | HybridCommandU]:
@@ -575,8 +576,8 @@ def command(
 def hybrid_command(
     name: Union[str, app_commands.locale_str] = MISSING,
     description: Union[str, app_commands.locale_str] = MISSING,
-    brief: str = MISSING,
-    aliases: Iterable[str] = MISSING,
+    brief: Union[str, app_commands.locale_str] = MISSING,
+    aliases: Iterable[Union[str, app_commands.locale_str]] = MISSING,
     **attrs: Any,
 ) -> Callable[..., HybridCommandU]:
     """
@@ -618,10 +619,10 @@ def hybrid_command(
 def group(
     name: Union[str, app_commands.locale_str] = MISSING,
     description: Union[str, app_commands.locale_str] = MISSING,
-    brief: str = MISSING,
-    aliases: Iterable[str] = MISSING,
+    brief: Union[str, app_commands.locale_str] = MISSING,
+    aliases: Iterable[Union[str, app_commands.locale_str]] = MISSING,
     hybrid: bool = False,
-    fallback: str | None = None,
+    fallback: Union[str, app_commands.locale_str] | None = None,
     invoke_without_command: bool = True,
     **attrs: Any,
 ) -> Callable[..., GroupU | HybridGroupU]:
@@ -669,9 +670,9 @@ def group(
 def hybrid_group(
     name: Union[str, app_commands.locale_str] = MISSING,
     description: Union[str, app_commands.locale_str] = MISSING,
-    brief: str = MISSING,
-    aliases: Iterable[str] = MISSING,
-    fallback: str | None = None,
+    brief: Union[str, app_commands.locale_str] = MISSING,
+    aliases: Iterable[Union[str, app_commands.locale_str]] = MISSING,
+    fallback: Union[str, app_commands.locale_str] | None = None,
     invoke_without_command: bool = True,
     **attrs: Any,
 ) -> Callable[..., HybridGroupU]:
