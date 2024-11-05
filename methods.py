@@ -38,15 +38,20 @@ def makeembed(
 
     embed = discord.Embed()
     #if title is not None:
-    embed.title = title
+    if title:
+        embed.title = title
     #if timestamp is not None:
-    embed.timestamp = timestamp
+    if timestamp:
+        embed.timestamp = timestamp
     #if color is not None:
-    embed.color = color
+    if color:
+        embed.color = color
     #if description is not None:
-    embed.description = description
+    if description:
+        embed.description = description
     #if url is not None:
-    embed.url = url
+    if url:
+        embed.url = url
     if author is not None:
         embed.set_author(name=author, url=author_url, icon_url=author_icon_url)
     if footer is not None:
