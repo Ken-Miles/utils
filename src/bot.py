@@ -42,6 +42,7 @@ P = ParamSpec("P")
 
 @discord.utils.copy_doc(commands.AutoShardedBot)
 class BotU(AutoShardedBot):
+    """A subclass of discord.ext.commands.AutoShardedBot with additional features."""
     tree_cls: MentionableTree
 
     user: discord.ClientUser # type: ignore
@@ -77,17 +78,33 @@ class BotU(AutoShardedBot):
     
     @property
     def avatar_url(self) -> str:
+        """Get's the bot's avatar URL. If the bot has no avatar, raises AttributeError.
+        
+        :raises AttributeError: If the bot has no avatar.
+        :return: The bot's avatar URL.
+        :rtype: :class:`str`
+        """
         if self.user.display_avatar:
             return self.user.display_avatar.url
         raise AttributeError("Bot has no display_avatar")
 
     @discord.utils.copy_doc(commands.Bot.application_info)
     async def application_info(self) -> discord.AppInfo:
-        """Method updated to cache the application info when it is fetched."""
+        """Method updated to cache the application info when it is fetched.
+        
+        :return: The bot's application info.
+        :rtype: discord.AppInfo
+        """
         self.appinfo = await super().application_info()
         return self.appinfo
 
+    @discord.utils.copy_doc(commands.Bot.setup_hook)
     async def setup_hook(self):
+        """A hook to run after the bot has been setup.
+        This is called after the bot has been setup and is ready to run.
+        
+        :return: None
+        :rtype: None"""
         if not self.owner_ids:
             assert self.application is not None
             if self.application.team:
@@ -135,7 +152,11 @@ class BotU(AutoShardedBot):
 
     @property
     def owner(self) -> discord.User:
-        """Renamed because is_owner doesn't work with the new application_info"""
+        """Renamed because is_owner doesn't work with the new application_info.
+        
+        :return: The bot's owner.
+        :rtype: discord.User
+        """
         if getattr(self.bot_app_info, "team", None):
             user = self.get_user(self.bot_app_info.team.owner.id) # type: ignore
             if user:
@@ -155,7 +176,14 @@ class BotU(AutoShardedBot):
     async def getorfetch_channel(
         self, channelid: int, guild: Optional[Guild] = None
     ) -> Union[GuildChannel, Thread, PrivateChannel]:
-        """Gets a channel from a guild (if provided) or bot's cache, else fetches it. Will error if fetch fails."""
+        """Gets a channel from a guild (if provided) or bot's cache, else fetches it. Will error if fetch fails.
+        
+        :param :class:`int` channelid: The ID of the channel to get.
+        :param Optional[Guild] guild: The guild to get the channel from.
+        :raises InvalidData: If the channel is not found or is not the correct type.
+        :return: The channel.
+        :rtype: Union[GuildChannel, Thread, PrivateChannel]
+        """
         channel: Optional[Union[GuildChannel, Thread, PrivateChannel]] = None
         if guild is not None:
             channel = guild.get_channel_or_thread(channelid)
@@ -169,7 +197,14 @@ class BotU(AutoShardedBot):
 
     async def getorfetch_thread(self, threadid: int, guild: Guild) -> Thread:
         """Gets or fetches a Thread (Forum or TextChannel thread) from the provided guild.
-        If None or a non-Thread is returned, raises AssertionError"""
+        If None or a non-Thread is returned, raises AssertionError.
+        
+        :param :class:`int` threadid: The ID of the thread to get.
+        :param Guild guild: The guild to get the thread from.
+        :raises InvalidData: If the thread is not found or is not the correct type.
+        :return: The thread.
+        :rtype: Thread
+        """
         ch = await self.getorfetch_channel(threadid, guild)
         if isinstance(ch, Thread):
             return ch
@@ -177,7 +212,15 @@ class BotU(AutoShardedBot):
 
     async def getorfetch_textchannel(self, channelid: int, guild: Guild) -> TextChannel:
         """Gets or fetches a TextChannel from the provided guild.
-        If None or a non-TextChannel is returned, raises AssertionError"""
+        If None or a non-TextChannel is returned, raises AssertionError
+        
+        :param :class:`int` channelid: The ID of the channel to get.
+        :param Guild guild: The guild to get the channel from.
+        :raises InvalidData: If the channel is not found or is not the correct type.
+        :return: The channel.
+        :rtype: TextChannel
+        """
+        
         ch = await self.getorfetch_channel(channelid, guild)
         if isinstance(ch, TextChannel):
             return ch
@@ -197,7 +240,14 @@ class BotU(AutoShardedBot):
         self, channelid: int, guild: Guild
     ) -> CategoryChannel:
         """Gets or fetches a CategoryChannel from the provided guild.
-        If None or a non-CategoryChannel is returned, raises AssertionError"""
+        If None or a non-CategoryChannel is returned, raises AssertionError
+        
+        :param :class:`int` channelid: The ID of the channel to get.
+        :param Guild guild: The guild to get the channel from.
+        :raises InvalidData: If the channel is not found or is not the correct type.
+        :return: The channel.
+        :rtype: CategoryChannel
+        """
         ch = await self.getorfetch_channel(channelid, guild)
         if isinstance(ch, CategoryChannel):
             return ch
@@ -209,7 +259,14 @@ class BotU(AutoShardedBot):
         self, channelid: int, guild: Guild
     ) -> StageChannel:
         """Gets or fetches a StageChannel from the provided guild.
-        If None or a non-StageChannel is returned, raises AssertionError"""
+        If None or a non-StageChannel is returned, raises AssertionError
+        
+        :param :class:`int` channelid: The ID of the channel to get.
+        :param Guild guild: The guild to get the channel from.
+        :raises InvalidData: If the channel is not found or is not the correct type.
+        :return: The channel.
+        :rtype: StageChannel
+        """
         ch = await self.getorfetch_channel(channelid, guild)
         if isinstance(ch, StageChannel):
             return ch
@@ -220,8 +277,15 @@ class BotU(AutoShardedBot):
     async def getorfetch_forumchannel(
         self, channelid: int, guild: Guild
     ) -> ForumChannel:
-        """Gets or fetches a StageChannel from the provided guild.
-        If None or a non-StageChannel is returned, raises A"""
+        """Gets or fetches a ForumChannel from the provided guild.
+        If None or a non-ForumChannel is returned, raises AssertionError.
+        
+        :param :class:`int` channelid: The ID of the channel to get.
+        :param Guild guild: The guild to get the channel from.
+        :raises InvalidData: If the channel is not found or is not the correct type.
+        :return: The channel.
+        :rtype: ForumChannel
+        """
         ch = await self.getorfetch_channel(channelid, guild)
         if isinstance(ch, ForumChannel):
             return ch
@@ -232,7 +296,19 @@ class BotU(AutoShardedBot):
     async def getorfetch_user(
         self, userid: int, guild: Optional[Guild]
     ) -> Union[User, Member]:
-        """Gets a user from a guild (if provided) or bot's cache, else fetches it. Will error if fetch fails."""
+        """Gets a user from a guild (if provided) or bot's cache, else fetches it. Will error if fetch fails.
+        
+        
+        :param :class:int userid: The ID of the user to get.
+        :param Optional[Guild] guild: The guild to get the user from.
+        :raises InvalidData: If the user is not found.
+        :return: The user.
+        :rtype: Union[User, Member]
+
+        .. note
+            If the user is in a guild, it will return a Member.
+            You must pass explicitly pass None for the guild if you wish to get a user not in a guild.
+        """
         user: Union[User, Member]
         if guild is not None:
             user = await self.getorfetch_member(userid, guild)
