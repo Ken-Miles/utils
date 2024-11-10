@@ -414,5 +414,3 @@ class BotU(AutoShardedBot):
             else:
                 cmd = f"`/{command.name}`"
         return cmd
-
-        #log.info('Ready: %s (ID: %s)', self.user, self.user.id)
