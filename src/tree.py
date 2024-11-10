@@ -9,7 +9,7 @@ __all__ = ('MentionableTree',)
 
 class MentionableTree(app_commands.CommandTree):
     """"
-    This was written by @leocx1000 on Discord   
+    This was written by @leocx1000 on Discord
     Copied from https://gist.github.com/LeoCx1000/021dc52981299b95ea7790416e4f5ca4
     """
     def __init__(self, *args, **kwargs):
