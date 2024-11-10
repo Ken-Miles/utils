@@ -238,8 +238,7 @@ def makeembed_successfulaction(
     thumbnail: Optional[Union[str, app_commands.locale_str]] = None,
     **kwargs,
 ) -> discord.Embed:
-    """Changed defaults for makeembed_bot: color.
-    """
+    """Changed defaults for makeembed_bot: color."""
     if not title:
         title = f"{emojidict.get(True)} Action Successful"
 
@@ -266,8 +265,7 @@ timestamptype = Literal["t", "T", "d", "D", "f", "F", "R"]
 def dctimestamp(
     dt: Union[datetime.datetime, int, float], format: timestamptype = "f"
 ) -> str:
-    """
-    Timestamp Styles
+    """Timestamp Styles
     STYLE     | EXAMPLE OUTPUT	              | DESCRIPTION
     t	  | 16:20	                      | Short Time
     T	  | 16:20:30	                      | Long Time
@@ -293,7 +291,8 @@ def dchyperlink(
     '''Formats a Discord Hyperlink so that it can be clicked on.
     URL and texttoclick can be switched.
 
-    "[Text To Click](https://www.youtube.com/ \"Hovertext\")"'''
+    "[Text To Click](https://www.youtube.com/ \"Hovertext\")"
+    '''
 
     # url and texttoclick could be switched
     if RE_URL.match(texttoclick):
@@ -762,7 +761,6 @@ def generate_transaction_id(
 ) -> str:
     """Generates a UUID for an error.
     Uses params passed in if provided, as well as the current time.
-
 
     Args:
         guild_id (Optional[int], optional): The ID of the guild where this happened. Defaults to None.

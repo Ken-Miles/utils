@@ -388,8 +388,7 @@ class GroupU(commands.GroupMixin[CogT], CommandU[CogT, P, T]):
     #     return ret
 
     def command(self, *args: Any, **kwargs: Any) -> Callable[..., CommandU]:
-        """
-        Register a function as a :class:`CommandU`.
+        """Register a function as a :class:`CommandU`.
 
         Parameters
         ----------
@@ -414,8 +413,7 @@ class GroupU(commands.GroupMixin[CogT], CommandU[CogT, P, T]):
         return wrapped
 
     def group(self, *args: Any, **kwargs: Any) -> Callable[..., GroupU]:
-        """
-        Register a function as a :class:`GroupU`.
+        """Register a function as a :class:`GroupU`.
 
         Parameters
         ----------
@@ -536,8 +534,7 @@ def command(
     hybrid: bool = False,
     **attrs: Any,
 ) -> Callable[..., CommandU | HybridCommandU]:
-    """
-    Register a function as a :class:`CommandU`.
+    """Register a function as a :class:`CommandU`.
 
     Parameters
     ----------
@@ -580,8 +577,7 @@ def hybrid_command(
     aliases: Iterable[Union[str, app_commands.locale_str]] = MISSING,
     **attrs: Any,
 ) -> Callable[..., HybridCommandU]:
-    """
-    Register a function as a :class:`HybridCommandU`.
+    """Register a function as a :class:`HybridCommandU`.
 
     Parameters
     ----------
@@ -626,8 +622,7 @@ def group(
     invoke_without_command: bool = True,
     **attrs: Any,
 ) -> Callable[..., GroupU | HybridGroupU]:
-    """
-    Register a function as a :class:`GroupU`.
+    """Register a function as a :class:`GroupU`.
 
     Parameters
     ----------
@@ -676,8 +671,7 @@ def hybrid_group(
     invoke_without_command: bool = True,
     **attrs: Any,
 ) -> Callable[..., HybridGroupU]:
-    """
-    Register a function as a :class:`HybridGroupU`.
+    """Register a function as a :class:`HybridGroupU`.
 
     Parameters
     ----------

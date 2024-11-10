@@ -25,8 +25,7 @@ class CogU(Cog):
     brief: Optional[str]
 
     def __init_subclass__(cls: Type[CogU], **kwargs: Any) -> None:
-        """
-        This is called when a subclass is created.
+        """This is called when a subclass is created.
         Its purpose is to add parameters to the cog
         that will later be used in the help command.
         """

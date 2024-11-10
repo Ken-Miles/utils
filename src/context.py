@@ -16,8 +16,7 @@ T = TypeVar("T")
 P = ParamSpec("P")
 
 class ConfirmationView(CustomBaseView):
-    """
-    Taken from https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/context.py#L280
+    """Taken from https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/context.py#L280
     Written by @danny on Discord
     """
 
@@ -118,10 +117,12 @@ class ContextU(commands.Context):
                         pass
                     self.defer_reaction = None
 
+    @discord.utils.copy_doc(commands.Context.send)
     async def send(self, *args, **kwargs):
         await self._remove_reaction_if_present()
         return await super().send(*args, **kwargs)
 
+    @discord.utils.copy_doc(commands.Context.reply)
     async def reply(self, *args, **kwargs):
         await self._remove_reaction_if_present()
         return await super().reply(*args, **kwargs)

@@ -69,7 +69,8 @@ class CustomBaseView(discord.ui.View):
     
     def disable_buttons(self, disable_url_buttons: bool=False):
         """Disables all buttons in a view. If disable_url_buttons is set to True, it will disable URL buttons as well.
-        Note that the mesasge must still be edited after calling this method for the changes to take effect."""
+        Note that the mesasge must still be edited after calling this method for the changes to take effect.
+        """
 
         for button in self.children:
             # if disable_url_buttons set to True and button is a URL button, or a normal button is set to enabled, disable it

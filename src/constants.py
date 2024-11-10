@@ -5,10 +5,9 @@ from enum import Enum
 import logging
 import os
 import re
-from typing import Callable, List, Union
+from typing import Callable, Union
 
 import aiohttp
-import discord
 import yaml
 
 
@@ -2440,7 +2439,8 @@ class Snowflake:
 
 def parse_discord_snowflake(snowflake: Union[str, int]) -> Snowflake:
     """Returns a tuple of (datetime, worker_id, process_id, increment).
-    See [this](https://i.imgur.com/UxWvdYD.png) image for more information."""
+    See [this](https://i.imgur.com/UxWvdYD.png) image for more information.
+    """
     return Snowflake(snowflake=snowflake, discord_snowflake=True)
 
 
