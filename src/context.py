@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional, ParamSpec, TYPE_CHECKING, TypeVar, Union
+from typing import Optional, ParamSpec, TYPE_CHECKING, TypeVar
 
 import discord
 from discord.ext import commands
@@ -94,6 +94,7 @@ class ContextU(commands.Context):
             await super().defer(*args, **kwargs)
 
     async def _remove_reaction_if_present(self):
+        """Internal method to remove the loading emoji if it's present."""
         if not self.interaction and self.message:
             if USE_DEFER_EMOJI:
                 if self.guild and LOADING_EMOJI in [str(x.emoji) for x in self.message.reactions]:  ##discord.utils.get(self.message.reactions, emoji____str__=LOADING_EMOJI)
@@ -138,24 +139,21 @@ class ContextU(commands.Context):
     ) -> Optional[bool]:
         """An interactive reaction confirmation dialog.
 
-        Parameters
-        -----------
-        message: str
-            The message to show along with the prompt.
-        timeout: float
-            How long to wait before returning.
-        delete_after: bool
-            Whether to delete the confirmation message after we're done.
-        author_id: Optional[int]
-            The member who should respond to the prompt. Defaults to the author of the
-            Context's message.
+        :param message: The message to show along with the prompt, defaults to None
+        :type message: Optional[:class:`str`]
+        :param embed: The embed to show along with the prompt, defaults to None
+        :type embed: Optional[:class:`discord.Embed`]
+        :param timeout: How long to wait before returning, defaults to 60.0
+        :type timeout: Optional[:class:`float`]
+        :param delete_after: Whether to delete the confirmation message after we're done, defaults to True
+        :type delete_after: :class:`bool`
+        :param author_id: The member who should respond to the prompt. Defaults to the author of the Context's message, defaults to None
+        :type author_id: Optional[:class:`int`]
+        :return: ``True`` if explicit confirm, ``False`` if explicit deny, ``None`` if deny due to timeout.
+        :rtype: Optional[:class:`bool`]
 
-        Returns
-        --------
-        Optional[bool]
-            ``True`` if explicit confirm,
-            ``False`` if explicit deny,
-            ``None`` if deny due to timeout
+        .. note::
+            You must pass either a :param:`message` or :param:`embed` parameter.
         """
 
         author_id = author_id or self.author.id
@@ -170,7 +168,8 @@ class ContextU(commands.Context):
 
 async def prompt(
         interaction: discord.Interaction,
-        message: Union[str, discord.Embed],
+        message: Optional[str] = None,
+        embed: Optional[discord.Embed] = None,
         *,
         timeout: float = 60.0,
         delete_after: bool = True,
@@ -178,24 +177,23 @@ async def prompt(
     ) -> Optional[bool]:
         """An interactive reaction confirmation dialog.
 
-        Parameters
-        -----------
-        message: str
-            The message to show along with the prompt.
-        timeout: float
-            How long to wait before returning.
-        delete_after: bool
-            Whether to delete the confirmation message after we're done.
-        author_id: Optional[int]
-            The member who should respond to the prompt. Defaults to the author of the
-            Context's message.
+        :param interaction: The interaction to use for sending the prompt
+        :type interaction: :class:`discord.Interaction`
+        :param message: The message to show along with the prompt, defaults to None
+        :type message: Optional[:class:`str`]
+        :param embed: The embed to show along with the prompt, defaults to None
+        :type embed: Optional[:class:`discord.Embed`]
+        :param timeout: How long to wait before returning, defaults to 60.0
+        :type timeout: Optional[:class:`float`]
+        :param delete_after: Whether to delete the confirmation message after we're done, defaults to True
+        :type delete_after: :class:`bool`
+        :param author_id: The member who should respond to the prompt. Defaults to the author of the Context's message, defaults to None
+        :type author_id: Optional[:class:`int`]
+        :return: ``True`` if explicit confirm, ``False`` if explicit deny, ``None`` if deny due to timeout.
+        :rtype: Optional[:class:`bool`]
 
-        Returns
-        --------
-        Optional[bool]
-            ``True`` if explicit confirm,
-            ``False`` if explicit deny,
-            ``None`` if deny due to timeout
+        .. note::
+            You must pass either a :param:`message` or :param:`embed` parameter.
         """
 
         author_id = author_id or interaction.user.id
