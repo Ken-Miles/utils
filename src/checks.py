@@ -12,17 +12,21 @@ from .context import ContextU
 
 T = TypeVar("T")
 
-
 def is_owner(user: Union[discord.User, discord.Member], bot: BotU):
+    """A check to see if a user is the owner of the bot."""    
     assert bot.owner_ids is not None
     return user.id in bot.owner_ids
 
 
 def check_is_trusted(user: Union[discord.User, discord.Member], bot: BotU):
+    """Internal function to check if the user is trusted.
+    This is used in the :meth:`is_trusted` check."""
     return is_owner(user, bot) or user.id in TRUSTED_USERS
 
 
 def is_trusted():
+    """Check if the user is trusted.
+    Uses the `TRUSTED_USERS` constant to check if the user is trusted."""
     def predicate(ctx: commands.Context):
         return check_is_trusted(ctx.author, ctx.bot)
 
@@ -30,12 +34,20 @@ def is_trusted():
 
 
 def Cooldown(rate: int, per: int, bucket: BucketType):
+    """A decorator that adds a cooldown to a command.
+    This is a modified version of the :meth:`discord.ext.commands.cooldown` decorator.
+
+    This allows for trusted users to have a lower cooldown rate than normal users.
+    In addition, this allows for bot owners to have no cooldown rate.
+    """
     def actually_cool(ctx: commands.Context):
         # if await ctx.bot.is_owner(ctx.author): # bot owner gets no cooldown
         if is_owner(ctx.author, ctx.bot):
             return None
+
         elif check_is_trusted(ctx.author, ctx.bot):
             return commands.Cooldown(rate, per / 2)
+
         return commands.Cooldown(rate, per)
 
     return commands.dynamic_cooldown(actually_cool, bucket)
@@ -50,8 +62,12 @@ def is_support_server():
 
 # danny checks
 
-
 async def check_permissions(ctx: ContextU, perms: dict[str, bool], *, check=all):
+    """This function is a modified version of Danny's `check_permissions` function from RoboDanny.
+
+    This function checks if the user has the required permissions to run a command.
+    This function also checks if the user is the owner of the bot.
+    """
     is_owner = await ctx.bot.is_owner(ctx.author)
     if is_owner:
         return True
@@ -66,6 +82,9 @@ async def check_permissions(ctx: ContextU, perms: dict[str, bool], *, check=all)
 
 
 def has_permissions(*, check=all, **perms: bool):
+    """This is a modified version of Danny's `has_permissions` decorator from RoboDanny.
+    Decorator that checks if the user has the required permissions to run a command.
+    """
     async def pred(ctx: ContextU):
         return await check_permissions(ctx, perms, check=check)
 
@@ -73,6 +92,12 @@ def has_permissions(*, check=all, **perms: bool):
 
 
 async def check_guild_permissions(ctx: ContextU, perms: dict[str, bool], *, check=all):
+    """This function is a modified version of Danny's `check_guild_permissions` function from RoboDanny.
+
+    This function checks if the user has the required guild permissions to run a command.
+    This function also checks if the user is the owner of the bot.
+    """
+
     is_owner = await ctx.bot.is_owner(ctx.author)
     if is_owner:
         return True
@@ -90,6 +115,9 @@ async def check_guild_permissions(ctx: ContextU, perms: dict[str, bool], *, chec
 
 
 def has_guild_permissions(*, check=all, **perms: bool):
+    """This is a modified version of Danny's `has_guild_permissions` decorator from RoboDanny.
+    Decorator that checks if the user has the required guild permissions to run a command.
+    """
     async def pred(ctx: ContextU):
         return await check_guild_permissions(ctx, perms, check=check)
 
@@ -97,9 +125,16 @@ def has_guild_permissions(*, check=all, **perms: bool):
 
 
 # These do not take channel overrides into account
-
-
 def hybrid_permissions_check(**perms: bool) -> Callable[[T], T]:
+    """This is a modified version of Danny's `hybrid_permissions_check` decorator from RoboDanny.
+    Decorator that checks if the user has the required permissions to run a command.
+
+    This decorator is a hybrid of `has_permissions` and `has_guild_permissions`.
+    
+    .. note::
+        This decorator is used for both `commands.check` and `app_commands.default_permissions`.
+        They also do not take channel overrides into account.
+    """
     async def pred(ctx: ContextU):
         return await check_guild_permissions(ctx, perms)
 
@@ -112,18 +147,28 @@ def hybrid_permissions_check(**perms: bool) -> Callable[[T], T]:
 
 
 def is_manager():
+    """This is a modified version of Danny's `is_manager` decorator from RoboDanny.
+    Decorator that checks if the user has the manage_guild permission to run a command.
+    """
     return hybrid_permissions_check(manage_guild=True)
 
 
 def is_mod():
+    """This is a modified version of Danny's `is_mod` decorator from RoboDanny.
+    Decorator that checks if the user has the `manage_messages` and `ban_members` permissions to run a command.
+    """
     return hybrid_permissions_check(ban_members=True, manage_messages=True)
 
 
 def is_admin():
+    """This is a modified version of Danny's `is_admin` decorator from RoboDanny.
+    Decorator that checks if the user has the `administrator` permission to run a command.
+    """
     return hybrid_permissions_check(administrator=True)
 
 
 def is_in_guilds(*guild_ids: int):
+    """Check if the guild id is in the list of guild ids."""
     def predicate(ctx: ContextU) -> bool:
         if not ctx.guild:
             return False
