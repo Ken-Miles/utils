@@ -5,7 +5,8 @@ from enum import Enum
 import logging
 import os
 import re
-from typing import Callable, Union
+from typing import Annotated, Callable, Union, Dict
+import discord
 
 import aiohttp
 import yaml
@@ -15,7 +16,9 @@ def constant_factory(value):
     return lambda: value
 
 
-emojidict: emojidictionary = emojidictionary(
+emojidict: Annotated[emojidictionary, 
+"A dictionary that maps strings to emojis in the form `name`: `emoji_str`."
+] = emojidictionary(
     constant_factory("\U00002753"),
     {
         "x": "<a:X_:1046808381266067547>",
@@ -2183,7 +2186,139 @@ try:
 except ImportError:
     pass
 
-LOADING_EMOJI = emojidict.get("thinking")
+LOADING_EMOJI: Annotated[str, "The default emoji the bot uses when it is 'thinking'."] = emojidict.get("thinking", "\U0001f4bb")
+
+permission_proper_names: Annotated[Dict[str, str], 
+"A list of all permissions in the Discord API. Dictionary goes in Alphabetical order in the form `api_name`: `proper_name`."
+] = {
+    "add_reactions": "Add Reactions",
+    "administrator": "Administrator",
+    "attach_files": "Attach Files",
+    "ban_members": "Ban Members",
+    "change_nickname": "Change Nickname",
+    "connect": "Connect",
+
+    # 2.4+ only
+    "create_polls": "Create Polls",
+
+    "create_events": "Create Events",
+    "create_expressions": "Create Expressions",
+    "create_instant_invite": "Create Instant Invite",
+    "create_private_threads": "Create Private Threads",
+    "create_public_threads": "Create Public Threads",
+    "deafen_members": "Deafen Members",
+    "embed_links": "Embed Links",
+
+    "external_emojis": "Use External Emojis",
+    "external_stickers": "Use External Stickers",
+
+    "kick_members": "Kick Members",
+    "manage_channels": "Manage Channels",
+    
+    "manage_emojis": "Manage Emojis",
+    "manage_emojis_and_stickers": "Manage Emojis And Stickers",
+
+    "manage_events": "Manage Events",
+    "manage_expressions": "Manage Expressions",
+    "manage_guild": "Manage Server",
+    "manage_messages": "Manage Messages",
+    "manage_nicknames": "Manage Nicknames",
+
+    "manage_permissions": "Manage Permissions",
+    "manage_roles": "Manage Roles",
+
+    "manage_threads": "Manage Threads",
+    "manage_webhooks": "Manage Webhooks",
+    "mention_everyone": "Mention Everyone",
+    "moderate_members": "Moderate Members",
+    "move_members": "Move Members",
+    "mute_members": "Mute Members",
+    "priority_speaker": "Priority Speaker",
+    "read_message_history": "Read Message History",
+    "read_messages": "Read Messages",
+    "request_to_speak": "Request To Speak",
+    "send_messages": "Send Messages",
+    "send_messages_in_threads": "Send Messages In Threads",
+    "send_tts_messages": "Send TTS Messages",
+    "send_voice_messages": "Send Voice Messages",
+    "speak": "Speak",
+    "stream": "Stream",
+    "use_application_commands": "Use Application Commands",
+    "use_embedded_activities": "Use Embedded Activities",
+
+    "use_external_emojis": "Use External Emojis",
+    "use_external_stickers": "Use External Stickers",
+
+    "use_external_sounds": "Use External Sounds",
+    "use_soundboard": "Use Soundboard",
+    
+    "use_voice_activation": "Use Voice Activity",
+
+    # 2.4+ only
+    "use_external_apps": "Use External Apps",
+
+    "view_audit_log": "View Audit Log",
+    "view_channel": "View Channel",
+    "view_guild_insights": "View Server Insights",
+}
+
+permission_descriptions: Annotated[Dict[str, str],
+"A list of all permissions in the Discord API. Dictionary goes in Alphabetical order in the form `api_name`: `description`."
+] = {
+    "add_reactions": "Allows members to add new emoji reactions to a message. If this permission is disabled, members can still react using any existing reactions on a message.",
+    "administrator": "Members with this permission will have every permission and will also bypass all channel specific permissions or restrictions (for example, these members would get access to all private channels. **This is a dangerous permission to grant**.",
+    "attach_files": "Allows members to upload files or media in text channels.",
+    "ban_members": "Allows members to permanently ban and delete the message history of other members from this server.",
+    "change_nickname": "Allows members to change their own nickname, a custom name for just this server.",
+    "connect": "Allows members to join voice channels and hear others.",
+    "create_events": "Allows members to create events.",
+    "create_expressions": "Allows members to add custom emoji, stickers, and sounds in this server.",
+    "create_instant_invite": "Allows members to invite new people to this server.",
+    "create_private_threads": "Allow members to create invite-only threads.",
+    "create_public_threads": "Allow members to create threads that everyone in a channel can view.",
+    "deafen_members": "Allows members to deafen other members in voice channels, which means they won't be able to speak or hear others.",
+    "embed_links": "Allows links that members share to show embedded content in text channels.",
+    "external_emojis": "Allows members to use emoji from other servers, if they're a Discord Nitro member.",
+    "external_stickers": "Allows members to use emoji from other servers, if they're a Discord Nitro member.",
+    "kick_members": "Allows members to remove other members from this server. Kicked members will be able to rejoin if they have another invite.",
+    "manage_channels": "Allows members to create, edit, or delete channels.",
+    "manage_emojis": "Allows members to edit or remove custom emoji, stickers, and sounds in this server.",
+    "manage_emojis_and_stickers": "Allows members to edit or remove custom emoji, stickers, and sounds in this server.",
+    "manage_events": "Allows members to edit and cancel events.",
+    "manage_expressions": "Allows members to edit or remove custom emoji, stickers, and sounds in this server.",
+    "manage_guild": "Allow members to change this server's name, switch regions, view all invites, add apps to this server and create and update AutoMod rules.",
+    "manage_messages": "Allows members to delete messages by other members or pin any message.",
+    "manage_nicknames": "Allows members to change the nicknames of other members.",
+    "manage_permissions": "Members with this permission can change this channel's permissions.",
+    "manage_roles": "Allows members to create new roles and edit or delete roles lower than their highest role. Also allows members to change permissions of individual channels that they have access to.",
+    "manage_threads": "Allows members to rename, delete, close, and turn on slow mode for threads. They can also view private threads.",
+    "manage_webhooks": "Allows members to create, edit, or delete webhooks, which can post messages from other apps or sites into this server.",
+    "mention_everyone": "Allows members to use @everyone (everyone in the server or @here (only online members in that channel. They can also @mention all roles, even if the role's 'Allow anyone to mention this role' permission is disabled.",
+    "moderate_members": "When you put a user in timeout they will not be able to send messages in chat, reply within threads, react to messages, or speak in voice or Stage channels.",
+    "move_members": "Allows members to disconnect or move other members between voice channels that the member with this permission has access to.",
+    "mute_members": "Allows members to mute other members in voice channels for everyone.",
+    "priority_speaker": "Allows members to be more easily heard in voice channels. When activated, the volume of others without this permission will be automatically lowered.",
+    "read_message_history": "Allows members to read previous messages sent in channels. If this permission is disabled, members only see messages sent when they are online and focused on that channel.",
+    "read_messages": "Allows members to view channels and messages in this server.",
+    "request_to_speak": "Allow requests to speak in Stage channels. Stage moderators manually approve or deny each request.",
+    "send_messages": "Allows members to send messages in text channels.",
+    "send_messages_in_threads": "Allow members to send messages in threads.",
+    "send_tts_messages": "Allows members to send text-to-speech messages by starting a message with /tts. These messages can be heard by anyone focused on the channel.",
+    "send_voice_messages": "Allows members to send voice messages.",
+    "speak": "Allows members to talk in voice channels. If this permission is disabled, members are default muted until somebody with the 'Mute Members' permission un-mutes them.",
+    "stream": "Allows members to share their video, screen share, or stream a game in this server.",
+    "use_application_commands": "Members with this permission can use commands from applications, including slash commands and context menu commands.",
+    "use_embedded_activities": "Allows members to use Activities.",
+    "use_external_emojis": "Allows members to use emoji from other servers, if they're a Discord Nitro member.",
+    "use_external_sounds": "Allows members to use sounds from other servers, if they're a Discord Nitro member.",
+    "use_external_stickers": "Allows members to use stickers from other servers, if they're a Discord Nitro member.",
+    "use_soundboard": "Allows members to send sounds from server soundboard.",
+    "use_voice_activation": "Allows members to speak in voice channels by simply talking. If this permission is disabled, members are required to use Push-to-talk. Good for controlling background noise or noisy members.",
+    "view_audit_log": "Allows members to view a record of who made which changes in this server.",
+    "view_channel": "Allows members to view channels by default (excluding private channels.",
+    "view_guild_insights": "Allows members to view Server Insights, which shows data on community growth, engagement, and more. This will allow them to see certain data about channel activity, even for channels they cannot access.",
+}
+
 
 http_codes = {
     100: "Continue",
@@ -2267,7 +2402,6 @@ http_codes = {
     598: "Network Read Timeout Error",  # unoffical code
     599: "Network Connect Timeout Error",  # unoffical code
 }
-
 
 class HTTPCode:
     status: int
@@ -2438,17 +2572,33 @@ class Snowflake:
 
 
 def parse_discord_snowflake(snowflake: Union[str, int]) -> Snowflake:
-    """Returns a tuple of (datetime, worker_id, process_id, increment).
+    """Returns a :class:`Snowflake` object from a Discord snowflake.
     See [this](https://i.imgur.com/UxWvdYD.png) image for more information.
+
+    :param snowflake: The snowflake to parse.
+    :type snowflake: Union[:class:`str`, :class:`int`]
+    :return: The parsed snowflake.
+    :rtype: :class:`discord.Snowflake`
     """
     return Snowflake(snowflake=snowflake, discord_snowflake=True)
 
-
+@discord.utils.copy_doc(parse_discord_snowflake)
 def snowflake_timestamp(snowflake: Union[int, str]) -> datetime.datetime:
+    """Parses a Discord snowflake and returns the creation date in UTC.
+    Wrapper for :func:`discord.utils.parse_discord_snowflake`.
+
+    :param snowflake: The snowflake to parse.
+    :type snowflake: Union[:class:`str`, :class:`int`]
+    :return: The creation date of the snowflake.
+    :rtype: :class:`datetime.datetime`
+    """
+
     return parse_discord_snowflake(snowflake).datetime
 
 # for discord user badges
-misc_flags_descriptions = {
+misc_flag_descriptiions: Annotated[Dict[str, str],
+"A dictionary of miscellaneous user flags and their descriptions in the form `flag_name`: `description`."
+] = {
     'team_user': 'Application Team User',
     'system': 'System User',
     'spammer': 'Spammer',
