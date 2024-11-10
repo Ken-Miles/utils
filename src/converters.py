@@ -10,14 +10,15 @@ Taken from https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/mod.py
 
 import discord
 from discord.ext import commands
-from discord.ext.commands.core import BotT
 
 from .context import ContextU
 
 def can_execute_action(ctx: ContextU, user: discord.Member, target: discord.Member) -> bool:
-    return user.id == ctx.bot.owner_id or user == getattr(ctx.guild, 'owner', None) or user.top_role > target.top_role
+    """Whether the user can execute an action on a target."""
+    return user.id == ctx.bot.owner_id or user.id == getattr(ctx.guild, 'owner_id', None) or user.top_role > target.top_role
 
 class MemberID(commands.Converter):
+    """Converter that converts to a :class:`discord.Member` or :class:`discord.User` object in the case of a hackban."""
     async def convert(self, ctx: ContextU, argument: str):
         try:
             m = await commands.MemberConverter().convert(ctx, argument)
@@ -41,6 +42,7 @@ class MemberID(commands.Converter):
 
 
 class BannedMember(commands.Converter):
+    """Converter that converts to a :class:`discord.BanEntry` object."""
     async def convert(self, ctx: ContextU, argument: str):
         assert ctx.guild is not None
 
