@@ -216,7 +216,7 @@ class BotU(AutoShardedBot):
 
         Parameters
         ----------
-        guild : Optional[:class:`discord.Guild`]
+        guild: Optional[:class:`discord.Guild`]
             The guild to get the channel from.
 
         Raises
@@ -248,7 +248,7 @@ class BotU(AutoShardedBot):
 
         Parameters
         ----------
-        guild : :class:`discord.Guild`
+        guild: :class:`discord.Guild`
             The guild to get the thread from.
 
         Raises
@@ -271,7 +271,7 @@ class BotU(AutoShardedBot):
 
         Parameters
         ----------
-        guild : :class:`discord.Guild`
+        guild: :class:`discord.Guild`
             The guild to get the channel from.
 
         Raises
@@ -293,9 +293,9 @@ class BotU(AutoShardedBot):
 
         Parameters
         ----------
-        channelid : :class:`int`
+        channelid: :class:`int`
             The ID of the channel to get.
-        guild : :class:`discord.Guild`
+        guild: :class:`discord.Guild`
             The guild to get the channel from.
 
         Raises
@@ -320,7 +320,7 @@ class BotU(AutoShardedBot):
 
         Parameters
         ----------
-        guild : :class:`discord.Guild`
+        guild: :class:`discord.Guild`
             The guild to get the channel from.
 
         Raises
@@ -347,7 +347,7 @@ class BotU(AutoShardedBot):
 
         Parameters
         ----------
-        guild : :class:`discord.Guild`
+        guild: :class:`discord.Guild`
             The guild to get the channel from.
 
         Raises
@@ -374,7 +374,7 @@ class BotU(AutoShardedBot):
 
         Parameters
         ----------
-        guild : :class:`discord.Guild`
+        guild: :class:`discord.Guild`
             The guild to get the channel from.
 
         Raises
@@ -400,7 +400,7 @@ class BotU(AutoShardedBot):
 
         Parameters
         ----------
-        guild : Optional[:class:`discord.Guild`]
+        guild: Optional[:class:`discord.Guild`]
             The guild to get the user from.
 
         Raises
@@ -433,9 +433,9 @@ class BotU(AutoShardedBot):
 
         Parameters
         ----------
-        userid : :class:int
+        userid: :class:`int`
             The ID of the user.
-        guild : :class:`discord.Guild`
+        guild: :class:`discord.Guild`
             The Guild object to get the member from.
 
         Returns
@@ -453,7 +453,7 @@ class BotU(AutoShardedBot):
 
         Parameters
         ----------
-        guildid : :class:`int`
+        guildid: :class:`int`
             The ID of the guild.
 
         Returns
@@ -478,7 +478,7 @@ class BotU(AutoShardedBot):
 
         Parameters
         ----------
-        user : Union[:class:`discord.User`, :class:`discord.Member`]
+        user: Union[:class:`discord.User`, :class:`discord.Member`]
             The user to get the DMChannel from.
 
         Returns
@@ -505,7 +505,7 @@ class BotU(AutoShardedBot):
 
         Parameters
         ----------
-        command : Union[:class:`str`, :class:`discord.ext.commands.Command`]
+        command: Union[:class:`str`, :class:`discord.ext.commands.Command`]
             The command/name of the command to get the mention for.
 
         Returns
