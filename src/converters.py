@@ -13,6 +13,14 @@ from discord.ext import commands
 
 from .context import ContextU
 
+# fmt: off
+__all__ = (
+    'can_execute_action',
+    'MemberID',
+    'BannedMember',
+)
+# fmt: on
+
 def can_execute_action(ctx: ContextU, user: discord.Member, target: discord.Member) -> bool:
     """Whether the user can execute an action on a target."""
     return user.id == ctx.bot.owner_id or user.id == getattr(ctx.guild, 'owner_id', None) or user.top_role > target.top_role

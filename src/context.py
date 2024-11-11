@@ -12,6 +12,14 @@ if TYPE_CHECKING:
 
     assert isinstance(LOADING_EMOJI, str)
 
+# fmt: off
+__all__ = (
+    'ConfirmationView',
+    'ContextU',
+    'prompt',
+)
+# fmt: on
+
 T = TypeVar("T")
 P = ParamSpec("P")
 

@@ -10,6 +10,18 @@ from . import emojidict
 from .context import ContextU
 from .methods import makeembed_bot
 
+# fmt: off
+__all__ = (
+    "BaseButtonPaginator",
+    "ButtonPaginator",
+    "ThreeButtonPaginator",
+    "FiveButtonPaginator",
+    "GoToPageButton",
+    "GoToPageModal",
+    "create_paginator",
+    "generate_pages",
+)
+# fmt: on
 
 class BaseButtonPaginator(discord.ui.View):
     """Made by @soheab on Discord, taken from the Discord.py Discord Server"""

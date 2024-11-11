@@ -3,7 +3,14 @@ from typing import Optional
 import discord
 from discord.utils import deprecated
 
-@deprecated("Use discord.ui.Button instead.")
+# fmt: off
+__all__ = (
+    'URLButton',
+    'CustomBaseView',
+)
+# fmt: on
+
+@deprecated('discord.ui.Button')
 class URLButton(discord.ui.View):
     def __init__(
         self, url: str, buttontext: str, emoji: Optional[str] = None, **kwargs

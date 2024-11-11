@@ -7,6 +7,16 @@ import aiohttp
 from .constants import BLOXLINK_API_KEY, HTTPCode, ROVER_API_KEY, RequestType
 from .logger import requests_logger
 
+# fmt: off
+__all__ = (
+    "_delete",
+    "_get",
+    "_patch",
+    "_post",
+    "_put",
+)
+# fmt: on
+
 async def _request(
     _method: Union[str, RequestType], /, url: str, **kwargs
 ) -> aiohttp.ClientResponse:

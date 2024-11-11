@@ -1,20 +1,46 @@
 from __future__ import annotations
 from collections import defaultdict as emojidictionary
 import datetime
-from enum import Enum
 import logging
 import os
 import re
-from typing import Annotated, Callable, Union, Dict
+from typing import Annotated, Union, Dict
 import discord
 
-import aiohttp
 import yaml
 
+from .enums import RequestType
+
+# fmt: off
+__all__ = (
+    "emojidict",
+    'LOADING_EMOJI',
+    'permission_proper_names',
+    'http_codes',
+    'HTTPCode',
+    'CURRENCY_SYMBOL',
+    'CURRENCY_NAME',
+    'RE_EMOJI',
+    'RE_URL',
+    'RE_INVITE',
+    'RE_GIFT',
+    'RE_HEX',
+    'RE_SNOWFLAKE',
+    'RE_DCTIMESTAMP',
+    'DISCORD_EPOCH',
+    'TRUSTED_USERS',
+    'GUILDS',
+    'USE_DEFER_EMOJI',
+    'formatter',
+    'Snowflake',
+    'parse_discord_snowflake',
+    'snowflake_timestamp',
+    'misc_flag_descriptions'
+)
+# fmt: on
 
 def constant_factory(value):
     return lambda: value
-
 
 emojidict: Annotated[emojidictionary, 
 "A dictionary that maps strings to emojis in the form `name`: `emoji_str`."
@@ -2440,31 +2466,6 @@ class HTTPCode:
     def __int__(self) -> int:
         return self.status
 
-
-class RequestType(Enum):
-    GET = "GET"
-    POST = "POST"
-    PATCH = "PATCH"
-    PUT = "PUT"
-    DELETE = "DELETE"
-
-    def get_method_callable(self, session: aiohttp.ClientSession) -> Callable:
-        if self is RequestType.GET:
-            return session.get
-        elif self is RequestType.POST:
-            return session.post
-        elif self is RequestType.PATCH:
-            return session.patch
-        elif self is RequestType.PUT:
-            return session.put
-        elif self is RequestType.DELETE:
-            return session.delete
-        raise ValueError(f"Invalid request type {self}")
-
-    def __str__(self):
-        return self.value.upper()
-
-
 CURRENCY_SYMBOL = "$"
 CURRENCY_NAME = "Money"
 
@@ -2596,7 +2597,7 @@ def snowflake_timestamp(snowflake: Union[int, str]) -> datetime.datetime:
     return parse_discord_snowflake(snowflake).datetime
 
 # for discord user badges
-misc_flag_descriptiions: Annotated[Dict[str, str],
+misc_flag_descriptions: Annotated[Dict[str, str],
 "A dictionary of miscellaneous user flags and their descriptions in the form `flag_name`: `description`."
 ] = {
     'team_user': 'Application Team User',

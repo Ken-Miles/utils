@@ -5,13 +5,18 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-__all__ = ('MentionableTree',)
+# fmt: off
+__all__ = (
+    'MentionableTree',
+)
+# fmt: on
 
 class MentionableTree(app_commands.CommandTree):
     """"
-    This was written by @leocx1000 on Discord
+    This was written by @leocx1000 on Discord.
     Copied from https://gist.github.com/LeoCx1000/021dc52981299b95ea7790416e4f5ca4
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.application_commands: dict[Optional[int], List[app_commands.AppCommand]] = {}

@@ -11,6 +11,12 @@ from discord.ext.commands import Cog
 from .bot import BotU
 from .requests_http import _delete, _get, _patch, _post, _put
 
+# fmt: off
+__all__ = (
+    "CogU",
+)
+# fmt: on
+
 T = TypeVar("T")
 P = ParamSpec("P")
 

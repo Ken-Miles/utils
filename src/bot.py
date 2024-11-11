@@ -38,6 +38,12 @@ from discord.ext.commands import AutoShardedBot
 from .context import ContextU
 from .tree import MentionableTree
 
+# fmt: off
+__all__ = (
+    "BotU",
+)
+# fmt: on
+
 T = TypeVar("T")
 P = ParamSpec("P")
 
@@ -48,7 +54,7 @@ class BotU(AutoShardedBot):
     """A subclass of discord.ext.commands.AutoShardedBot with additional features."""
     tree_cls: MentionableTree
 
-    user: discord.ClientUser # type: ignore
+    user: discord.ClientUser
     appinfo: discord.AppInfo
     command_stats: Counter[str]
     socket_stats: Counter[str]
@@ -140,7 +146,7 @@ class BotU(AutoShardedBot):
             for index in reversed(to_remove):
                 del dates[index]
 
-    async def before_identify_hook(self, shard_id: int, *, initial: bool): # type: ignore
+    async def before_identify_hook(self, shard_id: int, *, initial: bool):
         self._clear_gateway_data()
         self.identifies[shard_id].append(discord.utils.utcnow())
         await super().before_identify_hook(shard_id, initial=initial)
