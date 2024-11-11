@@ -30,20 +30,22 @@ __all__ = (
 T = TypeVar("T")
 
 def is_owner(user: Union[discord.User, discord.Member], bot: BotU):
-    """A check to see if a user is the owner of the bot."""    
+    """A check to see if a user is the owner of the bot."""
     assert bot.owner_ids is not None
     return user.id in bot.owner_ids
 
 
 def check_is_trusted(user: Union[discord.User, discord.Member], bot: BotU):
     """Internal function to check if the user is trusted.
-    This is used in the :meth:`is_trusted` check."""
+    This is used in the :meth:`is_trusted` check.
+    """
     return is_owner(user, bot) or user.id in TRUSTED_USERS
 
 
 def is_trusted():
     """Check if the user is trusted.
-    Uses the `TRUSTED_USERS` constant to check if the user is trusted."""
+    Uses the `TRUSTED_USERS` constant to check if the user is trusted.
+    """
     def predicate(ctx: commands.Context):
         return check_is_trusted(ctx.author, ctx.bot)
 
@@ -147,10 +149,11 @@ def hybrid_permissions_check(**perms: bool) -> Callable[[T], T]:
     Decorator that checks if the user has the required permissions to run a command.
 
     This decorator is a hybrid of `has_permissions` and `has_guild_permissions`.
-    
-    .. note::
-        This decorator is used for both `commands.check` and `app_commands.default_permissions`.
-        They also do not take channel overrides into account.
+
+    Notes
+    -----
+    This decorator is used for both `commands.check` and `app_commands.default_permissions`.
+    They also do not take channel overrides into account.
     """
     async def pred(ctx: ContextU):
         return await check_guild_permissions(ctx, perms)

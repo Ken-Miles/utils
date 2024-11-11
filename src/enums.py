@@ -35,7 +35,7 @@ class RequestType(Enum):
 
 
 class IntegrationType(Enum):
-    """An Enum representing the type of integration for a discord bot."""    
+    """An Enum representing the type of integration for a discord bot."""
     guild = 0
     user = 1
 

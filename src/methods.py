@@ -52,33 +52,40 @@ def makeembed(
     thumbnail: Optional[Union[str, app_commands.locale_str]] = None,
 ) -> discord.Embed:  # embedtype: Union[str, app_commands.locale_str]='rich'):
     """Creates an embed.
-    
-    :param title: The title of the embed.
-    :type title: Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
-    :param timestamp: The timestamp of the embed.
-    :type timestamp: Optional[:class:`datetime.datetime`]
-    :param color: The color of the embed.
-    :type color: Optional[:class:`discord.Colour`]
-    :param description: The description of the embed.
-    :type description: Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
-    :param author: The author of the embed. Sets the name of the author.
-    :type author: Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
-    :param author_url: The author URL of the embed. Sets the URL of the author.
-    :type author_url: Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
-    :param author_icon_url: The author icon URL of the embed. Sets the icon URL of the author.
-    :type author_icon_url: Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
-    :param footer: The footer of the embed. Sets the text of the footer.
-    :type footer: Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
-    :param footer_icon_url: The footer icon URL of the embed. Sets the icon URL of the footer.
-    :type footer_icon_url: Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
-    :param url: The URL of the embed. Sets the URL of the embed.
-    :type url: Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
-    :param image: The image of the embed. Sets the image URL of the embed.
-    :type image: Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
-    :param thumbnail: The thumbnail of the embed. Sets the thumbnail URL of the embed.
-    :type thumbnail: Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
-    :return: The created embed.
-    :rtype: :class:`discord.Embed`
+
+    Parameters
+    ----------
+    title : Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
+        The title of the embed.
+    timestamp : Optional[:class:`datetime.datetime`]
+        The timestamp of the embed.
+    color : Optional[:class:`discord.Colour`]
+        The color of the embed.
+    description : Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
+        The description of the embed.
+    author : Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
+        The author of the embed. Sets the name of the author.
+    author_url : Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
+        The author URL of the embed. Sets the URL of the author.
+    author_icon_url : Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
+        The author icon URL of the embed. Sets the icon URL of the
+        author.
+    footer : Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
+        The footer of the embed. Sets the text of the footer.
+    footer_icon_url : Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
+        The footer icon URL of the embed. Sets the icon URL of the
+        footer.
+    url : Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
+        The URL of the embed. Sets the URL of the embed.
+    image : Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
+        The image of the embed. Sets the image URL of the embed.
+    thumbnail : Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
+        The thumbnail of the embed. Sets the thumbnail URL of the embed.
+
+    Returns
+    -------
+    :class:`discord.Embed`
+        The created embed.
     """
 
     embed = discord.Embed()
@@ -129,8 +136,7 @@ def makeembed_bot(
 
     command_user: Optional[discord.abc.User] = None,
 ) -> discord.Embed:  # embedtype: Union[str, app_commands.locale_str]='rich'):
-    """
-    Creates an embed for the bot.
+    """Creates an embed for the bot.
     Changed defaults for makeembed: color, footer, timestamp.
 
     bot, app_info, bot_owner can be provided to provide an footer text and icon.
@@ -322,13 +328,18 @@ def dctimestamp(
 ) -> str:
     """Formats a timestamp for Discord.
     This method functions similar to :meth:`discord.utils.format_dt`, except it can also accepts a :class:`int` or :class:`float` as the timestamp.
-    
-    :param dt: The timestamp to format.
-    :type dt: Union[:class:`datetime.datetime`, :class:`int`, :class:`float`]
-    :param format: The format to use. Defaults to "f".
-    :type format: :class:`timestamptype`
-    :return: The formatted timestamp.
-    :rtype: :class:`str`
+
+    Parameters
+    ----------
+    dt : Union[:class:`datetime.datetime`, :class:`int`, :class:`float`]
+        The timestamp to format.
+    format : :class:`timestamptype`
+        The format to use. Defaults to "f".
+
+    Returns
+    -------
+    :class:`str`
+        The formatted timestamp.
     """
     
     if isinstance(dt, datetime.datetime):
@@ -350,16 +361,23 @@ def dchyperlink(
     The return string will be in the following format which will create a hyperlink in Discord:
     `[texttoclick](url "hovertext")`
 
-    :param url: The URL to hyperlink to.
-    :type url: Union[:class:`str`, :class:`discord.app_commands.locale_str`]
-    :param texttoclick: The text to show up as the hyperlink.
-    :type texttoclick: Union[:class:`str`, :class:`discord.app_commands.locale_str`]
-    :param hovertext: The text to display when the link is hovered over. Defaults to None.
-    :type hovertext: Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
-    :param suppress_embed: Whether to suppress the embed created by the link. Defaults to False.
-    :type suppress_embed: :class:`bool`
-    :return: The hyperlink string.
-    :rtype: :class:`str`
+    Parameters
+    ----------
+    url : Union[:class:`str`, :class:`discord.app_commands.locale_str`]
+        The URL to hyperlink to.
+    texttoclick : Union[:class:`str`, :class:`discord.app_commands.locale_str`]
+        The text to show up as the hyperlink.
+    hovertext : Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
+        The text to display when the link is hovered over. Defaults to
+        None.
+    suppress_embed : :class:`bool`
+        Whether to suppress the embed created by the link. Defaults to
+        False.
+
+    Returns
+    -------
+    :class:`str`
+        The hyperlink string.
     """
 
     # url and texttoclick could be switched
@@ -829,14 +847,19 @@ def generate_transaction_id(
 ) -> str:
     """Generates a UUID for an error.
 
-    :param guild_id: The ID of the guild for the transaction.
-    :type guild_id: Optional[:class:`int`]
-    :param user_id: The ID of the user for the transaction.
-    :type user_id: Optional[:class:`int`]
-    :param length: How long the UUID should be. Defaults to 36
-    :type length: :class:`int`
-    :return: The UUID for the error.
-    :rtype: :class:`str`
+    Parameters
+    ----------
+    guild_id : Optional[:class:`int`]
+        The ID of the guild for the transaction.
+    user_id : Optional[:class:`int`]
+        The ID of the user for the transaction.
+    length : :class:`int`
+        How long the UUID should be. Defaults to 36
+
+    Returns
+    -------
+    :class:`str`
+        The UUID for the error.
     """
     if guild_id is None:
         guild_id = 0
@@ -863,24 +886,32 @@ def oauth_url(
 
     This method is modified from the :meth:`discord.utils.oauth_url` method in discord.py to include the `integration_type` parameter.
 
-    :param client_id: The client ID of the bot.
-    :type client_id: Union[:class:`int`, :class:`str`]
-    :param permissions: The permissions the bot should have in the guild. Defaults to MISSING.
-    :type permissions: :class:`discord.Permissions`
-    :param guild: The guild to preselect in the authorization screen. Defaults to MISSING.
-    :type guild: :class:`discord.Snowflake`
-    :param integration_type: The type of integration for the bot. Defaults to IntegrationType.guild.
-    :type integration_type: Union[:class:`~IntegrationType`, :class:`int`]
-    :param redirect_uri: The redirect URI for the bot. Defaults to MISSING.
-    :type redirect_uri: Union[:class:`str`, :class:`discord.app_commands.locale_str`]
-    :param scopes: The scopes the bot should have. Defaults to MISSING.
-    :type scopes: Iterable[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
-    :param disable_guild_select: Whether to disable the guild select. Defaults to False.
-    :type disable_guild_select: :class:`bool`
-    :param state: The state of the bot. Defaults to MISSING.
-    :type state: Union[:class:`str`, :class:`discord.app_commands.locale_str`]
-    :return: The OAuth2 URL for inviting the bot into guilds.
-    :rtype: :class:`str`
+    Parameters
+    ----------
+    client_id : Union[:class:`int`, :class:`str`]
+        The client ID of the bot.
+    permissions : :class:`discord.Permissions`
+        The permissions the bot should have in the guild. Defaults to
+        MISSING.
+    guild : :class:`discord.Snowflake`
+        The guild to preselect in the authorization screen. Defaults to
+        MISSING.
+    integration_type : Union[:class:`~IntegrationType`, :class:`int`]
+        The type of integration for the bot. Defaults to
+        IntegrationType.guild.
+    redirect_uri : Union[:class:`str`, :class:`discord.app_commands.locale_str`]
+        The redirect URI for the bot. Defaults to MISSING.
+    scopes : Iterable[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
+        The scopes the bot should have. Defaults to MISSING.
+    disable_guild_select : :class:`bool`
+        Whether to disable the guild select. Defaults to False.
+    state : Union[:class:`str`, :class:`discord.app_commands.locale_str`]
+        The state of the bot. Defaults to MISSING.
+
+    Returns
+    -------
+    :class:`str`
+        The OAuth2 URL for inviting the bot into guilds.
     """
 
     url = f"https://discord.com/oauth2/authorize?client_id={client_id}"

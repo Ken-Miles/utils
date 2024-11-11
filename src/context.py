@@ -147,21 +147,30 @@ class ContextU(commands.Context):
     ) -> Optional[bool]:
         """An interactive reaction confirmation dialog.
 
-        :param message: The message to show along with the prompt, defaults to None
-        :type message: Optional[:class:`str`]
-        :param embed: The embed to show along with the prompt, defaults to None
-        :type embed: Optional[:class:`discord.Embed`]
-        :param timeout: How long to wait before returning, defaults to 60.0
-        :type timeout: Optional[:class:`float`]
-        :param delete_after: Whether to delete the confirmation message after we're done, defaults to True
-        :type delete_after: :class:`bool`
-        :param author_id: The member who should respond to the prompt. Defaults to the author of the Context's message, defaults to None
-        :type author_id: Optional[:class:`int`]
-        :return: ``True`` if explicit confirm, ``False`` if explicit deny, ``None`` if deny due to timeout.
-        :rtype: Optional[:class:`bool`]
+        Parameters
+        ----------
+        message : Optional[:class:`str`]
+            The message to show along with the prompt, defaults to None
+        embed : Optional[:class:`discord.Embed`]
+            The embed to show along with the prompt, defaults to None
+        timeout : Optional[:class:`float`]
+            How long to wait before returning, defaults to 60.0
+        delete_after : :class:`bool`
+            Whether to delete the confirmation message after we're done,
+            defaults to True
+        author_id : Optional[:class:`int`]
+            The member who should respond to the prompt. Defaults to the
+            author of the Context's message, defaults to None
 
-        .. note::
-            You must pass either a :param:`message` or :param:`embed` parameter.
+        Returns
+        -------
+        Optional[:class:`bool`]
+            ``True`` if explicit confirm, ``False`` if explicit deny,
+            ``None`` if deny due to timeout.
+
+        Notes
+        -----
+        You must pass either a :param:`message` or :param:`embed` parameter.
         """
 
         author_id = author_id or self.author.id
@@ -185,23 +194,32 @@ async def prompt(
     ) -> Optional[bool]:
         """An interactive reaction confirmation dialog.
 
-        :param interaction: The interaction to use for sending the prompt
-        :type interaction: :class:`discord.Interaction`
-        :param message: The message to show along with the prompt, defaults to None
-        :type message: Optional[:class:`str`]
-        :param embed: The embed to show along with the prompt, defaults to None
-        :type embed: Optional[:class:`discord.Embed`]
-        :param timeout: How long to wait before returning, defaults to 60.0
-        :type timeout: Optional[:class:`float`]
-        :param delete_after: Whether to delete the confirmation message after we're done, defaults to True
-        :type delete_after: :class:`bool`
-        :param author_id: The member who should respond to the prompt. Defaults to the author of the Context's message, defaults to None
-        :type author_id: Optional[:class:`int`]
-        :return: ``True`` if explicit confirm, ``False`` if explicit deny, ``None`` if deny due to timeout.
-        :rtype: Optional[:class:`bool`]
+        Parameters
+        ----------
+        interaction : :class:`discord.Interaction`
+            The interaction to use for sending the prompt
+        message : Optional[:class:`str`]
+            The message to show along with the prompt, defaults to None
+        embed : Optional[:class:`discord.Embed`]
+            The embed to show along with the prompt, defaults to None
+        timeout : Optional[:class:`float`]
+            How long to wait before returning, defaults to 60.0
+        delete_after : :class:`bool`
+            Whether to delete the confirmation message after we're done,
+            defaults to True
+        author_id : Optional[:class:`int`]
+            The member who should respond to the prompt. Defaults to the
+            author of the Context's message, defaults to None
 
-        .. note::
-            You must pass either a :param:`message` or :param:`embed` parameter.
+        Returns
+        -------
+        Optional[:class:`bool`]
+            ``True`` if explicit confirm, ``False`` if explicit deny,
+            ``None`` if deny due to timeout.
+
+        Notes
+        -----
+        You must pass either a :param:`message` or :param:`embed` parameter.
         """
 
         author_id = author_id or interaction.user.id

@@ -89,9 +89,15 @@ class BotU(AutoShardedBot):
     def avatar_url(self) -> str:
         """Get's the bot's avatar URL. If the bot has no avatar, raises AttributeError.
 
-        :raises AttributeError: If the bot has no avatar.
-        :returns: The bot's avatar URL.
-        :rtype: :class:`str`
+        Raises
+        ------
+        AttributeError
+            If the bot has no avatar.
+
+        Returns
+        -------
+        :class:`str`
+            The bot's avatar URL.
         """
         if self.user.display_avatar:
             return self.user.display_avatar.url
@@ -101,8 +107,10 @@ class BotU(AutoShardedBot):
     async def application_info(self) -> discord.AppInfo:
         """Method updated to cache the application info when it is fetched.
 
-        :returns: The bot's application info.
-        :rtype: discord.AppInfo
+        Returns
+        -------
+        discord.AppInfo
+            The bot's application info.
         """
         self.appinfo = await super().application_info()
         return self.appinfo
@@ -111,9 +119,6 @@ class BotU(AutoShardedBot):
     async def setup_hook(self):
         """A hook to run after the bot has been setup.
         This is called after the bot has been setup and is ready to run.
-
-        :returns: None
-        :rtype: None
         """
         if not self.owner_ids:
             assert self.application is not None
@@ -164,8 +169,10 @@ class BotU(AutoShardedBot):
     def owner(self) -> discord.User:
         """Renamed because is_owner doesn't work with the new application_info.
 
-        :returns: The bot's owner.
-        :rtype: discord.User
+        Returns
+        -------
+        discord.User
+            The bot's owner.
         """
         if getattr(self.bot_app_info, "team", None):
             user = self.get_user(self.bot_app_info.team.owner.id) # type: ignore
@@ -179,7 +186,7 @@ class BotU(AutoShardedBot):
         self,
         origin: Union[Message, Interaction],
         *,
-        cls: type[commands.Context] = ContextU,
+        cls: Type[commands.Context] = ContextU,
     ) -> commands.Context:
         return await super().get_context(origin, cls=cls)
 
@@ -206,11 +213,21 @@ class BotU(AutoShardedBot):
         """Gets a channel from a guild (if provided) or bot's cache, else fetches it. Will error if fetch fails.
 
         :param :class:`int` channelid: The ID of the channel to get.
-        :param guild: The guild to get the channel from.
-        :type guild: Optional[:class:`discord.Guild`]
-        :raises InvalidData: If the channel is not found or is not the correct type.
-        :returns: The channel.
-        :rtype: :class:`Union`[:class:`discord.GuildChannel`, :class:`discord.Thread`, :class:`discord.PrivateChannel`]
+
+        Parameters
+        ----------
+        guild : Optional[:class:`discord.Guild`]
+            The guild to get the channel from.
+
+        Raises
+        ------
+        :class:`discord.InvalidData`
+            If the channel is not found or is not the correct type.
+
+        Returns
+        -------
+        Union[:class:discord.abc.GuildChannel`, :class:`discord.Thread`, :class:`discord.PrivateChannel`]
+            The channel.
         """
         channel: Optional[Union[GuildChannel, Thread, PrivateChannel]] = None
         if guild is not None:
@@ -228,11 +245,21 @@ class BotU(AutoShardedBot):
         If None or a non-Thread is returned, raises AssertionError.
 
         :param :class:`int` threadid: The ID of the thread to get.
-        :param guild: The guild to get the thread from.
-        :type guild: :class:`discord.Guild`
-        :raises InvalidData: If the thread is not found or is not the correct type.
-        :returns: The thread.
-        :rtype: :class:`discord.Thread`
+
+        Parameters
+        ----------
+        guild : :class:`discord.Guild`
+            The guild to get the thread from.
+
+        Raises
+        ------
+        :class:`discord.InvalidData`
+            If the thread is not found or is not the correct type.
+
+        Returns
+        -------
+        :class:`discord.Thread`
+            The thread.
         """
         return await self._getorfetch_channel(threadid, Thread, guild)
 
@@ -241,11 +268,21 @@ class BotU(AutoShardedBot):
         If None or a non-TextChannel is returned, raises AssertionError
 
         :param :class:`int` channelid: The ID of the channel to get.
-        :param guild: The guild to get the channel from.
-        :type guild: :class:`discord.Guild`
-        :raises InvalidData: If the channel is not found or is not the correct type.
-        :returns: The channel.
-        :rtype: :class:`discord.TextChannel`
+
+        Parameters
+        ----------
+        guild : :class:`discord.Guild`
+            The guild to get the channel from.
+
+        Raises
+        ------
+        :class:`discord.InvalidData`
+            If the channel is not found or is not the correct type.
+
+        Returns
+        -------
+        :class:`discord.TextChannel`
+            The channel.
         """
         return await self._getorfetch_channel(channelid, TextChannel, guild) # type: ignore
 
@@ -254,14 +291,23 @@ class BotU(AutoShardedBot):
     ) -> VoiceChannel:
         """Gets or fetches a VoiceChannel from the provided guild.
 
-        :param channelid: The ID of the channel to get.
-        :type channelid:  :class:`int`
-        :param guild: The guild to get the channel from.
-        :type guild: :class:`discord.Guild`
-        :raises InvalidData: If the channel is not found or is not the correct type.
-        :return: The channel.
-        :rtype: :class:`discord.VoiceChannel`
-        """        
+        Parameters
+        ----------
+        channelid : :class:`int`
+            The ID of the channel to get.
+        guild : :class:`discord.Guild`
+            The guild to get the channel from.
+
+        Raises
+        ------
+        :class:`discord.InvalidData`
+            If the channel is not found or is not the correct type.
+
+        Returns
+        -------
+        :class:`discord.VoiceChannel`
+            The channel.
+        """
         return await self._getorfetch_channel(channelid, VoiceChannel, guild) # type: ignore
 
     async def getorfetch_categorychannel(
@@ -271,11 +317,21 @@ class BotU(AutoShardedBot):
         If None or a non-CategoryChannel is returned, raises AssertionError
 
         :param :class:`int` channelid: The ID of the channel to get.
-        :param guild: The guild to get the channel from.
-        :type guild: :class:`discord.Guild`
-        :raises InvalidData: If the channel is not found or is not the correct type.
-        :returns: The channel.
-        :rtype: :class:`discord.CategoryChannel`
+
+        Parameters
+        ----------
+        guild : :class:`discord.Guild`
+            The guild to get the channel from.
+
+        Raises
+        ------
+        :class:`discord.InvalidData`
+            If the channel is not found or is not the correct type.
+
+        Returns
+        -------
+        :class:`discord.CategoryChannel`
+            The channel.
         """
         return await self._getorfetch_channel(channelid, CategoryChannel, guild) # type: ignore
 
@@ -288,11 +344,21 @@ class BotU(AutoShardedBot):
         If None or a non-StageChannel is returned, raises AssertionError
 
         :param :class:`int` channelid: The ID of the channel to get.
-        :param guild: The guild to get the channel from.
-        :type guild: :class:`discord.Guild`
-        :raises InvalidData: If the channel is not found or is not the correct type.
-        :returns: The channel.
-        :rtype: :class:`discord.StageChannel`
+
+        Parameters
+        ----------
+        guild : :class:`discord.Guild`
+            The guild to get the channel from.
+
+        Raises
+        ------
+        :class:`discord.InvalidData`
+            If the channel is not found or is not the correct type.
+
+        Returns
+        -------
+        :class:`discord.StageChannel`
+            The channel.
         """
         return await self._getorfetch_channel(channelid, StageChannel, guild) # type: ignore
 
@@ -305,11 +371,21 @@ class BotU(AutoShardedBot):
         If None or a non-ForumChannel is returned, raises AssertionError.
 
         :param :class:`int` channelid: The ID of the channel to get.
-        :param guild: The guild to get the channel from.
-        :type guild: :class:`discord.Guild`
-        :raises InvalidData: If the channel is not found or is not the correct type.
-        :returns: The channel.
-        :rtype: :class:`discord.ForumChannel`
+
+        Parameters
+        ----------
+        guild : :class:`discord.Guild`
+            The guild to get the channel from.
+
+        Raises
+        ------
+        :class:`discord.InvalidData`
+            If the channel is not found or is not the correct type.
+
+        Returns
+        -------
+        :class:`discord.ForumChannel`
+            The channel.
         """
         return await self._getorfetch_channel(channelid, ForumChannel, guild) # type: ignore
 
@@ -321,11 +397,21 @@ class BotU(AutoShardedBot):
         """Gets a user from a guild (if provided) or bot's cache, else fetches it. Will error if fetch fails.
 
         :param :class:`int` userid: The ID of the user to get.
-        :param guild: The guild to get the user from.
-        :type guild: Optional[:class:`discord.Guild`]
-        :raises InvalidData: If the user is not found.
-        :returns: The user.
-        :rtype: Union[:class:`discord.User`, :class:`discord.Member`]
+
+        Parameters
+        ----------
+        guild : Optional[:class:`discord.Guild`]
+            The guild to get the user from.
+
+        Raises
+        ------
+        :class:`discord.InvalidData`
+            If the user is not found.
+
+        Returns
+        -------
+        Union[:class:`discord.User`, :class:`discord.Member`]
+            The user.
 
         .. note
             If the user is in a guild, it will return a Member.
@@ -345,13 +431,18 @@ class BotU(AutoShardedBot):
         """Gets a Member from the guild's cache, else fetches it. Will error if fetch fails.
         Raises a :class:`discord.NotFound` or :class:`discord.Forbidden` if fetch fails.
 
-        :param userid: The ID of the user.
-        :type userid: :class:int
-        :param guild: The Guild object to get the member from.
-        :type guild: :class:`discord.Guild`
-        :return: The Member object.
-        :rtype: :class:`discord.Member`
-        """        
+        Parameters
+        ----------
+        userid : :class:int
+            The ID of the user.
+        guild : :class:`discord.Guild`
+            The Guild object to get the member from.
+
+        Returns
+        -------
+        :class:`discord.Member`
+            The Member object.
+        """
         member = guild.get_member(userid)
         if member is None:
             member = await guild.fetch_member(userid)
@@ -360,13 +451,23 @@ class BotU(AutoShardedBot):
     async def getorfetch_guild(self, guildid: int) -> Guild:
         """Gets a Guild from the cache, else fetches it. Will error if fetch fails.
 
-        :param guildid: The ID of the guild.
-        :type guildid: :class:`int`
-        :return: The Guild object.
-        :rtype: :class:`discord.Guild`
-        :raises discord.HTTPException: If the guild cannot be fetched.
-        :raises discord.Forbidden: If the bot does not have permission to fetch the guild.
-        """        
+        Parameters
+        ----------
+        guildid : :class:`int`
+            The ID of the guild.
+
+        Returns
+        -------
+        :class:`discord.Guild`
+            The Guild object.
+
+        Raises
+        ------
+        :class:`discord.HTTPException`
+            If the guild cannot be fetched.
+        :class:`discord.Forbidden`
+            If the bot does not have permission to fetch the guild.
+        """
         guild = self.get_guild(guildid)
         if guild is None:
             guild = await self.fetch_guild(guildid)
@@ -375,13 +476,15 @@ class BotU(AutoShardedBot):
     async def getorfetch_dmchannel(self, user: Union[User, Member]) -> DMChannel:
         """Gets a DMChannel from the user's cache, else fetches it. Will error if fetch fails.
 
-        :param user: The user to get the DMChannel from.
-        :type user: Union[:class:`discord.User`, :class:`discord.Member`]
-        :return: The DMChannel object.
-        :rtype: DMChannel
-        :raises :class:`discord.HTTPException`: If the DMChannel cannot be fetched.
-        :raises :class:`discord.Forbidden`: If the bot does not have permission to fetch the DMChannel.
-        :raises :class:`discord.NotFound`: If the DMChannel is not found. This shouldn't be raised since the DMChannel is created if it doesn't exist.
+        Parameters
+        ----------
+        user : Union[:class:`discord.User`, :class:`discord.Member`]
+            The user to get the DMChannel from.
+
+        Returns
+        -------
+        :class:`discord.DMChannel`
+            The DMChannel object.
         """
         if user.dm_channel is None:
             return await user.create_dm()
@@ -400,11 +503,16 @@ class BotU(AutoShardedBot):
         """Gets the Mention string for a command. If the tree is a MentionableTree, it will return the mention string for the command.
         If the command ID cannot be found, it will return a string with the command name in backticks.
 
-        :param command: The command/name of the command to get the mention for.
-        :type command: Union[:class:`str`, :class:`discord.ext.commands.Command`]
-        :return: The mention string for the command.
-        :rtype: :class:`str`
-        """        
+        Parameters
+        ----------
+        command : Union[:class:`str`, :class:`discord.ext.commands.Command`]
+            The command/name of the command to get the mention for.
+
+        Returns
+        -------
+        :class:`str`
+            The mention string for the command.
+        """
         # # command_name = command_name.strip().lstrip('/').lower()
         # # cmd_name = command_name.split(' ')[0]
         # cmd = self.bot.tree.get_command(cmd_name)

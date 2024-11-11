@@ -40,18 +40,22 @@ class BaseButtonPaginator(discord.ui.View):
     ):
         """Initializes the Paginator.
 
-        :param pages: The pages to paginate.
-        :type pages: :class:`Sequence`[:class:`Any]`
-        :param author_id: The ID of the author. Defaults to None.
-        :type author_id: Optional[:class:`int`]
-        :param timeout: The timeout for the view. Defaults to 180.0.
-        :type timeout: Optional[:class:`float`]
-        :param delete_message_after: Whether the message containing the paginator should be deleted after use. Defaults to False.
-        :type delete_message_after: :class:`bool`
-        :param per_page: The amount of pages to show per page. Defaults to 1.
-        :type per_page: :class:`int`
-        :param go_to_button: Whether to include the "Go To" Button to go to a page. Defaults to False.
-        :type go_to_button: :class:`bool`
+        Parameters
+        ----------
+        pages : :class:`Sequence[:class:Any]`
+            The pages to paginate.
+        author_id : Optional[:class:`int`]
+            The ID of the author. Defaults to None.
+        timeout : Optional[:class:`float`]
+            The timeout for the view. Defaults to 180.0.
+        delete_message_after : :class:`bool`
+            Whether the message containing the paginator should be
+            deleted after use. Defaults to False.
+        per_page : :class:`int`
+            The amount of pages to show per page. Defaults to 1.
+        go_to_button : :class:`bool`
+            Whether to include the "Go To" Button to go to a page.
+            Defaults to False.
         """
 
         if not pages:
