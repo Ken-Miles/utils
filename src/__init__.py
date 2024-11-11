@@ -1,3 +1,11 @@
+__title__ = 'Utils'
+__author__ = 'Ken-Miles'
+__license__ = 'MIT'
+__copyright__ = 'Copyright 2023-present Ken-Miles'
+__version__ = '2.1.0'
+
+__path__ = __import__('pkgutil').extend_path(__path__, __name__)
+
 from .constants import * # logger
 from .logger import *
 from .methods import *
