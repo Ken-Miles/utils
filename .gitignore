@@ -26,6 +26,8 @@ Python-3.10.0/
 # ignore logs + secret files
 *.txt
 !requirements.txt
+!requirements-dev.txt
+!requirements-docs.txt
 *.log
 *.yml
 *.yaml
