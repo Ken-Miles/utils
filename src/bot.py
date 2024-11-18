@@ -34,6 +34,7 @@ from discord import (
 from discord.abc import GuildChannel, PrivateChannel
 from discord.ext import commands
 from discord.ext.commands import AutoShardedBot
+from discord.utils import deprecated
 
 from .context import ContextU
 from .tree import MentionableTree
@@ -87,11 +88,11 @@ class BotU(AutoShardedBot):
     
     @property
     def avatar_url(self) -> str:
-        """Get's the bot's avatar URL. If the bot has no avatar, raises AttributeError.
+        """Get's the bot's avatar URL. If the bot has no avatar, raises :class:`AttributeError`.
 
         Raises
         ------
-        AttributeError
+        :class:`AttributeError`
             If the bot has no avatar.
 
         Returns
@@ -103,22 +104,28 @@ class BotU(AutoShardedBot):
             return self.user.display_avatar.url
         raise AttributeError("Bot has no display_avatar")
 
-    @discord.utils.copy_doc(commands.Bot.application_info)
+    #@discord.utils.copy_doc(commands.Bot.application_info)
     async def application_info(self) -> discord.AppInfo:
-        """Method updated to cache the application info when it is fetched.
+        """|coro|
+        Method updated to cache the application info when it is fetched.
 
         Returns
         -------
-        discord.AppInfo
+        :class:`discord.AppInfo`
             The bot's application info.
+        
+        :meta private:
         """
         self.appinfo = await super().application_info()
         return self.appinfo
 
-    @discord.utils.copy_doc(commands.Bot.setup_hook)
+    #@discord.utils.copy_doc(commands.Bot.setup_hook)
     async def setup_hook(self):
-        """A hook to run after the bot has been setup.
+        """|coro|
+        A hook to run after the bot has been setup.
         This is called after the bot has been setup and is ready to run.
+
+        :meta private:
         """
         if not self.owner_ids:
             assert self.application is not None
@@ -132,14 +139,23 @@ class BotU(AutoShardedBot):
         # DO NOT UNCOMMENT, THIS WILL BREAK IS_OWNER CHECKS
     
     async def on_shard_resumed(self, shard_id: int):
+        """|coro|
+        :meta private:
+        """
         #log.info('Shard ID %s has resumed...', shard_id)
         self.resumes[shard_id].append(discord.utils.utcnow())
     
     async def on_shard_ready(self, shard_id: int):
+        """|coro|
+        :meta private:
+        """
         #log.info('Shard ID %s has connected...', shard_id)
         self.identifies[shard_id].append(discord.utils.utcnow())
 
     def _clear_gateway_data(self) -> None:
+        """|coro|
+        :meta private:
+        """
         one_week_ago = discord.utils.utcnow() - datetime.timedelta(days=7)
         for shard_id, dates in self.identifies.items():
             to_remove = [index for index, dt in enumerate(dates) if dt < one_week_ago]
@@ -152,6 +168,9 @@ class BotU(AutoShardedBot):
                 del dates[index]
 
     async def before_identify_hook(self, shard_id: int, *, initial: bool):
+        """|coro|
+        :meta private:
+        """
         self._clear_gateway_data()
         self.identifies[shard_id].append(discord.utils.utcnow())
         await super().before_identify_hook(shard_id, initial=initial)
@@ -171,7 +190,7 @@ class BotU(AutoShardedBot):
 
         Returns
         -------
-        discord.User
+        :class:`discord.User`
             The bot's owner.
         """
         if getattr(self.bot_app_info, "team", None):
@@ -186,11 +205,12 @@ class BotU(AutoShardedBot):
         self,
         origin: Union[Message, Interaction],
         *,
-        cls: Type[commands.Context] = ContextU,
-    ) -> commands.Context:
+        cls: Type[ContextU] = ContextU,
+    ) -> ContextU:
+        #return await ContextU.from_interaction()
         return await super().get_context(origin, cls=cls)
 
-    async def _getorfetch_channel(
+    async def _get_or_fetch_channel(
         self, channelid: int, channel_type: Type[ChannelT], guild: Optional[Guild]=None, 
     ) -> ChannelT:
         """Internal method to get a certain Channel type."""
@@ -207,15 +227,15 @@ class BotU(AutoShardedBot):
             raise InvalidData(f"Channel {channelid} is not a {channel_type.__name__}")
         return channel
 
-    async def getorfetch_channel(
+    async def get_or_fetch_channel(
         self, channelid: int, guild: Optional[Guild] = None
     ) -> Union[GuildChannel, Thread, PrivateChannel]:
         """Gets a channel from a guild (if provided) or bot's cache, else fetches it. Will error if fetch fails.
 
-        :param :class:`int` channelid: The ID of the channel to get.
-
         Parameters
         ----------
+        channelid: :class:`int`
+            The ID of the channel to get.
         guild: Optional[:class:`discord.Guild`]
             The guild to get the channel from.
 
@@ -226,7 +246,7 @@ class BotU(AutoShardedBot):
 
         Returns
         -------
-        Union[:class:discord.abc.GuildChannel`, :class:`discord.Thread`, :class:`discord.PrivateChannel`]
+        Union[:class:`discord.abc.GuildChannel`, :class:`discord.Thread`, :class:`discord.PrivateChannel`]
             The channel.
         """
         channel: Optional[Union[GuildChannel, Thread, PrivateChannel]] = None
@@ -239,15 +259,19 @@ class BotU(AutoShardedBot):
             if channel is None:
                 channel = await self.fetch_channel(channelid)
         return channel
+    
+    @deprecated("get_or_fetch_channel")
+    async def getorfetch_channel(self, *args, **kwargs):
+        return await self.get_or_fetch_channel(*args, **kwargs)
 
-    async def getorfetch_thread(self, threadid: int, guild: Guild) -> Thread:
+    async def get_or_fetch_thread(self, threadid: int, guild: Guild) -> Thread:
         """Gets or fetches a Thread (Forum or TextChannel thread) from the provided guild.
         If None or a non-Thread is returned, raises AssertionError.
 
-        :param :class:`int` threadid: The ID of the thread to get.
-
         Parameters
         ----------
+        threadid: :class:`int`
+            The ID of the thread to get.
         guild: :class:`discord.Guild`
             The guild to get the thread from.
 
@@ -261,16 +285,20 @@ class BotU(AutoShardedBot):
         :class:`discord.Thread`
             The thread.
         """
-        return await self._getorfetch_channel(threadid, Thread, guild)
+        return await self._get_or_fetch_channel(threadid, Thread, guild)
+    
+    @deprecated("get_or_fetch_thread")
+    async def getorfetch_thread(self, *args, **kwargs):
+        return await self.get_or_fetch_thread(*args, **kwargs)
 
-    async def getorfetch_textchannel(self, channelid: int, guild: Guild) -> TextChannel:
+    async def get_or_fetch_textchannel(self, channelid: int, guild: Guild) -> TextChannel:
         """Gets or fetches a TextChannel from the provided guild.
         If None or a non-TextChannel is returned, raises AssertionError
 
-        :param :class:`int` channelid: The ID of the channel to get.
-
         Parameters
         ----------
+        channelid: :class:`int`
+            The ID of the channel to get.
         guild: :class:`discord.Guild`
             The guild to get the channel from.
 
@@ -284,9 +312,13 @@ class BotU(AutoShardedBot):
         :class:`discord.TextChannel`
             The channel.
         """
-        return await self._getorfetch_channel(channelid, TextChannel, guild) # type: ignore
+        return await self._get_or_fetch_channel(channelid, TextChannel, guild) # type: ignore
+    
+    @deprecated("get_or_fetch_textchannel")
+    async def getorfetch_textchannel(self, *args, **kwargs):
+        return await self.get_or_fetch_textchannel(*args, **kwargs)
 
-    async def getorfetch_voicechannel(
+    async def get_or_fetch_voicechannel(
         self, channelid: int, guild: Guild
     ) -> VoiceChannel:
         """Gets or fetches a VoiceChannel from the provided guild.
@@ -308,18 +340,23 @@ class BotU(AutoShardedBot):
         :class:`discord.VoiceChannel`
             The channel.
         """
-        return await self._getorfetch_channel(channelid, VoiceChannel, guild) # type: ignore
+        return await self._get_or_fetch_channel(channelid, VoiceChannel, guild) # type: ignore
+    
+    @deprecated("get_or_fetch_voicechannel")
+    async def getorfetch_voicechannel(self, *args, **kwargs):
+        return await self.get_or_fetch_voicechannel(*args, **kwargs)
 
-    async def getorfetch_categorychannel(
+    async def get_or_fetch_categorychannel(
         self, channelid: int, guild: Guild
     ) -> CategoryChannel:
         """Gets or fetches a CategoryChannel from the provided guild.
         If None or a non-CategoryChannel is returned, raises AssertionError
 
-        :param :class:`int` channelid: The ID of the channel to get.
 
         Parameters
         ----------
+        channelid: :class:`int`
+            The ID of the channel to get.
         guild: :class:`discord.Guild`
             The guild to get the channel from.
 
@@ -333,20 +370,24 @@ class BotU(AutoShardedBot):
         :class:`discord.CategoryChannel`
             The channel.
         """
-        return await self._getorfetch_channel(channelid, CategoryChannel, guild) # type: ignore
+        return await self._get_or_fetch_channel(channelid, CategoryChannel, guild) # type: ignore
 
-    getorfetch_category = getorfetch_categorychannel
+    get_or_fetch_category = get_or_fetch_categorychannel
 
-    async def getorfetch_stagechannel(
+    @deprecated("get_or_fetch_categorychannel")
+    async def getorfetch_category_channel(self, *args, **kwargs):
+        return await self.get_or_fetch_categorychannel(*args, **kwargs)
+
+    async def get_or_fetch_stagechannel(
         self, channelid: int, guild: Guild
     ) -> StageChannel:
-        """Gets or fetches a StageChannel from the provided guild.
-        If None or a non-StageChannel is returned, raises AssertionError
-
-        :param :class:`int` channelid: The ID of the channel to get.
+        """Gets or fetches a :class:`discord.StageChannel` from the provided guild.
+        If None or a non-:class:`discord.StageChannel` is returned, raises AssertionError
 
         Parameters
         ----------
+        channelid: :class:`int`
+            The ID of the channel to get.
         guild: :class:`discord.Guild`
             The guild to get the channel from.
 
@@ -360,20 +401,25 @@ class BotU(AutoShardedBot):
         :class:`discord.StageChannel`
             The channel.
         """
-        return await self._getorfetch_channel(channelid, StageChannel, guild) # type: ignore
+        return await self._get_or_fetch_channel(channelid, StageChannel, guild) # type: ignore
 
-    getorfetch_stage = getorfetch_stagechannel
+    get_or_fetch_stage = get_or_fetch_stagechannel
 
-    async def getorfetch_forumchannel(
+    @deprecated("get_or_fetch_stagechannel")
+    async def getorfetch_stage_channel(self, *args, **kwargs):
+        return await self.get_or_fetch_stagechannel(*args, **kwargs)
+
+    async def get_or_fetch_forumchannel(
         self, channelid: int, guild: Guild
     ) -> ForumChannel:
-        """Gets or fetches a ForumChannel from the provided guild.
-        If None or a non-ForumChannel is returned, raises AssertionError.
+        """Gets or fetches a :class:`discord.ForumChannel` from the provided guild.
+        If None or a non-:class:`discord.ForumChannel` is returned, raises AssertionError.
 
-        :param :class:`int` channelid: The ID of the channel to get.
 
         Parameters
         ----------
+        channelid: :class:`int`
+            The ID of the channel to get.
         guild: :class:`discord.Guild`
             The guild to get the channel from.
 
@@ -387,19 +433,23 @@ class BotU(AutoShardedBot):
         :class:`discord.ForumChannel`
             The channel.
         """
-        return await self._getorfetch_channel(channelid, ForumChannel, guild) # type: ignore
+        return await self._get_or_fetch_channel(channelid, ForumChannel, guild) # type: ignore
 
-    getorfetch_forum = getorfetch_forumchannel
+    get_or_fetch_forum = get_or_fetch_forumchannel
 
-    async def getorfetch_user(
+    @deprecated("get_or_fetch_forumchannel")
+    async def getorfetch_forum_channel(self, *args, **kwargs):
+        return await self.get_or_fetch_forumchannel(*args, **kwargs)
+
+    async def get_or_fetch_user(
         self, userid: int, guild: Optional[Guild]
     ) -> Union[User, Member]:
-        """Gets a user from a guild (if provided) or bot's cache, else fetches it. Will error if fetch fails.
-
-        :param :class:`int` userid: The ID of the user to get.
+        """Gets a :class:`discord.User` or :class:`discord.Member` from a guild (if provided) or bot's cache, else fetches it. Will error if fetch fails.
 
         Parameters
         ----------
+        userid: :class:`int`
+            The ID of the user to get.
         guild: Optional[:class:`discord.Guild`]
             The guild to get the user from.
 
@@ -413,21 +463,25 @@ class BotU(AutoShardedBot):
         Union[:class:`discord.User`, :class:`discord.Member`]
             The user.
 
-        .. note
+        .. note::
             If the user is in a guild, it will return a Member.
             You must pass explicitly pass None for the guild if you wish to get a user not in a guild.
         """
         user: Union[User, Member]
         if guild is not None:
-            user = await self.getorfetch_member(userid, guild)
+            user = await self.get_or_fetch_member(userid, guild)
             if user:
                 return user
         user = self.get_user(userid)  # type: ignore | fuck you pyright
         if user is None:
             user = await self.fetch_user(userid)
         return user
+    
+    @deprecated('get_or_fetch_user')
+    async def getorfetch_user(self, *args, **kwargs):
+        return await self.get_or_fetch_user(*args, **kwargs)
 
-    async def getorfetch_member(self, userid: int, guild: Guild) -> Member:
+    async def get_or_fetch_member(self, userid: int, guild: Guild) -> Member:
         """Gets a Member from the guild's cache, else fetches it. Will error if fetch fails.
         Raises a :class:`discord.NotFound` or :class:`discord.Forbidden` if fetch fails.
 
@@ -442,13 +496,25 @@ class BotU(AutoShardedBot):
         -------
         :class:`discord.Member`
             The Member object.
+        
+        Raises
+        ------
+        :class:`discord.NotFound`
+            If the member cannot be found.
+        :class:`discord.Forbidden`
+            If the bot does not have permission to fetch the member.
+
         """
         member = guild.get_member(userid)
         if member is None:
             member = await guild.fetch_member(userid)
         return member
+    
+    @deprecated('get_or_fetch_member')
+    async def getorfetch_member(self, *args, **kwargs):
+        return await self.get_or_fetch_member(*args, **kwargs)
 
-    async def getorfetch_guild(self, guildid: int) -> Guild:
+    async def get_or_fetch_guild(self, guildid: int) -> Guild:
         """Gets a Guild from the cache, else fetches it. Will error if fetch fails.
 
         Parameters
@@ -472,8 +538,12 @@ class BotU(AutoShardedBot):
         if guild is None:
             guild = await self.fetch_guild(guildid)
         return guild
+    
+    @deprecated('get_or_fetch_guild')
+    async def getorfetch_guild(self, *args, **kwargs):
+        return await self.get_or_fetch_guild(*args, **kwargs)
 
-    async def getorfetch_dmchannel(self, user: Union[User, Member]) -> DMChannel:
+    async def get_or_fetch_dmchannel(self, user: Union[User, Member]) -> DMChannel:
         """Gets a DMChannel from the user's cache, else fetches it. Will error if fetch fails.
 
         Parameters
@@ -489,8 +559,12 @@ class BotU(AutoShardedBot):
         if user.dm_channel is None:
             return await user.create_dm()
         return user.dm_channel
+    
+    @deprecated('get_or_fetch_dmchannel')
+    async def getorfetch_dmchannel(self, *args, **kwargs):
+        return await self.get_or_fetch_dmchannel(*args, **kwargs)
 
-    getorfetch_dm = getorfetch_dmchannel
+    get_or_fetch_dm = get_or_fetch_dmchannel
 
     def wrap(self, func: Callable[P, T], *args: P.args, **kwargs: P.kwargs):
         return asyncio.to_thread(functools.partial(func, *args, **kwargs))
