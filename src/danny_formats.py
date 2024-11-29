@@ -12,7 +12,6 @@ from __future__ import annotations
 import datetime
 from typing import Any, Iterable, Optional, Sequence
 
-
 class plural:
     def __init__(self, value: int):
         self.value: int = value

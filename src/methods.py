@@ -15,6 +15,7 @@ from discord.utils import MISSING
 
 from . import RE_URL, emojidict
 from .enums import IntegrationType
+from .constants import CodeblockLanguage, CODEBLOCK_LANGUAGES
 
 # fmt: off
 __all__ = (
@@ -26,8 +27,6 @@ __all__ = (
     'dctimestamp',
     'dchyperlink',
     'create_codeblock',
-    'CodeblockLanguage',
-    'CODEBLOCK_LANGUAGES',
     '_autocomplete',
     'generic_autocomplete',
     'merge_permissions',
@@ -322,18 +321,40 @@ def makeembed_successfulaction(
 
 timestamptype = Literal["t", "T", "d", "D", "f", "F", "R"]
 
-@discord.utils.copy_doc(discord.utils.format_dt)
+#@discord.utils.copy_doc(discord.utils.format_dt)
 def dctimestamp(
     dt: Union[datetime.datetime, int, float], format: timestamptype = "f"
 ) -> str:
     """Formats a timestamp for Discord.
     This method functions similar to :meth:`discord.utils.format_dt`, except it can also accepts a :class:`int` or :class:`float` as the timestamp.
 
+    Discord Timestamps allows for a locale-independent way of presenting data using Discord specific Markdown.
+
+    +-------------+----------------------------+-----------------+
+    |    Style    |       Example Output       |   Description   |
+    +=============+============================+=================+
+    | t           | 22:57                      | Short Time      |
+    +-------------+----------------------------+-----------------+
+    | T           | 22:57:58                   | Long Time       |
+    +-------------+----------------------------+-----------------+
+    | d           | 17/05/2016                 | Short Date      |
+    +-------------+----------------------------+-----------------+
+    | D           | 17 May 2016                | Long Date       |
+    +-------------+----------------------------+-----------------+
+    | f (default) | 17 May 2016 22:57          | Short Date Time |
+    +-------------+----------------------------+-----------------+
+    | F           | Tuesday, 17 May 2016 22:57 | Long Date Time  |
+    +-------------+----------------------------+-----------------+
+    | R           | 5 years ago                | Relative Time   |
+    +-------------+----------------------------+-----------------+
+
+    For more information, you can view the Discord Documentation on :ddocs:`reference#message-formatting`.
+    
     Parameters
     ----------
-    dt : Union[:class:`datetime.datetime`, :class:`int`, :class:`float`]
+    dt: Union[:class:`datetime.datetime`, :class:`int`, :class:`float`]
         The timestamp to format.
-    format : :class:`timestamptype`
+    format: :class:`timestamptype`
         The format to use. Defaults to "f".
 
     Returns
@@ -381,7 +402,7 @@ def dchyperlink(
     """
 
     # url and texttoclick could be switched
-    if RE_URL.match(texttoclick):
+    if RE_URL.match(str(texttoclick)) is not None:
         texttoclick, url = url, texttoclick
     texttoclick = f"[{texttoclick}]" 
     hovertext = f'"{hovertext}"' if hovertext is not None else ""
@@ -391,396 +412,26 @@ def dchyperlink(
 
     return f"{texttoclick}({url} {hovertext})"
 
-
-CodeblockLanguage = Literal[
-    "1c",
-    "4d",
-    "abnf",
-    "accesslog",
-    "ada",
-    "arduino",
-    "ino",
-    "armasm",
-    "arm",
-    "avrasm",
-    "actionscript",
-    "as",
-    "alan",
-    "ansi",
-    "i",
-    "log",
-    "ln",
-    "angelscript",
-    "asc",
-    "apache",
-    "apacheconf",
-    "applescript",
-    "osascript",
-    "arcade",
-    "asciidoc",
-    "adoc",
-    "aspectj",
-    "autohotkey",
-    "autoit",
-    "awk",
-    "mawk",
-    "nawk",
-    "gawk",
-    "bash",
-    "sh",
-    "zsh",
-    "basic",
-    "bbcode",
-    "blade",
-    "bnf",
-    "brainfuck",
-    "bf",
-    "csharp",
-    "cs",
-    "c",
-    "h",
-    "cpp",
-    "hpp",
-    "cc",
-    "hh",
-    "c++",
-    "h++",
-    "cxx",
-    "hxx",
-    "cal",
-    "cos",
-    "cls",
-    "cmake",
-    "cmake.in",
-    "coq",
-    "csp",
-    "css",
-    "csv",
-    "capnproto",
-    "capnp",
-    "chaos",
-    "kaos",
-    "chapel",
-    "chpl",
-    "cisco",
-    "clojure",
-    "clj",
-    "coffeescript",
-    "coffee",
-    "cson",
-    "iced",
-    "cpc",
-    "crmsh",
-    "crm",
-    "pcmk",
-    "crystal",
-    "cr",
-    "cypher",
-    "d",
-    "dns",
-    "zone",
-    "bind",
-    "dos",
-    "bat",
-    "cmd",
-    "dart",
-    "delphi",
-    "dpr",
-    "dfm",
-    "pas",
-    "pascal",
-    "freepascal",
-    "lazarus",
-    "lpr",
-    "lfm",
-    "diff",
-    "patch",
-    "django",
-    "jinja",
-    "dockerfile",
-    "docker",
-    "dsconfig",
-    "dts",
-    "dust",
-    "dst",
-    "dylan",
-    "ebnf",
-    "elixir",
-    "ex",
-    "elm",
-    "erlang",
-    "erl",
-    "extempore",
-    "xtlang",
-    "xtm",
-    "fsharp",
-    "fs",
-    "fix",
-    "fortran",
-    "f90",
-    "f95",
-    "gcode",
-    "nc",
-    "gams",
-    "gms",
-    "gauss",
-    "gss",
-    "godot",
-    "gdscript",
-    "gherkin",
-    "gn",
-    "gni",
-    "go",
-    "golang",
-    "gf",
-    "golo",
-    "gololang",
-    "gradle",
-    "groovy",
-    "xml",
-    "html",
-    "xhtml",
-    "rss",
-    "atom",
-    "xjb",
-    "xsd",
-    "xsl",
-    "plist",
-    "svg",
-    "http",
-    "https",
-    "haml",
-    "handlebars",
-    "hbs",
-    "html.hbs",
-    "html.handlebars",
-    "haskell",
-    "hs",
-    "haxe",
-    "hx",
-    "hy",
-    "hylang",
-    "ini",
-    "toml",
-    "inform7",
-    "i7",
-    "irpf90",
-    "json",
-    "java",
-    "jsp",
-    "javascript",
-    "js",
-    "jsx",
-    "jolie",
-    "iol",
-    "ol",
-    "julia",
-    "julia-repl",
-    "kotlin",
-    "kt",
-    "tex",
-    "leaf",
-    "lean",
-    "lasso",
-    "ls",
-    "lassoscript",
-    "less",
-    "ldif",
-    "lisp",
-    "livecodeserver",
-    "livescript",
-    "lock",
-    "ls",
-    "lua",
-    "makefile",
-    "mk",
-    "mak",
-    "make",
-    "markdown",
-    "md",
-    "mkdown",
-    "mkd",
-    "mathematica",
-    "mma",
-    "wl",
-    "matlab",
-    "maxima",
-    "mel",
-    "mercury",
-    "mirc",
-    "mrc",
-    "mizar",
-    "mojolicious",
-    "monkey",
-    "moonscript",
-    "moon",
-    "n1ql",
-    "nsis",
-    "never",
-    "nginx",
-    "nginxconf",
-    "nim",
-    "nimrod",
-    "nix",
-    "ocl",
-    "ocaml",
-    "ml",
-    "objectivec",
-    "mm",
-    "objc",
-    "obj-c",
-    "obj-c++",
-    "objective-c++",
-    "glsl",
-    "openscad",
-    "scad",
-    "ruleslanguage",
-    "oxygene",
-    "pf",
-    "pf.conf",
-    "php",
-    "php3",
-    "php4",
-    "php5",
-    "php6",
-    "php7",
-    "parser3",
-    "perl",
-    "pl",
-    "pm",
-    "plaintext",
-    "txt",
-    "text",
-    "pony",
-    "pgsql",
-    "postgres",
-    "postgresql",
-    "powershell",
-    "ps",
-    "ps1",
-    "processing",
-    "prolog",
-    "properties",
-    "protobuf",
-    "puppet",
-    "pp",
-    "python",
-    "py",
-    "gyp",
-    "profile",
-    "python-repl",
-    "pycon",
-    "k",
-    "kdb",
-    "qml",
-    "r",
-    "cshtml",
-    "razor",
-    "razor-cshtml",
-    "reasonml",
-    "re",
-    "redbol",
-    "rebol",
-    "red",
-    "red-system",
-    "rib",
-    "rsl",
-    "graph",
-    "instances",
-    "robot",
-    "rf",
-    "rpm-specfile",
-    "rpm",
-    "spec",
-    "rpm-spec",
-    "specfile",
-    "ruby",
-    "rb",
-    "gemspec",
-    "podspec",
-    "thor",
-    "irb",
-    "rust",
-    "rs",
-    "SAS",
-    "sas",
-    "scss",
-    "sql",
-    "p21",
-    "step",
-    "stp",
-    "scala",
-    "scheme",
-    "scilab",
-    "sci",
-    "shexc",
-    "shell",
-    "console",
-    "smali",
-    "smalltalk",
-    "st",
-    "sml",
-    "ml",
-    "solidity",
-    "sol",
-    "stan",
-    "stanfuncs",
-    "stata",
-    "iecst",
-    "scl",
-    "structured-text",
-    "stylus",
-    "styl",
-    "subunit",
-    "supercollider",
-    "sc",
-    "svelte",
-    "swift",
-    "tcl",
-    "tk",
-    "terraform",
-    "tf",
-    "hcl",
-    "tap",
-    "thrift",
-    "tp",
-    "tsql",
-    "twig",
-    "craftcms",
-    "typescript",
-    "ts",
-    "tsx",
-    "unicorn-rails-log",
-    "vbnet",
-    "vb",
-    "vba",
-    "vbscript",
-    "vbs",
-    "vhdl",
-    "vala",
-    "verilog",
-    "v",
-    "vim",
-    "axapta",
-    "x++",
-    "x86asm",
-    "xl",
-    "tao",
-    "xquery",
-    "xpath",
-    "xq",
-    "yml",
-    "yaml",
-    "zephir",
-    "zep",
-]
-
-# only way to get a list of all the codeblock langs and create a type for it
-# is to use this hacky method -_-
-CODEBLOCK_LANGUAGES: List[Union[str, app_commands.locale_str]] = list(CodeblockLanguage.__args__)  # type: ignore
-
-
 async def create_codeblock(content: Union[str, app_commands.locale_str], lang: CodeblockLanguage = "py") -> str:
+    """Creates a codeblock formatted for Discord.
+
+    Parameters
+    ----------
+    content: Union[:class:`str`, :class:`discord.app_commands.locale_str`]
+        The content of the codeblock.
+    lang: CodeblockLanguage, optional
+        The language code of the codeblock. Defaults to `py` if none is provided.
+
+    Returns
+    -------
+    :class:`str`
+        The formatted codeblock.
+
+    Raises
+    ------
+    :class:`ValueError`
+        If the language is not a valid language code.
+    """    
     if lang not in CODEBLOCK_LANGUAGES:
         raise ValueError(f"Invalid Language: {lang}")
     fmt: Union[str, app_commands.locale_str] = "```"
@@ -791,9 +442,15 @@ async def create_codeblock(content: Union[str, app_commands.locale_str], lang: C
 def _autocomplete(
     current: Union[str, app_commands.locale_str], items: Sequence[Any], cutoff: float = 0.4
 ) -> Sequence[Tuple[str, Any]]:
+    """
+    Internal method for autocompleting a command choice. Utilizes an LRU cache (see :meth:`functools.lru_cache`) to store the results.
+    If you want to use this method, use :meth:`generic_autocomplete` instead.
+    """
     if not items:
         return []
-
+    
+    if isinstance(current, app_commands.locale_str):
+        current = current.message
     current = current.lower().strip()
 
     if not current:
@@ -828,6 +485,24 @@ async def generic_autocomplete(
     interaction: Optional[discord.Interaction] = None,
     cutoff: float = 0.4,
 ) -> List[app_commands.Choice]:
+    """Autocompletes a command choice.
+
+    Parameters
+    ----------
+    current: Union[:class:`str`, :class:`discord.app_commands.locale_str`]
+        The current input.
+    items: Union[Sequence[Any], Sequence[Tuple[Any, Any]]]
+        The items to autocomplete. Can either be a list of items or a list of tuples with the first element being the name of the item and the second element being the value of the item.
+    interaction: Optional[:class:`discord.Interaction`]
+        The interaction related to this autocomplete. None by default.
+    cutoff: Optional[:class:`float`]
+        The cutoff decimal to be passed into :meth:`difflib.get_close_matches`. 0.4 by default.
+
+    Returns
+    -------
+    List[:class:`discord.app_commands.Choice`]
+        The list of choices for the autocomplete. Will return a maximum of 24 choices.
+    """    
     allmatches = _autocomplete(current, tuple(items), cutoff=cutoff)
     return [app_commands.Choice(name=x[0], value=x[1]) for x in allmatches]
 
@@ -837,6 +512,18 @@ def merge_permissions(
     permissions: discord.Permissions,
     **perms: bool,
 ) -> None:
+    """Merges the passed permissions into a permission overwrite.
+
+    .. note::
+        This merge of permissions is done in place, meaning the overwrite object passed in will be merged. This means that this method does not return anything.
+
+    Parameters
+    ----------
+    overwrite : discord.PermissionOverwrite
+        The permission overwrite to merge the permissions into.
+    permissions : discord.Permissions
+        The permissions to merge.
+    """
     for perm, value in perms.items():
         if getattr(permissions, perm):
             setattr(overwrite, perm, value)
@@ -849,11 +536,11 @@ def generate_transaction_id(
 
     Parameters
     ----------
-    guild_id : Optional[:class:`int`]
+    guild_id: Optional[:class:`int`]
         The ID of the guild for the transaction.
-    user_id : Optional[:class:`int`]
+    user_id: Optional[:class:`int`]
         The ID of the user for the transaction.
-    length : :class:`int`
+    length: :class:`int`
         How long the UUID should be. Defaults to 36
 
     Returns
@@ -870,15 +557,14 @@ def generate_transaction_id(
     ]
 
 
-
 def oauth_url(
     client_id: Union[int, str],
     *,
     permissions: discord.Permissions = MISSING,
     guild: Snowflake = MISSING,
     integration_type: Union[IntegrationType, int] = IntegrationType.guild,
-    redirect_uri: Union[str, app_commands.locale_str] = MISSING,
-    scopes: Iterable[Union[str, app_commands.locale_str]] = MISSING,
+    redirect_uri: str = MISSING,
+    scopes: Iterable[str] = MISSING,
     disable_guild_select: bool = False,
     state: Union[str, app_commands.locale_str] = MISSING,
 ) -> str:
@@ -888,24 +574,21 @@ def oauth_url(
 
     Parameters
     ----------
-    client_id : Union[:class:`int`, :class:`str`]
+    client_id: Union[:class:`int`, :class:`str`]
         The client ID of the bot.
-    permissions : :class:`discord.Permissions`
-        The permissions the bot should have in the guild. Defaults to
-        MISSING.
-    guild : :class:`discord.Snowflake`
-        The guild to preselect in the authorization screen. Defaults to
-        MISSING.
-    integration_type : Union[:class:`~IntegrationType`, :class:`int`]
-        The type of integration for the bot. Defaults to
-        IntegrationType.guild.
-    redirect_uri : Union[:class:`str`, :class:`discord.app_commands.locale_str`]
+    permissions: :class:`discord.Permissions`
+        The permissions the bot should have in the guild. Defaults to MISSING.
+    guild: :class:`discord.Snowflake`
+        The guild to preselect in the authorization screen. Defaults to MISSING.
+    integration_type : Union[:class:`src.enums.IntegrationType`, :class:`int`]
+        The type of integration for the bot. Defaults to :class:`IntegrationType.guild`.
+    redirect_uri: :class:`str`
         The redirect URI for the bot. Defaults to MISSING.
-    scopes : Iterable[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
+    scopes: Iterable[:class:`str`]
         The scopes the bot should have. Defaults to MISSING.
-    disable_guild_select : :class:`bool`
-        Whether to disable the guild select. Defaults to False.
-    state : Union[:class:`str`, :class:`discord.app_commands.locale_str`]
+    disable_guild_select: :class:`bool`
+        Whether to disable the guild select. Defaults to `False`.
+    state: Union[:class:`str`, :class:`discord.app_commands.locale_str`]
         The state of the bot. Defaults to MISSING.
 
     Returns

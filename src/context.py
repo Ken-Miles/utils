@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional, ParamSpec, TYPE_CHECKING, TypeVar
+from typing import Optional, ParamSpec, TYPE_CHECKING, TypeVar, Union
 
 import discord
 from discord.ext import commands
@@ -24,9 +24,7 @@ T = TypeVar("T")
 P = ParamSpec("P")
 
 class ConfirmationView(CustomBaseView):
-    """Taken from https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/context.py#L280
-    Written by @danny on Discord
-    """
+    """Taken from https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/context.py#L280, Written by @danny on Discord."""
 
     def __init__(
         self,
@@ -79,7 +77,7 @@ class ConfirmationView(CustomBaseView):
             await interaction.response.edit_message(view=self)
         self.stop()
 
-@discord.utils.copy_doc(commands.Context)
+#@discord.utils.copy_doc(commands.Context)
 class ContextU(commands.Context):
     """Context Subclass to add some extra functionality."""
 
@@ -126,12 +124,12 @@ class ContextU(commands.Context):
                         pass
                     self.defer_reaction = None
 
-    @discord.utils.copy_doc(commands.Context.send)
+    #@discord.utils.copy_doc(commands.Context.send)
     async def send(self, *args, **kwargs):
         await self._remove_reaction_if_present()
         return await super().send(*args, **kwargs)
 
-    @discord.utils.copy_doc(commands.Context.reply)
+    #@discord.utils.copy_doc(commands.Context.reply)
     async def reply(self, *args, **kwargs):
         await self._remove_reaction_if_present()
         return await super().reply(*args, **kwargs)
@@ -147,30 +145,26 @@ class ContextU(commands.Context):
     ) -> Optional[bool]:
         """An interactive reaction confirmation dialog.
 
+        .. note::
+            You must pass either a `message` or `embed` in order for this function to work.
+
         Parameters
         ----------
-        message : Optional[:class:`str`]
+        message: Optional[:class:`str`]
             The message to show along with the prompt, defaults to None
-        embed : Optional[:class:`discord.Embed`]
+        embed: Optional[:class:`discord.Embed`]
             The embed to show along with the prompt, defaults to None
-        timeout : Optional[:class:`float`]
+        timeout: Optional[:class:`float`]
             How long to wait before returning, defaults to 60.0
-        delete_after : :class:`bool`
-            Whether to delete the confirmation message after we're done,
-            defaults to True
-        author_id : Optional[:class:`int`]
-            The member who should respond to the prompt. Defaults to the
-            author of the Context's message, defaults to None
+        delete_after: :class:`bool`
+            Whether to delete the confirmation message after we're done, defaults to True
+        author_id: Optional[:class:`int`]
+            The member who should respond to the prompt. Defaults to the author of the Context's message, defaults to None
 
         Returns
         -------
         Optional[:class:`bool`]
-            ``True`` if explicit confirm, ``False`` if explicit deny,
-            ``None`` if deny due to timeout.
-
-        Notes
-        -----
-        You must pass either a :param:`message` or :param:`embed` parameter.
+            ``True`` if explicit confirm, ``False`` if explicit deny, ``None`` if deny due to timeout.
         """
 
         author_id = author_id or self.author.id
@@ -183,6 +177,25 @@ class ContextU(commands.Context):
         await view.wait()
         return view.value
 
+class GuildContextU(ContextU):
+    """Guild Context Subclass to add some extra functionality.
+    Only types are changed to support Guilds."""
+
+    author: discord.Member
+    guild: discord.Guild
+    channel: Union[discord.VoiceChannel, discord.TextChannel, discord.Thread]
+    me: discord.Member
+    prefix: str
+
+class DMContextU(ContextU):
+    """DM Context Subclass to add some extra functionality.
+    Only types are changed to support DMs."""
+
+    author: discord.User
+    channel: discord.DMChannel
+    me: discord.ClientUser
+    prefix: str
+
 async def prompt(
         interaction: discord.Interaction,
         message: Optional[str] = None,
@@ -194,20 +207,23 @@ async def prompt(
     ) -> Optional[bool]:
         """An interactive reaction confirmation dialog.
 
+        .. note::
+            You must pass either a `message` or `embed` in order for this function to work.
+        
         Parameters
         ----------
-        interaction : :class:`discord.Interaction`
+        interaction: :class:`discord.Interaction`
             The interaction to use for sending the prompt
-        message : Optional[:class:`str`]
+        message: Optional[:class:`str`]
             The message to show along with the prompt, defaults to None
-        embed : Optional[:class:`discord.Embed`]
+        embed  Optional[:class:`discord.Embed`]
             The embed to show along with the prompt, defaults to None
-        timeout : Optional[:class:`float`]
+        timeout: Optional[:class:`float`]
             How long to wait before returning, defaults to 60.0
-        delete_after : :class:`bool`
+        delete_after: :class:`bool`
             Whether to delete the confirmation message after we're done,
             defaults to True
-        author_id : Optional[:class:`int`]
+        author_id: Optional[:class:`int`]
             The member who should respond to the prompt. Defaults to the
             author of the Context's message, defaults to None
 
@@ -219,7 +235,7 @@ async def prompt(
 
         Notes
         -----
-        You must pass either a :param:`message` or :param:`embed` parameter.
+        You must pass either a `message` or `embed` parameter.
         """
 
         author_id = author_id or interaction.user.id
@@ -231,7 +247,7 @@ async def prompt(
 
         message_kwargs = {
             "content": message if isinstance(message, str) else None,
-            "embed": message if isinstance(message, discord.Embed) else None,
+            "embed": embed if isinstance(embed, discord.Embed) else None,
         }
         if interaction.response.is_done():
             view.message = await interaction.followup.send(**message_kwargs, view=view, ephemeral=delete_after)

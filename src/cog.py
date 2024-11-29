@@ -20,7 +20,7 @@ __all__ = (
 T = TypeVar("T")
 P = ParamSpec("P")
 
-@discord.utils.copy_doc(commands.Cog)
+#@discord.utils.copy_doc(commands.Cog)
 class CogU(Cog):
     """A subclass of Cog that includes a `hidden` attribute.
     Intended for use in Help commands where entire cogs shouldn't be shown by default.
@@ -57,31 +57,53 @@ class CogU(Cog):
     # def get_commands(self) -> List[CommandU[Self, ..., Any]]:
     #     return super().get_commands()  # type: ignore
 
-    async def _get(self, url: str, **kwargs) -> aiohttp.ClientResponse:
-        """Performs a GET request on the given URL."""
-        return await _get(url, **kwargs)
+    async def _get(self, *args, **kwargs) -> aiohttp.ClientResponse:
+        """|coro|
+        Performs a GET request on the given URL.
+        This method is a wrapper for :meth:`aiohttp.ClientSession.get`."""
+        return await _get(*args, **kwargs)
 
-    async def _post(self, url: str, **kwargs) -> aiohttp.ClientResponse:
-        """Performs a POST request on the given URL."""
-        return await _post(url, **kwargs)
+    async def _post(self,  *args, **kwargs) -> aiohttp.ClientResponse:
+        """|coro|
+        Performs a POST request on the given URL.
+        This method is a wrapper for :meth:`aiohttp.ClientSession.post`."""
+        return await _post(*args, **kwargs)
 
-    async def _patch(self, url: str, **kwargs) -> aiohttp.ClientResponse:
-        """Performs a PATCH request on the given URL."""
-        return await _patch(url, **kwargs)
+    async def _patch(self, *args, **kwargs) -> aiohttp.ClientResponse:
+        """|coro|
+        Performs a PATCH request on the given URL.
+        This method is a wrapper for :meth:`aiohttp.ClientSession.patch`."""
+        return await _patch(*args, **kwargs)
 
-    async def _put(self, url: str, **kwargs) -> aiohttp.ClientResponse:
-        """Performs a PUT request on the given URL."""
-        return await _put(url, **kwargs)
+    async def _put(self, *args, **kwargs) -> aiohttp.ClientResponse:
+        """"|coro|
+        Performs a PUT request on the given URL.
+        This method is a wrapper for :meth:`aiohttp.ClientSession.put`."""
+        return await _put(*args, **kwargs)
 
-    async def _delete(self, url: str, **kwargs) -> aiohttp.ClientResponse:
-        """Performs a DELETE request on the given URL."""
-        return await _delete(url, **kwargs)
+    async def _delete(self, *args, **kwargs) -> aiohttp.ClientResponse:
+        """|coro|
+        Performs a DELETE request on the given URL.
+        This method is a wrapper for :meth:`aiohttp.ClientSession.delete`."""
+        return await _delete( *args, **kwargs)
 
     async def get_command_mention(self, command: Union[str, commands.Command]):
-        """Gets the Mention string for a command. If the tree is a MentionableTree, it will return the mention string for the command.
+        """|coro|
+        Gets the Mention string for a command. If the tree is a MentionableTree, it will return the mention string for the command.
         If the command ID cannot be found, it will return a string with the command name in backticks.
 
-        Args:
-            command_name (Union[str, commands.Command]): The command/name of the command to get the mention for.
+        .. note::
+            This method is just a shortcut/legacy method that calls :meth:`~BotU.get_command_mention`.
+
+        Parameters
+        ----------
+        command: Union[:class:`str`, :class:`discord.ext.commands.Command`]
+            The callback to be used for the parameter. This should take
+            only two parameters, `ctx` and `value`.
+
+        Returns
+        -------
+        :class:`str`
+            The command mention string.
         """
         return await self.bot.get_command_mention(command)

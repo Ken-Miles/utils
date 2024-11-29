@@ -153,14 +153,14 @@ class AutoComplete:
 
 
 
-@discord.utils.copy_doc(commands.Command)
+#@discord.utils.copy_doc(commands.Command)
 class CommandU(commands.Command, Generic[CogT, P, T]):
     """Implements the front end CommandU functionality. This subclasses
-    :class:`~commands.Command` to add some fun utility functions.
+    :class:`discord.ext.commands.Command` to add some fun utility functions.
 
     Attributes
     ----------
-    autocompletes: Dict[:class:`str`, :class:`AutoComplete`]
+    autocompletes: Dict[:class:`str`, :class:`~AutoComplete`]
         A mapping of parameter name to autocomplete objects. This is so
         autocomplete can be added to the command.
     """
@@ -252,7 +252,7 @@ class CommandU(commands.Command, Generic[CogT, P, T]):
 
         Parameters
         ----------
-        callback: Callable
+        callback: :class:`typing.Callable`
             The callback to be used for the parameter. This should take
             only two parameters, `ctx` and `value`.
         param: :class:`str`
@@ -265,7 +265,7 @@ class CommandU(commands.Command, Generic[CogT, P, T]):
 
         Raises
         ------
-        ValueError
+        :class:`ValueError`
             The parameter is already assigned an autocomplete, or
             the parameter is not in the list of parameters registered to the
             command.

@@ -9,7 +9,10 @@ Taken from https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/mod.py
 """
 
 import discord
+import re
 from discord.ext import commands
+from discord.ext.commands.converter import _ID_REGEX
+import emoji
 
 from .context import ContextU
 
@@ -18,6 +21,7 @@ __all__ = (
     'can_execute_action',
     'MemberID',
     'BannedMember',
+    'EmojiConverter',
 )
 # fmt: on
 
@@ -48,7 +52,6 @@ class MemberID(commands.Converter):
             raise commands.BadArgument('You cannot do this action on this user due to role hierarchy.')
         return m
 
-
 class BannedMember(commands.Converter):
     """Converter that converts to a :class:`discord.BanEntry` object."""
     async def convert(self, ctx: ContextU, argument: str):
@@ -66,3 +69,59 @@ class BannedMember(commands.Converter):
         if entity is None:
             raise commands.BadArgument('This member has not been banned before.')
         return entity
+
+class EmojiConverter(commands.EmojiConverter):
+    async def convert(self, ctx: ContextU, argument: str) -> discord.Emoji:
+        argument = argument.strip()
+
+        match = _ID_REGEX.match(argument) or re.match(r'<a?:[a-zA-Z0-9\_]{1,32}:([0-9]{15,20})>$', argument)
+        result = None
+        bot = ctx.bot
+        guild = ctx.guild
+        app_emojis = getattr(bot, 'application_emojis', await bot.fetch_application_emojis())
+
+        if match is None:
+            # Try to get the emoji by name. Try local guild first.
+            if guild:
+                result = discord.utils.get(guild.emojis, name=argument)
+
+            # Try to get the emoji by name in bot cached guild emojis.
+            if result is None:
+                result = discord.utils.get(bot.emojis, name=argument)
+            
+            # App command emojis can only be used if the user specifies the ID.
+            # if result is None:
+            #     # Try to get the emoji by name in application emojis.
+            #     result = discord.utils.get(app_emojis, name=argument)
+            
+            if result is None:
+                result = emoji.analyze(argument)
+                if result:
+                    result = discord.PartialEmoji.from_str(argument)
+                else:
+                    result = None
+            
+            if result is None:
+                result = emoji.get_emoji_by_name(argument)
+                if result:
+                    result = discord.PartialEmoji.from_str(result)
+                else:
+                    result = None
+            
+            if result is None:
+                raise commands.EmojiNotFound(argument)
+
+        else:
+            emoji_id = int(match.group(1))
+
+            # Try to look up emoji by id.
+            result = bot.get_emoji(emoji_id)
+
+            if not result:
+                # Try to look up emoji by id in application emojis.
+                result = discord.utils.get(app_emojis, id=emoji_id)
+
+        if result is None:
+            raise commands.EmojiNotFound(argument)
+
+        return result # type: ignore

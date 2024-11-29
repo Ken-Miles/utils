@@ -7,6 +7,7 @@ from typing import (
     Any,
     Callable,
     Coroutine,
+    Dict,
     List,
     Optional,
     ParamSpec,
@@ -32,10 +33,12 @@ from discord import (
     VoiceChannel,
 )
 from discord.abc import GuildChannel, PrivateChannel
+from discord.app_commands import Translator
 from discord.ext import commands
 from discord.ext.commands import AutoShardedBot
 from discord.utils import deprecated
 
+from .methods import makeembed_failedaction
 from .context import ContextU
 from .tree import MentionableTree
 
@@ -63,9 +66,14 @@ class BotU(AutoShardedBot):
     logging_handler: Any
     bot_app_info: discord.AppInfo
     old_tree_error = Callable[[discord.Interaction, discord.app_commands.AppCommandError], Coroutine[Any, Any, None]]
+    blacklist: List
+    started_at: datetime.datetime
 
     def __init__(self, 
-        *args, 
+        *args,
+        translator_cls: Optional[Translator] = None,
+        translator_args: List = [],
+        translator_kwargs: Dict = {},
         **kwargs
     ) -> None:
         if kwargs.get("cls", None):
@@ -85,6 +93,10 @@ class BotU(AutoShardedBot):
         # A counter to auto-ban frequent spammers
         # Triggering the rate limit 5 times in a row will auto-ban the user from the bot.
         self._auto_spam_count = Counter()
+
+        # if translator_cls is not None:
+        #     await self.tree.set_translator(translator_cls(*translator_args, **translator_kwargs))
+
     
     @property
     def avatar_url(self) -> str:
@@ -139,23 +151,14 @@ class BotU(AutoShardedBot):
         # DO NOT UNCOMMENT, THIS WILL BREAK IS_OWNER CHECKS
     
     async def on_shard_resumed(self, shard_id: int):
-        """|coro|
-        :meta private:
-        """
         #log.info('Shard ID %s has resumed...', shard_id)
         self.resumes[shard_id].append(discord.utils.utcnow())
     
     async def on_shard_ready(self, shard_id: int):
-        """|coro|
-        :meta private:
-        """
         #log.info('Shard ID %s has connected...', shard_id)
         self.identifies[shard_id].append(discord.utils.utcnow())
 
     def _clear_gateway_data(self) -> None:
-        """|coro|
-        :meta private:
-        """
         one_week_ago = discord.utils.utcnow() - datetime.timedelta(days=7)
         for shard_id, dates in self.identifies.items():
             to_remove = [index for index, dt in enumerate(dates) if dt < one_week_ago]
@@ -168,9 +171,6 @@ class BotU(AutoShardedBot):
                 del dates[index]
 
     async def before_identify_hook(self, shard_id: int, *, initial: bool):
-        """|coro|
-        :meta private:
-        """
         self._clear_gateway_data()
         self.identifies[shard_id].append(discord.utils.utcnow())
         await super().before_identify_hook(shard_id, initial=initial)
@@ -602,3 +602,17 @@ class BotU(AutoShardedBot):
             else:
                 cmd = f"`/{command.name}`"
         return cmd
+
+    async def check_blacklist(self, ctx):
+        #__ = await get_translation_callable(ctx.interaction)
+
+        if getattr(self, 'blacklist', None):
+            if blacklist_obj := discord.utils.find(lambda x: x.offender_id == ctx.author.id, self.blacklist):
+                #desc = await __("You are currently blacklisted from using the bot. Please reach out to the bot developer on the support server for more information.")
+                desc = "You are currently blacklisted from using the bot."
+                if blacklist_obj.reason:
+                    desc += "Reason: `{}`".format(blacklist_obj.reason)
+                emb = makeembed_failedaction(description=desc)
+                await ctx.reply(embed=emb, ephemeral=True, delete_after=10 if not ctx.interaction else None)
+                return False
+        return True

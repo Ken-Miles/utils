@@ -42,18 +42,18 @@ class BaseButtonPaginator(discord.ui.View):
 
         Parameters
         ----------
-        pages : :class:`Sequence[:class:Any]`
+        pages: Sequence[:class:`Any`]
             The pages to paginate.
-        author_id : Optional[:class:`int`]
+        author_id: Optional[:class:`int`]
             The ID of the author. Defaults to None.
-        timeout : Optional[:class:`float`]
+        timeout: Optional[:class:`float`]
             The timeout for the view. Defaults to 180.0.
-        delete_message_after : :class:`bool`
+        delete_message_after: :class:`bool`
             Whether the message containing the paginator should be
             deleted after use. Defaults to False.
-        per_page : :class:`int`
+        per_page: :class:`int`
             The amount of pages to show per page. Defaults to 1.
-        go_to_button : :class:`bool`
+        go_to_button: :class:`bool`
             Whether to include the "Go To" Button to go to a page.
             Defaults to False.
         """
@@ -329,6 +329,11 @@ class GoToPageButton(discord.ui.Button):
 
 
 class ButtonPaginator(BaseButtonPaginator):
+    """
+    .. note::
+    This class also has an alias of `:class:`src.paginator.ThreeButtonPaginator` for ease of use.
+    """
+    
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
@@ -363,11 +368,14 @@ class ButtonPaginator(BaseButtonPaginator):
     async def next_page(self, interaction: Interaction, _: discord.ui.Button) -> None:
         return await self._next_page(interaction, _)
 
-
 ThreeButtonPaginator = ButtonPaginator
 
-
 class FiveButtonPaginator(BaseButtonPaginator):
+    """
+    .. note::
+    This subclass doesn't add any additional attributes or methods, but instead overrides the internal methods of the BaseButtonPaginator class.
+    It also adds the additional buttons if applicable.
+    """
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -439,6 +447,35 @@ async def create_paginator(
     delete_message_after: bool = False,
     per_page: int = 1,
 ) -> BaseButtonPaginator:
+    """Shortcut method to create a paginator object and start it.
+
+    .. note::
+        This method starts the paginator immediately. This method will not return until the paginator times out.
+
+    Parameters
+    ----------
+    ctx: ContextU
+        The context object.
+    pages  Sequence[Any]
+        The pages to paginate. Should be a List of :class:`discord.Embed`s or :class:`str`s.
+    paginator: Type[:class:`BaseButtonPaginator`]
+        The paginator to use. Defaults to :class:`BaseButtonPaginator`.
+    author_id: Optional[:class:`int`]
+        The ID of the author that requested this paginator. If provided, use of the paginator will be restricted to this user. Defaults to None.
+    timeout: Optional[:class:`float`], optional
+        The timeout of the view related to the embed. Default is `180.0`.
+    go_to_button: :class:`bool`
+        Whether a "Go To" button should be included in the paginator. Defaults to False.
+    delete_message_after: :class:`bool`
+        Whether the message/paginator should be deleted on timeout/stop. Defaults to False.
+    per_page: :class:`int`
+        How many embeds should be shown per page. You most likely want this at `1`. Defaults to `1`.
+
+    Returns
+    -------
+    :class:`BaseButtonPaginator`
+        The paginator object.
+    """    
     pg = paginator(
         pages,
         author_id=author_id,
@@ -457,17 +494,26 @@ def generate_pages(
     add_page_nums: bool = True,
     **kwargs,
 ) -> List[Embed]:
-    """Generate pages for an Embed Paginator
+    """Generate pages for an Embed Paginator.
 
-    Args:
-        items (List[str]): A list of items to paginate.
-        items_per_page (int): The number of lines/items to show per page. Default is when the page is at 2000 characters.
-        title (Optional[str], optional): The title to show on the Embed. Defaults to None.
-        footer (Optional[str], optional): The base Footer to show on the Embed. Page number will be appended to this if provided.. Defaults to 'Made by @aidenpearce3066'.
-        color (Optional[discord.Colour], optional): The color to show on the Embed. Defaults to None.
-        timestamp (Optional[datetime.datetime], optional): The timestamp to show on the embed. Defaults to the current time.
-        Other kwargs are passed to the embed.
-    """
+    Parameters
+    ----------
+    items: List[:class:`str`]
+        A list of items to paginate.
+    items_per_page: Optional[:class:`int`]
+        The number of lines/items to show per page. Default is when the page is at 2000 characters. Default is None.
+    add_page_nums: :class:`bool`
+        Whether to add page numbers to the footer. Default is True.
+    kwargs: :class:`Any`
+        Additional keyword arguments to pass to the Embed.
+
+    Returns
+    -------
+    List[:class:`discord.Embed`]
+        A list of Embeds generated from the items.
+    """    
+    # """Generate pages for an Embed Paginator
+
     if not kwargs.get("timestamp", None):
         kwargs["timestamp"] = datetime.datetime.now()
 
