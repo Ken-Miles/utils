@@ -2346,6 +2346,20 @@ permission_descriptions: Annotated[Dict[str, str],
     "view_guild_insights": "Allows members to view Server Insights, which shows data on community growth, engagement, and more. This will allow them to see certain data about channel activity, even for channels they cannot access.",
 }
 
+DISCORD_FILE_SIZE_LIMIT: Annotated[int, "The maximum file size that can be uploaded to Discord in bytes. (excluding guilds with the feature that increases it)"] = 26_214_400  # 8 MB
+# DISCORD_FILE_SIZE_LIMIT: Annotated[int, "The maximum file size that can be uploaded to Discord in bytes. (excluding guilds with the feature that increases it)"] = 8_388_608  # 8 MB
+# 8 MB is the maximum file size that can be uploaded to Discord as of 12-2-2024 unless a guild has the higher upload limit feature
+
+# for discord user badges
+misc_flag_descriptions: Annotated[Dict[str, str],
+"A dictionary of miscellaneous user flags and their descriptions in the form `flag_name`: `description`."
+] = {
+    'team_user': 'Application Team User',
+    'system': 'System User',
+    'spammer': 'Spammer',
+    'verified_bot': 'Verified Bot',
+    'bot_http_interactions': 'HTTP Interactions Bot',
+}
 
 http_codes = {
     100: "Continue",
@@ -2994,14 +3008,3 @@ def snowflake_timestamp(snowflake: Union[int, str]) -> datetime.datetime:
     """
 
     return parse_discord_snowflake(snowflake).datetime
-
-# for discord user badges
-misc_flag_descriptions: Annotated[Dict[str, str],
-"A dictionary of miscellaneous user flags and their descriptions in the form `flag_name`: `description`."
-] = {
-    'team_user': 'Application Team User',
-    'system': 'System User',
-    'spammer': 'Spammer',
-    'verified_bot': 'Verified Bot',
-    'bot_http_interactions': 'HTTP Interactions Bot',
-}

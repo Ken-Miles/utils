@@ -4,7 +4,10 @@ from typing import Optional, ParamSpec, TYPE_CHECKING, TypeVar, Union
 import discord
 from discord.ext import commands
 
+from src.methods import get_max_file_upload_limit
+
 from . import LOADING_EMOJI, USE_DEFER_EMOJI
+from .constants import DISCORD_FILE_SIZE_LIMIT
 from .views import CustomBaseView
 
 if TYPE_CHECKING:
@@ -176,6 +179,23 @@ class ContextU(commands.Context):
         view.message = await self.send(content=message, embed=embed, view=view, ephemeral=delete_after)
         await view.wait()
         return view.value
+    
+    @property
+    def max_file_limit(self) -> int:
+        """
+        The maximum file size that can be uploaded to Discord in bytes (in the context of the current guild, if there is one).
+
+        This method is a wrapper/calls the :meth:`src.methods.get_max_file_limit` method.
+
+        Returns
+        -------
+        :class:`int`
+            The maximum file size that can be uploaded to Discord in this context (in bytes).
+        """
+        return get_max_file_upload_limit(
+            guild=self.guild,
+        )
+
 
 class GuildContextU(ContextU):
     """Guild Context Subclass to add some extra functionality.

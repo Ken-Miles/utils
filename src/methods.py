@@ -10,12 +10,13 @@ import uuid
 import discord
 from discord import app_commands
 from discord.abc import Snowflake
+from discord.ext import commands
 from discord.ext.commands import Bot
 from discord.utils import MISSING
 
 from . import RE_URL, emojidict
+from .constants import CODEBLOCK_LANGUAGES, CodeblockLanguage, DISCORD_FILE_SIZE_LIMIT
 from .enums import IntegrationType
-from .constants import CodeblockLanguage, CODEBLOCK_LANGUAGES
 
 # fmt: off
 __all__ = (
@@ -613,3 +614,37 @@ def oauth_url(
         url += f"&integration_type={int(integration_type)}"
 
     return url
+
+def get_max_file_upload_limit(
+    *,
+    ctx: Optional[commands.Context]=None,
+    interaction: Optional[discord.Interaction]=None,
+    guild: Optional[discord.Guild]=None,
+):
+    """This method returns the maximum file upload limit for a guild, if provided.
+    If a guild isn't provided, returns the default file upload limit for Discord (defined as `DISCORD_FILE_SIZE_LIMIT`).
+    
+    You can find the current file upload limit for Discord at :ddocs:`reference#uploading-files`.
+
+    .. note::
+        The `guild` parameter will take precedence over the `ctx` and `interaction` parameters. The `ctx` and `interaction` parameters are only used if `guild` is not provided.
+
+    Parameters
+    ----------
+    ctx: Optional[:class:`discord.ext.commands.Context`]
+        The context object related to the context of the guild. Defaults to None.
+    interaction: Optional[:class:`discord.Interaction`]
+        The interaction object related to the context of the guild. Defaults to None.
+    guild: Optional[discord.Guild], optional
+        The guild to get the file upload limit for. Defaults to None.
+    """ 
+    if not guild:
+        if ctx:
+            guild = ctx.guild
+        elif interaction:
+            guild = interaction.guild
+
+    if guild:
+        return guild.filesize_limit
+
+    return DISCORD_FILE_SIZE_LIMIT
