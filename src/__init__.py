@@ -17,8 +17,11 @@ from .paginator import * # context
 from .command import * # context, views, danny_formats
 from .requests_http import * # constants
 from .context import * # requests
+
+from .danny_caches import * # context
+from .danny_formats import * # context
+from .danny_pages import * # context
 from .danny_time import * # context
-from .danny_formats import *
 
 from .views import *
 
