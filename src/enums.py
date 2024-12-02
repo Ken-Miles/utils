@@ -18,6 +18,18 @@ class RequestType(Enum):
     DELETE = "DELETE"
 
     def get_method_callable(self, session: aiohttp.ClientSession) -> Callable:
+        """Returns the method callable for the request type.
+        Returns the callable is for the provided `session` object (ex: `session.get` for a GET instance of the enum).
+        
+        Parameters
+        ----------
+            session: :class:`aiohttp.ClientSession` The session object to get the method callable for.
+        
+        Returns
+        -------
+            :class:`Callable` The method callable for the request type.
+        """
+
         if self is RequestType.GET:
             return session.get
         elif self is RequestType.POST:
