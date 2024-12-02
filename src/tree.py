@@ -42,7 +42,7 @@ class MentionableTree(app_commands.CommandTree):
         """Retrieves the mention of an AppCommand given a specific command name, and optionally, a guild.
         Parameters
         ----------
-        name: Union[:class:`app_commands.Command`, :class:`app_commands.Group`, str]
+        name: Union[:class:`app_commands.Command`, :class:`app_commands.Group`, :class:`str`]
             The command which it's mention we will attempt to retrieve.
         guild: Optional[:class:`discord.abc.Snowflake`]
             The scope (guild) from which to retrieve the commands from. If None is given or not passed,
@@ -90,12 +90,17 @@ class MentionableTree(app_commands.CommandTree):
 
         return f"</{_command.qualified_name}:{app_command_found.id}>"
     
-    async def get_command_mention(self, command: Union[str, commands.Command]):
+    async def get_command_mention(self, command: Union[str, commands.Command]) -> str:
         """Gets the Mention string for a command. If the tree is a MentionableTree, it will return the mention string for the command.
         If the command ID cannot be found, it will return a string with the command name in backticks.
 
-        Args:
+        Parameters
+        ----------
             command_name (Union[str, commands.Command]): The command/name of the command to get the mention for.
+        
+        Returns
+        -------
+            :class:`str`: The mention string for the command.
         """
         # # command_name = command_name.strip().lstrip('/').lower()
         # # cmd_name = command_name.split(' ')[0]
