@@ -5,7 +5,6 @@ import discord
 from discord.ext import commands
 
 from . import LOADING_EMOJI, USE_DEFER_EMOJI
-from .constants import DISCORD_FILE_SIZE_LIMIT
 from .methods import get_max_file_upload_limit
 from .views import CustomBaseView
 

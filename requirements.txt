@@ -1,5 +1,6 @@
 aiohttp
 discord.py @ git+https://github.com/Rapptz/discord.py
+discord-ext-menus
 emoji
 fuzzywuzzy # i promise, this exists for a good reason
 jishaku
