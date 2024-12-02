@@ -1,7 +1,9 @@
 aiohttp
-discord.py
+discord.py @ git+https://github.com/Rapptz/discord.py
+emoji
 fuzzywuzzy # i promise, this exists for a good reason
 jishaku
+lru-dict
 numpydoc
 parsedatetime
 python-dateutil
