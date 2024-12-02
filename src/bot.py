@@ -436,6 +436,7 @@ class BotU(AutoShardedBot):
         return await self._get_or_fetch_channel(channelid, ForumChannel, guild) # type: ignore
 
     get_or_fetch_forum = get_or_fetch_forumchannel
+    getorfetch_forum = get_or_fetch_forumchannel
 
     @deprecated("get_or_fetch_forumchannel")
     async def getorfetch_forum_channel(self, *args, **kwargs):
