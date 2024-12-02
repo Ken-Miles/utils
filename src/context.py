@@ -4,10 +4,9 @@ from typing import Optional, ParamSpec, TYPE_CHECKING, TypeVar, Union
 import discord
 from discord.ext import commands
 
-from src.methods import get_max_file_upload_limit
-
 from . import LOADING_EMOJI, USE_DEFER_EMOJI
 from .constants import DISCORD_FILE_SIZE_LIMIT
+from .methods import get_max_file_upload_limit
 from .views import CustomBaseView
 
 if TYPE_CHECKING:
