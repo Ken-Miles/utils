@@ -81,7 +81,7 @@ def is_support_server():
 
 # danny checks
 
-async def check_permissions(ctx: ContextU, perms: dict[str, bool], *, check=all):
+async def check_permissions(ctx: ContextU, perms: dict[str, bool], *, check=all, user_install: bool = False):
     """This function is a modified version of Danny's `check_permissions` function from RoboDanny.
 
     This function checks if the user has the required permissions to run a command.
@@ -92,7 +92,7 @@ async def check_permissions(ctx: ContextU, perms: dict[str, bool], *, check=all)
         return True
 
     if not ctx.guild or isinstance(ctx.author, discord.User):
-        return False
+        return user_install # True if user_install, else False
 
     resolved = ctx.channel.permissions_for(ctx.author)
     return check(
@@ -109,6 +109,14 @@ def has_permissions(*, check=all, **perms: bool):
 
     return commands.check(pred)
 
+def has_permissions_or_dm(*, check=all, **perms: bool):
+    """This is a modified version of Danny's `has_permissions` decorator from RoboDanny.
+    Decorator that checks if the user has the required permissions to run a command.
+    """
+    async def pred(ctx: ContextU):
+        return await check_permissions(ctx, perms, check=check, user_install=True) or not ctx.guild
+
+    return commands.check(pred)
 
 async def check_guild_permissions(ctx: ContextU, perms: dict[str, bool], *, check=all):
     """This function is a modified version of Danny's `check_guild_permissions` function from RoboDanny.
