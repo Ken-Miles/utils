@@ -618,13 +618,13 @@ def oauth_url(
     return url
 
 def get_max_file_upload_limit(
-    *,
     ctx: Optional[commands.Context]=None,
+    *,
     interaction: Optional[discord.Interaction]=None,
     guild: Optional[discord.Guild]=None,
 ):
     """This method returns the maximum file upload limit for a guild, if provided.
-    If a guild isn't provided, returns the default file upload limit for Discord (defined as `DISCORD_FILE_SIZE_LIMIT`).
+    If a guild isn't provided, returns the default file upload limit for Discord (defined as ``DISCORD_FILE_SIZE_LIMIT``).
     
     You can find the current file upload limit for Discord at :ddocs:`reference#uploading-files`.
 
