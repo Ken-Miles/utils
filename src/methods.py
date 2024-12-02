@@ -33,7 +33,8 @@ __all__ = (
     'merge_permissions',
     'generate_transaction_id',
     'IntegrationType',
-    'oauth_url'
+    'oauth_url',
+    'get_max_file_upload_limit',
 )
 # fmt: on
 
@@ -356,7 +357,7 @@ def dctimestamp(
     dt: Union[:class:`datetime.datetime`, :class:`int`, :class:`float`]
         The timestamp to format.
     format: :class:`timestamptype`
-        The format to use. Defaults to "f".
+        The format to use. Defaults to ``"f"``.
 
     Returns
     -------
@@ -383,6 +384,9 @@ def dchyperlink(
     The return string will be in the following format which will create a hyperlink in Discord:
     `[texttoclick](url "hovertext")`
 
+    .. note::
+        If the `texttoclick` parameter is a URL, the `url` and `texttoclick` parameters will be switched.
+
     Parameters
     ----------
     url : Union[:class:`str`, :class:`discord.app_commands.locale_str`]
@@ -390,11 +394,9 @@ def dchyperlink(
     texttoclick : Union[:class:`str`, :class:`discord.app_commands.locale_str`]
         The text to show up as the hyperlink.
     hovertext : Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
-        The text to display when the link is hovered over. Defaults to
-        None.
+        The text to display when the link is hovered over. Defaults to ``None``.
     suppress_embed : :class:`bool`
-        Whether to suppress the embed created by the link. Defaults to
-        False.
+        Whether to suppress the embed created by the link. Defaults to ``False``.
 
     Returns
     -------
@@ -421,7 +423,7 @@ async def create_codeblock(content: Union[str, app_commands.locale_str], lang: C
     content: Union[:class:`str`, :class:`discord.app_commands.locale_str`]
         The content of the codeblock.
     lang: CodeblockLanguage, optional
-        The language code of the codeblock. Defaults to `py` if none is provided.
+        The language code of the codeblock. Defaults to ``py``.
 
     Returns
     -------
@@ -542,7 +544,7 @@ def generate_transaction_id(
     user_id: Optional[:class:`int`]
         The ID of the user for the transaction.
     length: :class:`int`
-        How long the UUID should be. Defaults to 36
+        How long the UUID should be. Defaults to ``36``.
 
     Returns
     -------
@@ -578,19 +580,19 @@ def oauth_url(
     client_id: Union[:class:`int`, :class:`str`]
         The client ID of the bot.
     permissions: :class:`discord.Permissions`
-        The permissions the bot should have in the guild. Defaults to MISSING.
-    guild: :class:`discord.Snowflake`
-        The guild to preselect in the authorization screen. Defaults to MISSING.
+        The permissions the bot should have in the guild. Defaults to ``MISSING``..
+    guild: :class:`discord.abc.Snowflake`
+        The guild to preselect in the authorization screen. Defaults to ``MISSING``..
     integration_type : Union[:class:`src.enums.IntegrationType`, :class:`int`]
-        The type of integration for the bot. Defaults to :class:`IntegrationType.guild`.
+        The type of integration for the bot. Defaults to :class:`src.enums.IntegrationType.guild`.
     redirect_uri: :class:`str`
-        The redirect URI for the bot. Defaults to MISSING.
+        The redirect URI for the bot. Defaults to ``MISSING``.
     scopes: Iterable[:class:`str`]
-        The scopes the bot should have. Defaults to MISSING.
+        The scopes the bot should have. Defaults to ``MISSING``.
     disable_guild_select: :class:`bool`
-        Whether to disable the guild select. Defaults to `False`.
+        Whether to disable the guild select. Defaults to ``False``.
     state: Union[:class:`str`, :class:`discord.app_commands.locale_str`]
-        The state of the bot. Defaults to MISSING.
+        The state of the bot. Defaults to ``MISSING``.
 
     Returns
     -------
@@ -632,11 +634,11 @@ def get_max_file_upload_limit(
     Parameters
     ----------
     ctx: Optional[:class:`discord.ext.commands.Context`]
-        The context object related to the context of the guild. Defaults to None.
+        The context object related to the context of the guild. defaults to ``None``.
     interaction: Optional[:class:`discord.Interaction`]
-        The interaction object related to the context of the guild. Defaults to None.
-    guild: Optional[discord.Guild], optional
-        The guild to get the file upload limit for. Defaults to None.
+        The interaction object related to the context of the guild. defaults to ``None``.
+    guild: Optional[discord.Guild]
+        The guild to get the file upload limit for. defaults to ``None``.
     """ 
     if not guild:
         if ctx:
