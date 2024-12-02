@@ -19,6 +19,7 @@ __all__ = (
     'check_permissions',
     'has_permissions',
     'has_guild_permissions',
+    'has_permissions_or_dm',
     'hybrid_permissions_check',
     'is_manager',
     'is_mod',
