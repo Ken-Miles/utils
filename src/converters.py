@@ -71,6 +71,9 @@ class BannedMember(commands.Converter):
         return entity
 
 class EmojiConverter(commands.EmojiConverter):
+    """Converts to a :class:`discord.Emoji` or :class:`discord.PartialEmoji` object. 
+    This converter is more lenient than the default :class:`discord.ext.commands.EmojiConverter`, verifying a :class:`discord.PartialEmoji` is usable by the bot and also correctly converts Unicode emoji."""
+
     async def convert(self, ctx: ContextU, argument: str) -> discord.Emoji:
         argument = argument.strip()
 

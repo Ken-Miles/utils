@@ -18,6 +18,8 @@ if TYPE_CHECKING:
 __all__ = (
     'ConfirmationView',
     'ContextU',
+    'GuildContextU',
+    'DMContextU',
     'prompt',
 )
 # fmt: on
@@ -153,15 +155,15 @@ class ContextU(commands.Context):
         Parameters
         ----------
         message: Optional[:class:`str`]
-            The message to show along with the prompt, defaults to None
+            The message to show along with the prompt, defaults to ``None``.
         embed: Optional[:class:`discord.Embed`]
-            The embed to show along with the prompt, defaults to None
+            The embed to show along with the prompt, defaults to ``None``.
         timeout: Optional[:class:`float`]
-            How long to wait before returning, defaults to 60.0
+            How long to wait before returning, defaults to ``60.0``.
         delete_after: :class:`bool`
-            Whether to delete the confirmation message after we're done, defaults to True
+            Whether to delete the confirmation message after we're done, defaults to ``True``.
         author_id: Optional[:class:`int`]
-            The member who should respond to the prompt. Defaults to the author of the Context's message, defaults to None
+            The member who should respond to the prompt. Defaults to the author of the Context's message.
 
         Returns
         -------
@@ -266,17 +268,17 @@ async def prompt(
         interaction: :class:`discord.Interaction`
             The interaction to use for sending the prompt
         message: Optional[:class:`str`]
-            The message to show along with the prompt, defaults to None
+            The message to show along with the prompt, defaults to ``None``.
         embed  Optional[:class:`discord.Embed`]
-            The embed to show along with the prompt, defaults to None
+            The embed to show along with the prompt, defaults to ``None``.
         timeout: Optional[:class:`float`]
-            How long to wait before returning, defaults to 60.0
+            How long to wait before returning, defaults to ``60.0``.
         delete_after: :class:`bool`
             Whether to delete the confirmation message after we're done,
-            defaults to True
+            defaults to ``True``.
         author_id: Optional[:class:`int`]
-            The member who should respond to the prompt. Defaults to the
-            author of the Context's message, defaults to None
+            The member who should respond to the prompt. 
+            Defaults to the author of the Context's message.
 
         Returns
         -------

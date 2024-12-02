@@ -45,17 +45,17 @@ class BaseButtonPaginator(discord.ui.View):
         pages: Sequence[:class:`Any`]
             The pages to paginate.
         author_id: Optional[:class:`int`]
-            The ID of the author. Defaults to None.
+            The ID of the author. defaults to ``None``.
         timeout: Optional[:class:`float`]
             The timeout for the view. Defaults to 180.0.
         delete_message_after: :class:`bool`
             Whether the message containing the paginator should be
-            deleted after use. Defaults to False.
+            deleted after use. defaults to ``False``.
         per_page: :class:`int`
-            The amount of pages to show per page. Defaults to 1.
+            The amount of pages to show per page. Defaults to ``1``.
         go_to_button: :class:`bool`
             Whether to include the "Go To" Button to go to a page.
-            Defaults to False.
+            defaults to ``False``.
         """
 
         if not pages:
@@ -331,7 +331,8 @@ class GoToPageButton(discord.ui.Button):
 class ButtonPaginator(BaseButtonPaginator):
     """
     .. note::
-    This class also has an alias of `:class:`src.paginator.ThreeButtonPaginator` for ease of use.
+        This class also has an alias of :class:`src.paginator.ThreeButtonPaginator` for ease of use.
+
     """
     
     def __init__(self, *args, **kwargs) -> None:
@@ -373,8 +374,8 @@ ThreeButtonPaginator = ButtonPaginator
 class FiveButtonPaginator(BaseButtonPaginator):
     """
     .. note::
-    This subclass doesn't add any additional attributes or methods, but instead overrides the internal methods of the BaseButtonPaginator class.
-    It also adds the additional buttons if applicable.
+        This subclass doesn't add any additional attributes or methods, but instead overrides the internal methods of the :class:`BaseButtonPaginator` class.
+        It also adds the additional buttons if applicable.
     """
 
     def __init__(self, *args, **kwargs) -> None:
@@ -454,22 +455,22 @@ async def create_paginator(
 
     Parameters
     ----------
-    ctx: ContextU
+    ctx: :class:`ContextU`
         The context object.
     pages  Sequence[Any]
         The pages to paginate. Should be a List of :class:`discord.Embed`s or :class:`str`s.
-    paginator: Type[:class:`BaseButtonPaginator`]
-        The paginator to use. Defaults to :class:`BaseButtonPaginator`.
+    paginator: Type[:class:`src.paginators.BaseButtonPaginator`]
+        The paginator to use. Defaults to :class:`src.paginators.BaseButtonPaginator`.
     author_id: Optional[:class:`int`]
-        The ID of the author that requested this paginator. If provided, use of the paginator will be restricted to this user. Defaults to None.
-    timeout: Optional[:class:`float`], optional
+        The ID of the author that requested this paginator. If provided, use of the paginator will be restricted to this user. Defaults to ``None``.
+    timeout: Optional[:class:`float`]
         The timeout of the view related to the embed. Default is `180.0`.
     go_to_button: :class:`bool`
-        Whether a "Go To" button should be included in the paginator. Defaults to False.
+        Whether a "Go To" button should be included in the paginator. Defaults to ``False``.
     delete_message_after: :class:`bool`
-        Whether the message/paginator should be deleted on timeout/stop. Defaults to False.
+        Whether the message/paginator should be deleted on timeout/stop. Defaults to ``False``.
     per_page: :class:`int`
-        How many embeds should be shown per page. You most likely want this at `1`. Defaults to `1`.
+        How many embeds should be shown per page. You most likely want this at `1`. Defaults to ``1``.
 
     Returns
     -------

@@ -692,13 +692,13 @@ def hybrid_group(
     Parameters
     ----------
     name: Optional[:class:`str`]
-        The name of the command, or ``None`` to use the function's name.
+        The name of the command, or `None` to use the function's name.
     description: Optional[:class:`str`]
-        The description of the command, or ``None`` to use the function's docstring.
+        The description of the command, or `None` to use the function's docstring.
     brief: Optional[:class:`str`]
-        The brief description of the command, or ``None`` to use the first line of the function's docstring.
+        The brief description of the command, or `None` to use the first line of the function's docstring.
     aliases: Optional[Iterable[:class:`str`]]
-        The aliases of the command, or ``None`` to use the function's name.
+        The aliases of the command, or `None` to use the function's name.
     **attrs: Any
         The keyword arguments to pass to the :class:`CommandU`.
     """
