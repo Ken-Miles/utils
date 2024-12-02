@@ -47,15 +47,14 @@ class BaseButtonPaginator(discord.ui.View):
         author_id: Optional[:class:`int`]
             The ID of the author. defaults to ``None``.
         timeout: Optional[:class:`float`]
-            The timeout for the view. Defaults to 180.0.
+            The timeout for the view. Defaults to ``180.0``.
         delete_message_after: :class:`bool`
             Whether the message containing the paginator should be
             deleted after use. defaults to ``False``.
         per_page: :class:`int`
             The amount of pages to show per page. Defaults to ``1``.
         go_to_button: :class:`bool`
-            Whether to include the "Go To" Button to go to a page.
-            defaults to ``False``.
+            Whether to include the "Go To" Button to go to a page. Defaults to ``False``.
         """
 
         if not pages:
@@ -464,7 +463,7 @@ async def create_paginator(
     author_id: Optional[:class:`int`]
         The ID of the author that requested this paginator. If provided, use of the paginator will be restricted to this user. Defaults to ``None``.
     timeout: Optional[:class:`float`]
-        The timeout of the view related to the embed. Default is `180.0`.
+        The timeout of the view related to the embed. Defaults to ``180.0``.
     go_to_button: :class:`bool`
         Whether a "Go To" button should be included in the paginator. Defaults to ``False``.
     delete_message_after: :class:`bool`
@@ -502,9 +501,9 @@ def generate_pages(
     items: List[:class:`str`]
         A list of items to paginate.
     items_per_page: Optional[:class:`int`]
-        The number of lines/items to show per page. Default is when the page is at 2000 characters. Default is None.
+        The number of lines/items to show per page. Defaults to when the page is at 2000 characters.
     add_page_nums: :class:`bool`
-        Whether to add page numbers to the footer. Default is True.
+        Whether to add page numbers to the footer. Defaults to ``True``.
     kwargs: :class:`Any`
         Additional keyword arguments to pass to the Embed.
 
