@@ -1,4 +1,5 @@
 from __future__ import annotations
+import io
 from typing import Optional, ParamSpec, TYPE_CHECKING, TypeVar, Union
 
 import discord
@@ -193,6 +194,38 @@ class ContextU(commands.Context):
         return get_max_file_upload_limit(
             guild=self.guild,
         )
+    
+    # From Danny's context code
+    @discord.utils.cached_property
+    def replied_reference(self) -> Optional[discord.MessageReference]:
+        ref = self.message.reference
+        if ref and isinstance(ref.resolved, discord.Message):
+            return ref.resolved.to_reference()
+        return None
+
+    @discord.utils.cached_property
+    def replied_message(self) -> Optional[discord.Message]:
+        ref = self.message.reference
+        if ref and isinstance(ref.resolved, discord.Message):
+            return ref.resolved
+        return None
+    
+    async def safe_send(self, content: str, *, escape_mentions: bool = True, **kwargs) -> discord.Message:
+        """Same as send except with some safe guards.
+
+        1) If the message is too long then it sends a file with the results instead.
+        2) If ``escape_mentions`` is ``True`` then it escapes mentions.
+        """
+
+        if escape_mentions:
+            content = discord.utils.escape_mentions(content)
+
+        if len(content) > 2000:
+            fp = io.BytesIO(content.encode())
+            kwargs.pop('file', None)
+            return await self.send(file=discord.File(fp, filename='message_too_long.txt'), **kwargs)
+        else:
+            return await self.send(content)
 
 
 class GuildContextU(ContextU):
