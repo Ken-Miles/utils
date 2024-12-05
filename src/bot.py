@@ -102,7 +102,17 @@ class BotU(AutoShardedBot):
 
         self._user_cache = weakref.WeakValueDictionary()
 
-        for listener_entry in self.listener_funcs:
+        self._listener_funcs = [
+            #     (_cache_update_on_message, 'on_message'),
+            (self._cache_update_on_interaction, 'on_interaction'),
+            #     (_cache_update_on_member, 'on_member_join'),
+            #     (_cache_update_on_member, 'on_member_update'),
+            #     (_cache_update_on_user_update, 'on_user_update'),
+            #     (_cache_update_on_user, 'on_user_remove'),
+            (self._cache_update_on_command, 'on_command'),
+            #     (_update_cache_from_dpy_cache, 'on_ready'),
+        ]
+        for listener_entry in self._listener_funcs:
             self.add_listener(listener_entry[0], name=listener_entry[1])
     
     @property
@@ -680,14 +690,3 @@ class BotU(AutoShardedBot):
     async def _update_cache_from_dpy_cache(self):
         for user in super().users:
             await self._update_user_cache(user)
-
-    listener_funcs = [
-    #     (_cache_update_on_message, 'on_message'),
-        (_cache_update_on_interaction, 'on_interaction'),
-    #     (_cache_update_on_member, 'on_member_join'),
-    #     (_cache_update_on_member, 'on_member_update'),
-    #     (_cache_update_on_user_update, 'on_user_update'),
-    #     (_cache_update_on_user, 'on_user_remove'),
-        (_cache_update_on_command, 'on_command'),
-    #     (_update_cache_from_dpy_cache, 'on_ready'),
-    ]
