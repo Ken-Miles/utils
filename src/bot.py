@@ -669,8 +669,8 @@ class BotU(AutoShardedBot):
     
     # async def _cache_update_on_user(self, user: discord.User):
     #     await self._maybe_update_user_cache(user)
-    
-    async def _cache_update_on_command(self, ctx: commands.Context):
+
+    async def _cache_update_on_command(self, ctx):
         await self._maybe_update_user_cache(ctx.author)
 
         for arg in ctx.args, ctx.kwargs.values():
