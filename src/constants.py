@@ -36,7 +36,8 @@ __all__ = (
     'Snowflake',
     'parse_discord_snowflake',
     'snowflake_timestamp',
-    'misc_flag_descriptions'
+    'misc_flag_descriptions',
+    'user_flag_descriptions',
 )
 # fmt: on
 
@@ -2349,6 +2350,29 @@ permission_descriptions: Annotated[Dict[str, str],
 DISCORD_FILE_SIZE_LIMIT: Annotated[int, "The maximum file size that can be uploaded to Discord in bytes. (excluding guilds with the feature that increases it)"] = 26_214_400  # 8 MB
 # DISCORD_FILE_SIZE_LIMIT: Annotated[int, "The maximum file size that can be uploaded to Discord in bytes. (excluding guilds with the feature that increases it)"] = 8_388_608  # 8 MB
 # 8 MB is the maximum file size that can be uploaded to Discord as of 12-2-2024 unless a guild has the higher upload limit feature
+
+user_flag_descriptions: Annotated[Dict[str, str],
+"A dictionary of all current user flags and their descriptions in the form `flag_name`: `description`."
+] = {
+    'staff': 'Discord Staff',
+    'partner': 'Discord Partner',
+    'hypesquad': 'HypeSquad Events',
+    'bug_hunter': 'Bug Hunter',
+    'hypesquad_bravery': 'HypeSquad Bravery',
+    'hypesquad_brilliance': 'HypeSquad Brilliance',
+    'hypesquad_balance': 'HypeSquad Balance',
+    'early_supporter': 'Early Supporter',
+    'team_user': 'Team User',
+    'system': 'System',
+    'bug_hunter_level_2': 'Bug Hunter Level 2',
+    'verified_bot': 'Verified Bot',
+    'verified_bot_developer': 'Verified Bot Developer',
+    'early_verified_bot_developer': 'Early Verified Bot Developer',
+    'discord_certified_moderator': 'Discord Certified Moderator',
+    'bot_http_interactions': 'HTTP Interactions Bot',
+    'spammer': 'Spammer',
+    'active_developer': 'Active Developer',
+}
 
 # for discord user badges
 misc_flag_descriptions: Annotated[Dict[str, str],

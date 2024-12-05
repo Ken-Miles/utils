@@ -41,6 +41,7 @@ from discord.utils import deprecated
 from .methods import makeembed_failedaction
 from .context import ContextU
 from .tree import MentionableTree
+import weakref # Library's way of storing user cache
 
 # fmt: off
 __all__ = (
@@ -68,6 +69,8 @@ class BotU(AutoShardedBot):
     old_tree_error = Callable[[discord.Interaction, discord.app_commands.AppCommandError], Coroutine[Any, Any, None]]
     blacklist: List
     started_at: datetime.datetime
+
+    _user_cache: weakref.WeakValueDictionary[int, User] # similar to library approach
 
     def __init__(self, 
         *args,
@@ -97,6 +100,10 @@ class BotU(AutoShardedBot):
         # if translator_cls is not None:
         #     await self.tree.set_translator(translator_cls(*translator_args, **translator_kwargs))
 
+        self._user_cache = weakref.WeakValueDictionary()
+
+        for listener_entry in self.listener_funcs:
+            self.add_listener(listener_entry[0], name=listener_entry[1])
     
     @property
     def avatar_url(self) -> str:
@@ -617,3 +624,70 @@ class BotU(AutoShardedBot):
                 await ctx.reply(embed=emb, ephemeral=True, delete_after=10 if not ctx.interaction else None)
                 return False
         return True
+
+    # overridden methods/properties
+
+    # user cache management
+    @property
+    def users(self) -> List[User]:
+        return super().users + list(self._user_cache.values())
+
+    async def fetch_user(self, user_id: int, /) -> User:
+        user = await super().fetch_user(user_id)
+
+        await self._maybe_update_user_cache(user)
+
+        return user
+
+    def get_user(self, user_id: int, /) -> Optional[User]:
+        user = super().get_user(user_id)
+        if not user:
+            user = self._user_cache.get(user_id)
+        return user
+
+    # cache listeners
+    async def _maybe_update_user_cache(self, snowflake: Optional[discord.abc.Snowflake]=None):
+        """Internal methoid intended to update the cache if the snowflake is a User.
+        Useful in a context where a snowflake may either be a User or Member."""
+        if isinstance(snowflake, User):
+            self._user_cache[snowflake.id] = snowflake
+
+    async def _update_user_cache(self, user: User):
+        self._user_cache[user.id] = user
+
+    # async def _cache_update_on_message(self, message: discord.Message):
+    #     await self._maybe_update_user_cache(message.author)
+    
+    async def _cache_update_on_interaction(self, interaction: discord.Interaction):
+        await self._maybe_update_user_cache(interaction.user)
+    
+    # async def _cache_update_on_member(self, member: discord.Member):
+    #     await self._maybe_update_user_cache(member)
+    
+    # async def _cache_update_on_user_update(self, before: discord.User, after: discord.User):
+    #     await self._maybe_update_user_cache(after)
+    
+    # async def _cache_update_on_user(self, user: discord.User):
+    #     await self._maybe_update_user_cache(user)
+    
+    async def _cache_update_on_command(self, ctx: commands.Context):
+        await self._maybe_update_user_cache(ctx.author)
+
+        for arg in ctx.args, ctx.kwargs.values():
+            if isinstance(arg, discord.abc.User):
+                await self._maybe_update_user_cache(arg)
+    
+    async def _update_cache_from_dpy_cache(self):
+        for user in super().users:
+            await self._update_user_cache(user)
+
+    listener_funcs = [
+    #     (_cache_update_on_message, 'on_message'),
+        (_cache_update_on_interaction, 'on_interaction'),
+    #     (_cache_update_on_member, 'on_member_join'),
+    #     (_cache_update_on_member, 'on_member_update'),
+    #     (_cache_update_on_user_update, 'on_user_update'),
+    #     (_cache_update_on_user, 'on_user_remove'),
+        (_cache_update_on_command, 'on_command'),
+    #     (_update_cache_from_dpy_cache, 'on_ready'),
+    ]
