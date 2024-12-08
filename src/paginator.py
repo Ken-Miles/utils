@@ -206,7 +206,7 @@ class BaseButtonPaginator(discord.ui.View):
         kwargs = await self.get_page_kwargs(self.get_page(self.current_page))
         if self.max_pages < 2:
             self.stop()
-            del kwargs["view"]
+            #del kwargs["view"]
 
         if isinstance(obj, discord.Interaction):
             if obj.response.is_done():
@@ -337,6 +337,13 @@ class ButtonPaginator(BaseButtonPaginator):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
+    def stop(self):
+        self.previous_page.disabled = True
+        self.stop_paginator.disabled = True
+        self.next_page.disabled = True
+
+        return super().stop()
+
     @discord.ui.button(
         label="\u200b",
         style=discord.ButtonStyle.blurple,
@@ -384,6 +391,15 @@ class FiveButtonPaginator(BaseButtonPaginator):
         self.first_page.disabled = self.current_page <= 0
         super().update_buttons()
         self.last_page.disabled = self.current_page >= self.max_pages - 1
+
+    def stop(self):
+        self.first_page.disabled = True
+        self.previous_page.disabled = True
+        self.stop_paginator.disabled = True
+        self.next_page.disabled = True
+        self.last_pages.disabled = True
+
+        return super().stop()
 
     @discord.ui.button(
         label="\u200b",
