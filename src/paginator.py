@@ -75,6 +75,7 @@ class BaseButtonPaginator(discord.ui.View):
 
         self.max_pages: int = total_pages
 
+        self.go_to_page = None
         if go_to_button:
             self.go_to_page = GoToPageButton(self, row=2)
             self.add_item(self.go_to_page)
@@ -83,6 +84,9 @@ class BaseButtonPaginator(discord.ui.View):
         self.message = None
         self.ctx = None
         self.interaction = None
+
+        if self.go_to_page:
+            self.go_to_page.disabled = True
 
         super().stop()
 
@@ -235,7 +239,6 @@ class BaseButtonPaginator(discord.ui.View):
                 pass
         return await super().on_timeout()
 
-
 class GoToPageModal(discord.ui.Modal):
 
     def __init__(
@@ -296,7 +299,6 @@ class GoToPageModal(discord.ui.Modal):
                 ephemeral=True,
             )
 
-
 class GoToPageButton(discord.ui.Button):
     def __init__(
         self,
@@ -325,7 +327,6 @@ class GoToPageButton(discord.ui.Button):
     async def callback(self, interaction: Interaction) -> None:
         modal = GoToPageModal(paginatior=self.paginator, author_id=interaction.user.id)
         await interaction.response.send_modal(modal)
-
 
 class ButtonPaginator(BaseButtonPaginator):
     """
