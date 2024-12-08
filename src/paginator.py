@@ -168,8 +168,7 @@ class BaseButtonPaginator(discord.ui.View):
             if not interaction.response.is_done(): # did not defer
                 await interaction.response.edit_message(**kwargs)
             else:
-                await interaction.followup.edit_message(self.message.id, **kwargs)
-                await interaction.delete_original_response()
+                await interaction.edit_original_response(**kwargs)
         except (discord.HTTPException, discord.NotFound, discord.InteractionResponded):
             if self.message:
                 await self.message.edit(**kwargs)
