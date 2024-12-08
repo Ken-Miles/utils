@@ -398,7 +398,7 @@ class FiveButtonPaginator(BaseButtonPaginator):
         self.previous_page.disabled = True
         self.stop_paginator.disabled = True
         self.next_page.disabled = True
-        self.last_pages.disabled = True
+        self.last_page.disabled = True
 
         return super().stop()
 
