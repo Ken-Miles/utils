@@ -37,6 +37,7 @@ __all__ = (
     'oauth_url',
     'get_max_file_upload_limit',
     'string_io',
+    'list_to_occurance_dict',
 )
 # fmt: on
 
