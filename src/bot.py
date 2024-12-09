@@ -82,6 +82,11 @@ class BotU(AutoShardedBot):
         if kwargs.get("cls", None):
             assert issubclass(kwargs["cls"], MentionableTree)
         #kwargs["pm_help"] = None
+
+        # strip_after_prefix by default
+        if kwargs.get('strip_after_prefix',None) is None:
+            kwargs['strip_after_prefix'] = True
+         
         super().__init__(*args, **kwargs)
 
         # shard_id: List[datetime.datetime]
