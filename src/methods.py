@@ -13,7 +13,6 @@ from discord.abc import Snowflake
 from discord.ext import commands
 from discord.ext.commands import Bot
 from discord.utils import MISSING
-from io import BytesIO
 
 from . import RE_URL, emojidict
 from .constants import CODEBLOCK_LANGUAGES, CodeblockLanguage, DISCORD_FILE_SIZE_LIMIT
@@ -36,6 +35,7 @@ __all__ = (
     'IntegrationType',
     'oauth_url',
     'get_max_file_upload_limit',
+    'string_io',
 )
 # fmt: on
 
