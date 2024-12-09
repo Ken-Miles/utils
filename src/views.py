@@ -8,6 +8,7 @@ from discord.utils import deprecated
 __all__ = (
     'URLButton',
     'CustomBaseView',
+    'CustomBaseSelect',
 )
 # fmt: on
 
