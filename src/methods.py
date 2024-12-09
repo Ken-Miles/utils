@@ -13,6 +13,7 @@ from discord.abc import Snowflake
 from discord.ext import commands
 from discord.ext.commands import Bot
 from discord.utils import MISSING
+from io import BytesIO
 
 from . import RE_URL, emojidict
 from .constants import CODEBLOCK_LANGUAGES, CodeblockLanguage, DISCORD_FILE_SIZE_LIMIT
@@ -650,3 +651,9 @@ def get_max_file_upload_limit(
         return guild.filesize_limit
 
     return DISCORD_FILE_SIZE_LIMIT
+
+def string_io(text: str) -> bytes:
+    """StringIO for the `fp` parameter of a :class:`discord.File` is not officially supported, it only "works on accident".
+    Because it could stop working at some point, this function takes a string and encodes it as a `bytes` object, and works
+    as a drop-in replacement for StringIO in a `discord.File` context."""
+    return text.encode('utf-8')
