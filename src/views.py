@@ -1,6 +1,7 @@
-from typing import Optional
+from typing import List, Optional
 
 import discord
+from discord.abc import MISSING
 from discord.utils import deprecated
 
 # fmt: off
@@ -90,4 +91,48 @@ class CustomBaseView(discord.ui.View):
         if self.author_id is not None and interaction.user.id != self.author_id:
             await interaction.response.send_message("This button is not for you.", ephemeral=True)
             return False
+        return await super().interaction_check(interaction)
+
+class CustomBaseSelect(discord.ui.Select):
+    """Custom subclass of :class:`discord.ui.Select`.
+    This subclass functions similar to CustomBaseView, implementing an `author_id` attribute,
+    and overriding interaction_check to ensure only the author can be use the view. This check will always pass
+    if a author_id is not specified.
+    The `not_author_response_kwargs` are kwargs for a `interaction.response.send_message` to send a custom message/embed
+    if someone does not match the author_id attribute. The default is a message that says "This button is not for you."
+    
+    Subclass also allows for a `parent_view` to be passed in.
+    
+    """
+
+    def __init__(self, *, 
+        custom_id: str = MISSING, 
+        placeholder: Optional[str] = None, 
+        min_values: int = 1, 
+        max_values: int = 1, 
+        options: List[discord.SelectOption] = MISSING, 
+        disabled: bool = False, 
+        row: Optional[int] = None,
+        author_id: Optional[int] = None,
+        parent_view: Optional[discord.ui.View] = None,
+    ) -> None:
+        
+        self.author_id = author_id
+        self.parent_view = parent_view
+        # if not_author_response_kwargs:
+        #     self.not_author_response_kwargs = not_author_response_kwargs
+        # else:
+        #     self.not_author_response_kwargs = {'content': "Only the author has permission to use this."}
+
+        super().__init__(custom_id=custom_id, placeholder=placeholder, min_values=min_values, max_values=max_values, options=options, disabled=disabled, row=row)
+    
+    async def interaction_check(self, interaction: discord.Interaction[discord.Client], /) -> bool:
+        if not self.author_id:
+            return True
+        
+        if self.author_id != interaction.user.id:
+            #await interaction.response.send_message(**self.not_author_response_kwargs)
+            await interaction.response.send_message("Only the author can use this select.")
+            return False
+    
         return await super().interaction_check(interaction)
