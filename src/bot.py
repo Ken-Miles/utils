@@ -532,6 +532,16 @@ class BotU(AutoShardedBot):
     async def getorfetch_member(self, *args, **kwargs):
         return await self.get_or_fetch_member(*args, **kwargs)
 
+    async def get_or_fetch_user_or_snowflake(self, userid: int, guild: Optional[discord.Guild]) -> Union[discord.abc.Snowflake, User, Member]:
+        """Wrapper for :meth:`.get_or_fetch_user`.
+        Instead of raising an error should the user not be found, it will return a :class:`discord.abc.Snowflake` (a :class:`discord.Object` at runtime) with the ID of the user.
+        The main intention of this method is for banning/unbanning users.
+        """
+        try:
+            return await self.get_or_fetch_user(userid=userid, guild=guild)
+        except Exception:
+            return discord.Object(id=userid)
+
     async def get_or_fetch_guild(self, guildid: int) -> Guild:
         """Gets a Guild from the cache, else fetches it. Will error if fetch fails.
 
