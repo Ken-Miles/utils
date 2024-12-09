@@ -1,9 +1,10 @@
 from __future__ import annotations
+from collections import Counter
 import datetime
 import difflib
 from functools import lru_cache
 import time
-from typing import Any, Iterable, List, Literal, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, Iterable, List, Literal, Optional, Sequence, Tuple, Union
 from urllib.parse import urlencode
 import uuid
 
@@ -657,3 +658,37 @@ def string_io(text: str) -> bytes:
     Because it could stop working at some point, this function takes a string and encodes it as a `bytes` object, and works
     as a drop-in replacement for StringIO in a `discord.File` context."""
     return text.encode('utf-8')
+
+def list_to_occurance_dict(items: List[str], *, normalize_items: bool=False, reverse: bool=True) -> Dict[str, int]:
+    """Method that counts the amount of strings in a list, and turns it into a dictionary with the string and the count.
+
+    Example:
+        items = ["apple", "orange", "cherry", "apple", "cherry", "banana"]
+        reverse = False
+        ->
+        {"apple": 2, "cherry": 2, "banana": 1, "orange": 1}
+    
+    The ``reverse`` argument will return the dictionary from greatest to least if False. Defaults to True.
+
+    The ``normalize_items`` argument will strip and lowercase all strings before constricting the dictonary. 
+
+    Example (same as above, with reverse=False):
+        {"banana": 1, "orange": 1, "apple": 2, "cherry": 2}
+    """
+    if normalize_items:
+        items = [item.strip().lower() for item in items]
+
+    # better than a for loop ig
+    occurrence_counter = Counter(items)
+
+    
+    # sort the counter dictionary
+    sorted_occurrence = sorted(
+        occurrence_counter.items(), 
+        key=lambda x: (x[1], x[0]) if reverse else (-x[1], x[0])
+    )
+
+    return dict(sorted_occurrence)
+    
+
+
