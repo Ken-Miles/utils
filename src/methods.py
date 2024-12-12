@@ -4,7 +4,7 @@ import datetime
 import difflib
 from functools import lru_cache
 import time
-from typing import Any, Dict, Iterable, List, Literal, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Literal, Optional, Sequence, Tuple, Union
 from urllib.parse import urlencode
 import uuid
 
@@ -17,7 +17,9 @@ from discord.utils import MISSING
 
 from . import RE_URL, emojidict
 from .constants import CODEBLOCK_LANGUAGES, CodeblockLanguage, DISCORD_FILE_SIZE_LIMIT
-from .enums import IntegrationType
+
+if TYPE_CHECKING:
+    from .enums import IntegrationType # circular import
 
 # fmt: off
 __all__ = (
@@ -682,11 +684,10 @@ def list_to_occurance_dict(items: List[str], *, normalize_items: bool=False, rev
     # better than a for loop ig
     occurrence_counter = Counter(items)
 
-    
     # sort the counter dictionary
     sorted_occurrence = sorted(
-        occurrence_counter.items(), 
-        key=lambda x: (x[1], x[0]) if reverse else (-x[1], x[0])
+        occurrence_counter.most_common(),
+        key=lambda x: (x[1], x[0]) if reverse else (-x[1], x[0]),
     )
 
     return dict(sorted_occurrence)
