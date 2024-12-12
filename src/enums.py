@@ -45,7 +45,7 @@ class EnumU(Enum):
         :class:`discord.app_commands.Choice`
         The returned choice.
         """
-        return app_commands.Choice(name=self.name, value=self.value)
+        return app_commands.Choice(name=self.name, value=self.actual_value)
     
     def to_locale_choice(self, **kwargs) -> app_commands.Choice:
         """Converts the enum instance into a discord app commands choice.
@@ -72,7 +72,7 @@ class EnumU(Enum):
 
         for instance in cls.all():
             if s == instance.name.lower().strip() \
-            or s == str(instance.value).lower().strip():
+            or s == str(instance.actual_value).lower().strip():
             
                 return instance
         
