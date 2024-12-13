@@ -8,7 +8,6 @@ __path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
 from .constants import * # logger
 from .logger import *
-from .methods import *
 from .tree import *
 from .help_command import *
 
@@ -28,6 +27,7 @@ from .danny_pages import * # context
 from .danny_time import * # context
 
 from .views import *
+from .methods import *
 
 from .cogs.error_handler import *
 

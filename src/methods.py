@@ -16,12 +16,12 @@ from discord.ext.commands import Bot
 from discord.utils import MISSING
 
 
-from . import RE_URL, emojidict, ContextU
-from .constants import CODEBLOCK_LANGUAGES, CodeblockLanguage, DISCORD_FILE_SIZE_LIMIT
+from .constants import CODEBLOCK_LANGUAGES, CodeblockLanguage, DISCORD_FILE_SIZE_LIMIT, RE_URL, emojidict
+from .enums import IntegrationType
 from .views import SendModalView
 
 if TYPE_CHECKING:
-    from .enums import IntegrationType # circular import
+    from .context import ContextU
 
 # fmt: off
 __all__ = (
@@ -37,7 +37,6 @@ __all__ = (
     'generic_autocomplete',
     'merge_permissions',
     'generate_transaction_id',
-    'IntegrationType',
     'oauth_url',
     'get_max_file_upload_limit',
     'string_io',
