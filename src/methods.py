@@ -15,8 +15,10 @@ from discord.ext import commands
 from discord.ext.commands import Bot
 from discord.utils import MISSING
 
-from . import RE_URL, emojidict
+
+from . import RE_URL, emojidict, ContextU
 from .constants import CODEBLOCK_LANGUAGES, CodeblockLanguage, DISCORD_FILE_SIZE_LIMIT
+from .views import SendModalView
 
 if TYPE_CHECKING:
     from .enums import IntegrationType # circular import
@@ -40,6 +42,7 @@ __all__ = (
     'get_max_file_upload_limit',
     'string_io',
     'list_to_occurance_dict',
+    'send_modal_hybrid',
 )
 # fmt: on
 
@@ -691,6 +694,36 @@ def list_to_occurance_dict(items: List[str], *, normalize_items: bool=False, rev
     )
 
     return dict(sorted_occurrence)
+
+async def send_modal_hybrid(ctx: ContextU, modal: discord.ui.Modal, *args, **kwargs) -> Optional[discord.Message]:
+    """A method that will send a modal in a hybrid command context.
+    You can only reply with a modal in reply to interactions, 
+    meaning that you cannot send a modal if it is in reply to a prefix command.
+    To get around this, this method replies with a button/view that the user can click to open the modal.
+    If the command was invoken with an interaction, it will reply with a modal as normal.
+    Args and Kwargs passed in will be used for the `ctx.reply` call if its a context command.
+    Reply will be sent ephemerally by default.
+
+    Parameters
+    ----------
+    ctx: ContextU
+        The context of the command.
+
+    Returns
+    -------
+    Optional[discord.Message]
+        The message if it was a context invocation, or None if an interaction response.
+    """    
+
+    if ctx.interaction:
+        return await ctx.interaction.response.send_modal(modal)
     
+    if not args and 'embed' not in kwargs.keys(): # no content, no embed
+        kwargs['embed'] = makeembed_bot(description="Click the button below to open the modal/form.")
+    
+    if kwargs.get('ephemeral', None) is None:
+        kwargs['ephemeral'] = True
 
-
+    kwargs['view'] = SendModalView(modal=modal, author_id=ctx.author.id)
+    kwargs['view'].message = await ctx.reply(*args, **kwargs)
+    return kwargs['view'].message

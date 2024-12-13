@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 import discord
+from discord import ui
 from discord.abc import MISSING
 from discord.utils import deprecated
 
@@ -9,6 +10,8 @@ __all__ = (
     'URLButton',
     'CustomBaseView',
     'CustomBaseSelect',
+    'CustomBaseModal',
+    'SendModalView',
 )
 # fmt: on
 
@@ -137,3 +140,46 @@ class CustomBaseSelect(discord.ui.Select):
             return False
     
         return await super().interaction_check(interaction)
+
+class CustomBaseModal(discord.ui.Modal):
+    """Custom subclass of :class:`discord.ui.Modal`.
+    Subclass overwrites the :meth:`interaction_check` to ensure the modal author uses it.
+    You must pass in the author_id parameter into the constructor."""
+
+    author_id: int
+
+    def __init__(self, *args, author_id: int, **kwargs) -> None:
+        self.author_id = author_id
+
+        super().__init__(*args ,**kwargs)
+
+    async def interaction_check(self, interaction: discord.Interaction[discord.Client], /) -> bool:
+        if not self.author_id:
+            return True
+        
+        if self.author_id != interaction.user.id:
+            #await interaction.response.send_message(**self.not_author_response_kwargs)
+            await interaction.response.send_message("Only the author can use this modal.")
+            return False
+    
+        return await super().interaction_check(interaction)
+
+class SendModalView(CustomBaseView):
+    """A view subclass, whose main purpose is to have a button to open a modal.
+    This exists so that you can make hybrid commands that want to respond with a modal.
+    But since you can only do that for interaction versions, you can reply with this button instead that will open the modal for them.
+    """
+
+    modal: ui.Modal
+
+    def __init__(self, *args, modal: discord.ui.Modal, button_text: str="View Modal", message: Optional[discord.Message] = None, delete_message_after: bool = False, author_id: Optional[int] = None, **kwargs):
+        super().__init__(*args, message=message, delete_message_after=delete_message_after, author_id=author_id, **kwargs)
+
+        self.modal = modal
+        if button_text:
+            self.view_modal.label = button_text
+    
+    @discord.ui.button(label="View Form", style=discord.ButtonStyle.blurple)
+    async def view_modal(self, interaction: discord.Interaction, _: ui.Button):
+        await interaction.response.send_modal(self.modal)
+
