@@ -415,12 +415,12 @@ def dchyperlink(
     if RE_URL.match(str(texttoclick)) is not None:
         texttoclick, url = url, texttoclick
     texttoclick = f"[{texttoclick}]" 
-    hovertext = f'"{hovertext}"' if hovertext is not None else ""
+    hovertext = f' "{hovertext}"' if hovertext is not None else ""
 
     if suppress_embed:
         url = f"<{url}>"
 
-    return f"{texttoclick}({url} {hovertext})"
+    return f"{texttoclick}({url}{hovertext})"
 
 async def create_codeblock(content: Union[str, app_commands.locale_str], lang: CodeblockLanguage = "py") -> str:
     """Creates a codeblock formatted for Discord.
