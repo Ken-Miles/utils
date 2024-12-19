@@ -69,6 +69,14 @@ class BotU(AutoShardedBot):
     old_tree_error = Callable[[discord.Interaction, discord.app_commands.AppCommandError], Coroutine[Any, Any, None]]
     blacklist: List
     started_at: datetime.datetime
+    _cached_application_emojis: List[discord.Emoji] = []
+
+    @property
+    def application_emojis(self) -> List[discord.Emoji]:
+        """Cached version of all the bot's application emojis. Only populated if :meth:`.fetch_application_emojis` is called. 
+        By defualt, this is called in setup_hook.
+        """
+        return self._cached_application_emojis
 
     _user_cache: weakref.WeakValueDictionary[int, User] # similar to library approach
 
@@ -171,7 +179,13 @@ class BotU(AutoShardedBot):
         self.bot_app_info = await self.application_info()
         #self.owner_id = self.bot_app_info.owner.id
         # DO NOT UNCOMMENT, THIS WILL BREAK IS_OWNER CHECKS
-    
+
+        await self.fetch_application_emojis()
+
+    async def fetch_application_emojis(self) -> List[discord.Emoji]:
+        self._cached_application_emojis = await super().fetch_application_emojis()
+        return self._cached_application_emojis
+
     async def on_shard_resumed(self, shard_id: int):
         #log.info('Shard ID %s has resumed...', shard_id)
         self.resumes[shard_id].append(discord.utils.utcnow())
@@ -215,6 +229,7 @@ class BotU(AutoShardedBot):
         :class:`discord.User`
             The bot's owner.
         """
+        self.application_info
         if getattr(self.bot_app_info, "team", None):
             user = self.get_user(self.bot_app_info.team.owner.id) # type: ignore
             if user:

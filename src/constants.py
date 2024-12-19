@@ -36,8 +36,11 @@ __all__ = (
     'Snowflake',
     'parse_discord_snowflake',
     'snowflake_timestamp',
+    'permission_descriptions',
+    'permission_proper_names',
     'misc_flag_descriptions',
     'user_flag_descriptions',
+    'DISCORD_FILE_SIZE_LIMIT',
 )
 # fmt: on
 
@@ -2347,7 +2350,15 @@ permission_descriptions: Annotated[Dict[str, str],
     "view_guild_insights": "Allows members to view Server Insights, which shows data on community growth, engagement, and more. This will allow them to see certain data about channel activity, even for channels they cannot access.",
 }
 
-DISCORD_FILE_SIZE_LIMIT: Annotated[int, "The maximum file size that can be uploaded to Discord in bytes. (excluding guilds with the feature that increases it)"] = 26_214_400  # 8 MB
+# https://canary.discord.com/channels/613425648685547541/697138785317814292/1318633773713064049 in Discord Developers discord server
+discord_file_size_change_date = datetime.datetime(2024, 1, 25)
+now = datetime.datetime.now()
+
+if now < discord_file_size_change_date:
+    DISCORD_FILE_SIZE_LIMIT: Annotated[int, "The maximum file size that can be uploaded to Discord in bytes. (excluding guilds with the feature that increases it)"] = 26_214_400  # 8 MB
+else:
+    DISCORD_FILE_SIZE_LIMIT: Annotated[int, "The maximum file size that can be uploaded to Discord in bytes. (excluding guilds with the feature that increases it)"] = 10_490_000  # 8 MB
+
 # DISCORD_FILE_SIZE_LIMIT: Annotated[int, "The maximum file size that can be uploaded to Discord in bytes. (excluding guilds with the feature that increases it)"] = 8_388_608  # 8 MB
 # 8 MB is the maximum file size that can be uploaded to Discord as of 12-2-2024 unless a guild has the higher upload limit feature
 
