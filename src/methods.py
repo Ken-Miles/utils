@@ -727,7 +727,7 @@ async def send_modal_hybrid(ctx: ContextU, modal: discord.ui.Modal, *args, **kwa
     kwargs['view'].message = await ctx.reply(*args, **kwargs)
     return kwargs['view'].message
 
-def get_copyable_slash_command_format(qualified_name: str, *args, **kwargs):
+def get_copyable_slash_command_format(qualified_name: str, **kwargs):
     """This method generates a copyable slash command that is runnable when copied.
     If you are looking for a clickable mention of a slash command, look into the :meth:`src.MentionableTree.get_command_mention` method on the :class:`src.MentionableTree` class.
 
