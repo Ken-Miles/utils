@@ -42,6 +42,7 @@ __all__ = (
     'string_io',
     'list_to_occurance_dict',
     'send_modal_hybrid',
+    'get_copyable_slash_command_format',
 )
 # fmt: on
 
