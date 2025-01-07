@@ -726,3 +726,23 @@ async def send_modal_hybrid(ctx: ContextU, modal: discord.ui.Modal, *args, **kwa
     kwargs['view'] = SendModalView(modal=modal, author_id=ctx.author.id)
     kwargs['view'].message = await ctx.reply(*args, **kwargs)
     return kwargs['view'].message
+
+def get_copyable_slash_command_format(qualified_name: str, *args, **kwargs):
+    """This method generates a copyable slash command that is runnable when copied.
+    If you are looking for a clickable mention of a slash command, look into the :meth:`src.MentionableTree.get_command_mention` method on the :class:`src.MentionableTree` class.
+
+    Parameters
+    ----------
+    qualified_name : str
+        Full name of the slash command.
+
+    Any args or kwargs passed will be used in the copyable slash command.
+
+    Example:
+
+    qualified_name="lookup ranked", kwargs={"platform": "Xbox", "username": "myusernamehere"}
+    -> "/lookup ranked platform:Xbox username:myusernamehere"
+    """
+    qualified_name = qualified_name.strip().lstrip('/') # no whitespace, remove slash from beginning if present
+
+    return f"/{qualified_name} {' '.join([k+':'+str(v) for k, v in kwargs.items()])}"
