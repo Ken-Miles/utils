@@ -46,11 +46,8 @@ async def _request(
 
     tr = 0
 
-    async def close_sessions():
-        for session in SESSIONS:
-            await session.close()
-
-    for tr, session in enumerate(SESSIONS, 1):
+    for tr in range(len(SESSIONS)): # cannot close all sesisons in the list if we are iterating through it
+        session = SESSIONS[tr]
         request = method.get_method_callable(session)
 
         try:
@@ -68,7 +65,8 @@ async def _request(
 
         if status_.is_2xx:
             if not CUSTOM_SESSIONS:
-                await close_sessions()
+                for s in SESSIONS:
+                    await s.close()
             return response
 
         if status_.is_1xx:

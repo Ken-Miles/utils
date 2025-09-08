@@ -33,7 +33,7 @@ T = TypeVar("T")
 def is_owner(user: Union[discord.User, discord.Member], bot: BotU):
     """A check to see if a user is the owner of the bot."""
     assert bot.owner_ids is not None
-    return user.id in bot.owner_ids
+    return user.id in bot.owner_ids or user.id == bot.owner_id
 
 
 def check_is_trusted(user: Union[discord.User, discord.Member], bot: BotU):
