@@ -66,7 +66,7 @@ Page = (
 PageT_co = TypeVar("PageT_co", bound=Page, covariant=True)
 
 
-class BaseButtonPaginator(discord.ui.LayoutView, Generic[PageT_co]):
+class BaseButtonPaginatorV2(discord.ui.LayoutView, Generic[PageT_co]):
     message: discord.Message | None = None
 
     buttons_action_row: discord.ui.ActionRow[Self] = discord.ui.ActionRow(id=373)
@@ -327,7 +327,7 @@ class BaseButtonPaginator(discord.ui.LayoutView, Generic[PageT_co]):
 
         return self.message  # type: ignore
 
-class GoToPageModal(discord.ui.Modal):
+class GoToPageModalV2(discord.ui.Modal):
 
     def __init__(
         self,
@@ -387,10 +387,10 @@ class GoToPageModal(discord.ui.Modal):
                 ephemeral=True,
             )
 
-class GoToPageButton(discord.ui.Button):
+class GoToPageButtonV2(discord.ui.Button):
     def __init__(
         self,
-        paginator: BaseButtonPaginator,
+        paginator: BaseButtonPaginatorV2,
         label: str = "Go to Page",
         disabled: bool = False,
         custom_id: str = "go_to_page",
@@ -413,10 +413,10 @@ class GoToPageButton(discord.ui.Button):
         self.paginator = paginator
 
     async def callback(self, interaction: Interaction) -> None:
-        modal = GoToPageModal(paginator=self.paginator, author_id=interaction.user.id)
+        modal = GoToPageModalV2(paginator=self.paginator, author_id=interaction.user.id)
         await interaction.response.send_modal(modal)
 
-class ButtonPaginator(BaseButtonPaginator[PageT_co]):
+class ButtonPaginatorV2(BaseButtonPaginatorV2[PageT_co]):
     buttons_action_row: discord.ui.ActionRow[Self] = discord.ui.ActionRow(id=373)
 
     def __init__(
@@ -456,10 +456,10 @@ class ButtonPaginator(BaseButtonPaginator[PageT_co]):
     ) -> None:
         return await self._next_page(interaction, _)
 
-ThreeButtonPaginator = ButtonPaginator
+ThreeButtonPaginatorV2 = ButtonPaginatorV2
 
 
-class FiveButtonPaginator(BaseButtonPaginator):
+class FiveButtonPaginatorV2(BaseButtonPaginatorV2):
     """
     .. note::
         This subclass doesn't add any additional attributes or methods, but instead overrides the internal methods of the :class:`BaseButtonPaginator` class.
@@ -535,16 +535,16 @@ class FiveButtonPaginator(BaseButtonPaginator):
         await self.update_page(interaction)
 
 
-async def create_paginator(
+async def create_paginator_v2(
     ctx: ContextU,
     pages: Sequence[Any],
-    paginator: type[BaseButtonPaginator] = BaseButtonPaginator,
+    paginator: type[BaseButtonPaginatorV2] = BaseButtonPaginatorV2,
     author_id: Optional[int] = None,
     timeout: Optional[float] = 180.0,
     go_to_button: bool = False,
     delete_message_after: bool = False,
     per_page: int = 1,
-) -> BaseButtonPaginator:
+) -> BaseButtonPaginatorV2:
     """Shortcut method to create a paginator object and start it.
 
     .. note::
