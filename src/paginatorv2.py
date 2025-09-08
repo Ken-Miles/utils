@@ -22,7 +22,6 @@ from discord import Interaction, ui
 
 from . import emojidict
 from .context import ContextU
-from .methods import makeembed_bot
 
 # fmt: off
 __all__ = (
