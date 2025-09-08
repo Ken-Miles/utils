@@ -184,8 +184,8 @@ class BaseButtonPaginator(discord.ui.View):
                 await self.message.delete()
         else:
             for button in self.children:
-                if isinstance(button, discord.ui.Button):
-                    button.disabled = True
+                if hasattr(button, "disabled"):
+                    setattr(button, "disabled", True)
             if self.message:
                 # await self.message.edit(view=self)
                 await interaction.response.edit_message(view=self)
