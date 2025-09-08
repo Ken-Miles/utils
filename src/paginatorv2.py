@@ -18,7 +18,7 @@ from typing import (
 )
 
 import discord
-from discord import Embed, Interaction
+from discord import Interaction, ui
 
 from . import emojidict
 from .context import ContextU
@@ -26,14 +26,12 @@ from .methods import makeembed_bot
 
 # fmt: off
 __all__ = (
-    "BaseButtonPaginator",
-    "ButtonPaginator",
-    "ThreeButtonPaginator",
-    "FiveButtonPaginator",
-    "GoToPageButton",
-    "GoToPageModal",
-    "create_paginator",
-    "generate_pages",
+    "BaseButtonPaginatorV2",
+    "ButtonPaginatorV2",
+    "ThreeButtonPaginatorV2",
+    "FiveButtonPaginatorV2",
+    "create_paginator_v2",
+    "generate_pages_v2",
 )
 # fmt: on
 
@@ -586,13 +584,13 @@ async def create_paginator_v2(
     return pg
 
 
-def generate_pages(
+def generate_pages_v2(
     items: List[str],
     items_per_page: Optional[int] = None,
     add_page_nums: bool = True,
     **kwargs,
-) -> List[Embed]:
-    """Generate pages for an Embed Paginator.
+) -> List[discord.ui.Container]:
+    """Generate pages for a Compontent V2 Paginator.
 
     Parameters
     ----------
@@ -612,10 +610,7 @@ def generate_pages(
     """    
     # """Generate pages for an Embed Paginator
 
-    if not kwargs.get("timestamp", None):
-        kwargs["timestamp"] = datetime.datetime.now()
-
-    embeds = []
+    sections = []
 
     desc = ""
     pagenum = 0
@@ -623,11 +618,11 @@ def generate_pages(
     items_on_page = -1  # when it was 0 it was always 1 behind the actual count
 
     for item in items:
-        # if len(desc)+len(str(item)) > 2000 or (items_per_page and tr >= items_per_page):
+        # if len(desc)+len(str(item)) > 4000 or (items_per_page and tr >= items_per_page):
 
-        # if items per page is provided, use that, otherwise use 2000 characters
+        # if items per page is provided, use that, otherwise use 4000 characters (max for textview)
         if (items_per_page and items_on_page == items_per_page) or (
-            not items_per_page and len(desc) + len(str(item)) > 2000
+            not items_per_page and len(desc) + len(str(item)) > 4000
         ):
             pagenum += 1
             items_on_page = 0
@@ -638,37 +633,45 @@ def generate_pages(
             #         __footer = footer
             # else:
             #     __footer = None
-            emb = makeembed_bot(description=desc, **kwargs)
-            embeds.append(emb)
+            section = discord.ui.Container(
+                discord.ui.TextDisplay(desc.strip()),
+                #discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large),
+                id=pagenum,
+            )
+            # if add_page_nums:
+            #     section.add_item(
+            #             discord.ui.TextDisplay(
+            #                 f"Page {pagenum}/{(len(items) // items_per_page) + (1 if len(items) % items_per_page > 0 else 0)}"
+            #             )
+            #     )
+            sections.append(section)
             desc = ""
 
         desc += str(item) + "\n"
         items_on_page += 1
 
     if desc:
-        if pagenum == 0:
-            emb = makeembed_bot(
-                description=desc,
-                **kwargs,
+        section = discord.ui.Container(
+                discord.ui.TextDisplay(desc.strip(), id=pagenum+100),
+                #discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large),
+                #id=pagenum,
             )
-            embeds.append(emb)
+        if pagenum == 0:
+            sections.append(section)
             add_page_nums = False
         else:
             pagenum += 1
-            emb = makeembed_bot(
-                description=desc,
-                **kwargs,
-            )
-            embeds.append(emb)
+            sections.append(section)
 
     # verify page numbers
     if add_page_nums:
-        for embed in embeds:
-            if not embed.footer or not embed.footer.text:
-                continue
-            if " | page" in embed.footer.text.lower():
-                footer = embed.footer.text[embed.footer.text.lower().find(" | page") :]
-            else:
-                footer = f"{embed.footer.text.strip()} | Page {embeds.index(embed)+1}/{len(embeds)}"
-            embed.set_footer(text=footer)
-    return embeds
+        for page_num, section in enumerate(sections, start=1):
+            section.add_item(
+                discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large)
+            )
+            section.add_item(
+                discord.ui.TextDisplay(
+                    f"Page {page_num}/{len(sections)}", id=section.id+1000
+                )
+            )
+    return sections
