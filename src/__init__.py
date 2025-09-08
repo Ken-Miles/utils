@@ -12,7 +12,7 @@ from .tree import *
 from .help_command import *
 
 from .checks import * # context
-from .paginatorv1 import * # context
+from .paginatorv2 import * # context
 from .command import * # context, views, danny_formats
 from .requests_http import * # constants
 from .context import * # requests
