@@ -670,8 +670,7 @@ def generate_pages_v2(
             )
             section.add_item(
                 discord.ui.TextDisplay(
-                    f"Page {page_num}/{len(sections)}", id=section.id+1000
+                    f"Page {page_num}/{len(sections)}", id=section.id+1000 if section.id else None
                 )
             )
     return sections
- 
