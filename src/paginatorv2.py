@@ -22,7 +22,7 @@ from discord import Interaction, ui
 
 from . import emojidict
 from .context import ContextU
-
+from .paginatorv1 import GoToPageButton
 # fmt: off
 __all__ = (
     "BaseButtonPaginatorV2",
