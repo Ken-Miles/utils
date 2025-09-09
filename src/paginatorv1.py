@@ -249,7 +249,7 @@ class GoToPageModal(discord.ui.Modal):
 
     def __init__(
         self,
-        paginatior: BaseButtonPaginator,
+        paginator: BaseButtonPaginator,
         author_id: Optional[int] = None,
         title: str = "Go to Page",
         **kwargs,
@@ -258,7 +258,7 @@ class GoToPageModal(discord.ui.Modal):
             title = kwargs.pop("title")
         super().__init__(title="Go to Page", **kwargs)
 
-        self.paginatior = paginatior
+        self.paginator = paginator
 
         self.author_id = author_id
 
@@ -266,7 +266,7 @@ class GoToPageModal(discord.ui.Modal):
             label="Page Number",
             placeholder="Enter a page number",
             min_length=len(str(0)),
-            max_length=len(str(self.paginatior.max_pages)),
+            max_length=len(str(self.paginator.max_pages)),
             required=True,
             custom_id="page_num",
             row=0,
@@ -289,7 +289,7 @@ class GoToPageModal(discord.ui.Modal):
                 "Page number must be an integer.", ephemeral=True
             )
 
-        min_pages, max_pages = 1, self.paginatior.max_pages
+        min_pages, max_pages = 1, self.paginator.max_pages
 
         if not min_pages <= page_num <= max_pages:
             return await interaction.followup.send(
@@ -298,7 +298,7 @@ class GoToPageModal(discord.ui.Modal):
             )
 
         try:
-            await self.paginatior._go_to_page(interaction, page_num)
+            await self.paginator._go_to_page(interaction, page_num)
         except ValueError as e:
             return await interaction.followup.send(
                 str(e),
@@ -331,7 +331,7 @@ class GoToPageButton(discord.ui.Button):
         self.paginator = paginator
 
     async def callback(self, interaction: Interaction) -> None:
-        modal = GoToPageModal(paginatior=self.paginator, author_id=interaction.user.id)
+        modal = GoToPageModal(paginator=self.paginator, author_id=interaction.user.id)
         await interaction.response.send_modal(modal)
 
 class ButtonPaginator(BaseButtonPaginator):
