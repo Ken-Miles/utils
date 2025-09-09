@@ -291,6 +291,14 @@ class BaseButtonPaginatorV2(discord.ui.LayoutView, Generic[PageT_co]):
 
         self.stop()
 
+    async def _go_to_page(self, interaction: Interaction, page_num: int) -> None:
+        if page_num < 1 or page_num > self.max_pages:
+            raise ValueError(
+                f"Page number must be between 1 and {self.max_pages}, got {page_num}."
+            )
+        self.current_page = page_num - 1
+        await self.update_page(interaction)
+
     def reset_files(self, page_kwargs: dict[str, Any]) -> None:
         files: list[discord.File] = page_kwargs.get("files", [])
         if not files:
