@@ -446,7 +446,7 @@ class ButtonPaginatorV2(BaseButtonPaginatorV2[PageT_co]):
     @buttons_action_row.button(
         label="\u200b",
         style=discord.ButtonStyle.blurple,
-        emoji=emojidict.get('next'),
+        emoji=emojidict.get('forward'),
     )
     async def next_page(
         self, interaction: Interaction, _: discord.ui.Button[Self]
