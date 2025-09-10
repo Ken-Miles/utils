@@ -25,6 +25,7 @@ __all__ = (
     'is_mod',
     'is_admin',
     'is_in_guilds',
+    'disable_command'
 )
 # fmt: on
 
@@ -205,7 +206,7 @@ def is_in_guilds(*guild_ids: int):
 
     return commands.check(predicate)
 
-def disabled_command():
+def disable_command():
     """A decorator that disables a command."""
     def predicate(ctx: ContextU) -> bool:
         #return False
