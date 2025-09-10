@@ -204,3 +204,11 @@ def is_in_guilds(*guild_ids: int):
         return ctx.guild.id in guild_ids
 
     return commands.check(predicate)
+
+def disabled_command():
+    """A decorator that disables a command."""
+    def predicate(ctx: ContextU) -> bool:
+        #return False
+        raise commands.DisabledCommand()
+
+    return commands.check(predicate)
