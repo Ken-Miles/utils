@@ -622,13 +622,13 @@ def generate_pages_v2(
     desc = ""
     pagenum = 0
 
-    items_on_page = -1  # when it was 0 it was always 1 behind the actual count
+    items_on_page = 0
 
     for item in items:
         # if len(desc)+len(str(item)) > 4000 or (items_per_page and tr >= items_per_page):
 
         # if items per page is provided, use that, otherwise use 4000 characters (max for textview)
-        if (items_per_page and items_on_page == items_per_page) or (
+        if (items_per_page and items_on_page >= items_per_page) or (
             not items_per_page and len(desc) + len(str(item)) > 4000
         ):
             pagenum += 1
