@@ -158,29 +158,30 @@ def makeembed_bot(
     if not timestamp:
         timestamp = datetime.datetime.now()
 
-    if bot:
-        if bot_owner:
-            owner = bot_owner
-        if not app_info and getattr(bot, "appinfo", None):
-            app_info = getattr(bot, "appinfo", None)
-        if app_info and getattr(app_info, "team", None):
-            # i'm not the team owner its a burner
-            owner = discord.utils.find(lambda x: x.name == 'aidenpearce3066', app_info.team.members)
-            if not owner:
-                owner = app_info.team.owner
+    if not footer:
+        if bot:
+            if bot_owner:
+                owner = bot_owner
+            if not app_info and getattr(bot, "appinfo", None):
+                app_info = getattr(bot, "appinfo", None)
+            if app_info and getattr(app_info, "team", None):
+                # i'm not the team owner its a burner
+                owner = discord.utils.find(lambda x: x.name == 'aidenpearce3066', app_info.team.members)
+                if not owner:
+                    owner = app_info.team.owner
+            else:
+                owner = bot.owner_id
+            footer = f"Made by @{owner}"
+
+            if not footer_icon_url:
+                if getattr(bot, "avatar_url", None):
+                    footer_icon_url = bot.avatar_url
+                elif getattr(bot, 'user', None):
+                    footer_icon_url = bot.user.display_avatar.url
         else:
-            owner = bot.owner_id
-        footer = f"Made by @{owner}"
+            footer = "Made by @aidenpearce3066"
 
-        if not footer_icon_url:
-            if getattr(bot, "avatar_url", None):
-                footer_icon_url = bot.avatar_url
-            elif getattr(bot, 'user', None):
-                footer_icon_url = bot.user.display_avatar.url
-    else:
-        footer = "Made by @aidenpearce3066"
-
-    if command_user:
+    if command_user and not author:
         author = f"Requested by {command_user}"
         if not author_icon_url:
             author_icon_url = command_user.display_avatar.url
