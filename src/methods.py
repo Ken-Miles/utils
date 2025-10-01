@@ -1,14 +1,11 @@
 from __future__ import annotations
-import asyncio
 from collections import Counter
 import datetime
 import difflib
 from functools import lru_cache
-import inspect
 import time
 from typing import (
     Any,
-    Callable,
     Dict,
     Hashable,
     Iterable,
@@ -28,7 +25,6 @@ from discord import app_commands
 from discord.abc import Snowflake
 from discord.ext import commands
 from discord.ext.commands import Bot
-from discord.ext.tasks import LF, Loop
 from discord.utils import MISSING
 
 from .constants import (
@@ -38,7 +34,6 @@ from .constants import (
     RE_URL,
     emojidict,
 )
-from .cog import CogU
 from .enums import IntegrationType
 from .views import SendModalView
 
