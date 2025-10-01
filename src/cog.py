@@ -1,12 +1,12 @@
 from __future__ import annotations
 import logging
-from typing import Any, Optional, ParamSpec, Type, TypeVar, Union
+from typing import Any, Optional, ParamSpec, Type, TypeVar, Union, List
 import uuid
 
 import aiohttp
-import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
+from discord.ext.tasks import Loop
 
 from .bot import BotU
 from .requests_http import _delete, _get, _patch, _post, _put
@@ -26,9 +26,32 @@ class CogU(Cog):
     Intended for use in Help commands where entire cogs shouldn't be shown by default.
     """
 
+    __loop_functions: List[Loop] = []
     hidden: bool
     emoji: Optional[str]
     brief: Optional[str]
+
+    @commands.Cog.listener("on_ready")
+    async def register_loops(self) -> None:
+    #def cog_load(self) -> None:
+        """Registers all the loops in the cog to start after the bot is ready."""
+        for loop in self.__loop_functions:
+            if not loop.is_running():
+                loop.start()
+
+    #@commands.Cog.listener("on_unload")
+    async def cog_unload(self) -> None:
+        """Unregisters all the loops in the cog when the bot is unloaded."""
+        self.bot.loop.create_task(self._unregister_loops())
+        return await super().cog_unload()
+
+    async def _unregister_loops(self) -> None:
+        """Unregisters all the loops in the cog when the bot is unloaded."""
+        for loop in self.__loop_functions:
+            if loop.is_running():
+                loop.stop()
+        
+        return None
 
     def __init_subclass__(cls: Type[CogU], **kwargs: Any) -> None:
         """This is called when a subclass is created.
@@ -50,6 +73,7 @@ class CogU(Cog):
 
         super().__init__(*args, **kwargs)
 
+    
     @property
     def logger(self):
         return logging.getLogger(f"{__name__}.{self.__class__.__name__}")
@@ -107,3 +131,5 @@ class CogU(Cog):
             The command mention string.
         """
         return await self.bot.get_command_mention(command)
+
+    
