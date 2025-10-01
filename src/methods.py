@@ -4,7 +4,18 @@ import datetime
 import difflib
 from functools import lru_cache
 import time
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Literal, Optional, Sequence, Tuple, Union
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    List,
+    Literal,
+    Optional,
+    Sequence,
+    TYPE_CHECKING,
+    Tuple,
+    Union,
+)
 from urllib.parse import urlencode
 import uuid
 
@@ -15,8 +26,13 @@ from discord.ext import commands
 from discord.ext.commands import Bot
 from discord.utils import MISSING
 
-
-from .constants import CODEBLOCK_LANGUAGES, CodeblockLanguage, DISCORD_FILE_SIZE_LIMIT, RE_URL, emojidict
+from .constants import (
+    CODEBLOCK_LANGUAGES,
+    CodeblockLanguage,
+    DISCORD_FILE_SIZE_LIMIT,
+    RE_URL,
+    emojidict,
+)
 from .enums import IntegrationType
 from .views import SendModalView
 
