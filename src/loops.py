@@ -4,7 +4,7 @@ import inspect
 from typing import Any, Callable, Generic, Literal, Optional, Sequence, Union
 
 from discord.ext.tasks import LF, Loop
-from discord.utils import MISSING
+from discord.utils import MISSING, cached_property
 
 from .cog import CogU
 from .methods import get_any_key
@@ -22,8 +22,10 @@ class MaybeManagedLoop(Loop, Generic[LF]):
     This object adds a couple extra parameters/attributes to allow for the managing of the loop, such as if it should be ignored or not managed.
     """
 
-    _ignore_management: bool = False
+    _managed: bool = False
     """If you do not want this cog to be loaded/unloaded by the cog, set this to True."""
+
+    _disabled: bool = False
 
     _load_when: Optional[Literal["cog_load", "on_ready"]] = "on_ready"
     """Sets when the loop should be started.
@@ -33,16 +35,39 @@ class MaybeManagedLoop(Loop, Generic[LF]):
     """
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        _, ignore_management_key: str = get_any_key(["ignore_management", "disabled", "ignored"], kwargs, default=None, try_spaces=True) # type: ignore STRINGS ARE HASHABLE STUPID TYPE CHECKER
+        _, ignore_management_key: str = get_any_key(["ignore_management", "managed", "is_managed"], kwargs, default=None, try_spaces=True) # type: ignore STRINGS ARE HASHABLE STUPID TYPE CHECKER
         if ignore_management_key:
-            self._ignore_management = kwargs.pop(ignore_management_key)
+            self._managed = kwargs.pop(ignore_management_key)
         
+        _, disabled_key: str = get_any_key(["is_disabled", "disabled", "ignored", "is_ignored"], kwargs, default=None, try_spaces=True) # type: ignore STRINGS ARE HASHABLE STUPID TYPE CHECKER
+        if disabled_key:
+            self._disabled = kwargs.pop(disabled_key)
 
         _, load_when_key: str = get_any_key(["load_when", "start_when"], kwargs, default=None, try_spaces=True) # type: ignore STRINGS ARE HASHABLE STUPID TYPE CHECKER
         if load_when_key:
             self._load_when = kwargs.pop(load_when_key)
 
         super().__init__(*args, **kwargs)
+
+    @cached_property
+    def is_managed(self) -> bool:
+        """Whether the loop is managed by a cog."""
+        return not self._managed
+    
+    @cached_property
+    def is_disabled(self) -> bool:
+        """Whether the loop is disabled from being started automatically."""
+        return self._disabled
+
+    @cached_property
+    def load_when(self) -> Optional[Literal["cog_load", "on_ready"]]:
+        """When the loop should be started."""
+        return self._load_when
+
+    def _should_load(self) -> bool:
+        """Whether the loop should be loaded/managed.
+        If the loop is disabled or set as not being managed, returns False."""
+        return not self._disabled and not self._managed
 
     # def __set_name__(self, owner: Type[Any], name: str) -> None:
     #     """Registers the loop to the cog."""
@@ -69,6 +94,9 @@ def loop(
     count: Optional[int] = None,
     reconnect: bool = True,
     name: Optional[str] = None,
+    disabled: bool = False,
+    managed: bool = False,
+
 ) -> Callable[[LF], MaybeManagedLoop[LF]]:
     """A decorator that schedules a task in the background for you with
     optional reconnect logic. The decorator returns a :class:`Loop`.
@@ -107,6 +135,21 @@ def loop(
         such as ``discord-ext-tasks: function_name``.
 
         .. versionadded:: 2.4
+    
+    disabled: :class:`bool`
+        Whether the loop should be disabled from being started automatically.
+        If set to True, the loop will not be started when the cog is loaded.
+        Default is False.
+    
+    managed: :class:`bool`
+        Whether the loop should be managed by the cog it is defined in.
+        If set to True, the loop will be started and stopped when the cog is loaded and unloaded.
+        Default is False.
+    
+    .. note::
+        If the decorated function is an instance method of a subclass of :class:`CogU`
+        and ``managed`` is set to ``True``, the loop will automatically be registered
+        to the cog it is defined in.
 
     Raises
     --------
@@ -142,6 +185,8 @@ def loop(
             time=time,
             reconnect=reconnect,
             name=name,
+            disabled=disabled,
+            ignore_management=not managed,
         )
 
         if expects_self and func_class is not None:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 import logging
-from typing import Any, Optional, ParamSpec, Type, TypeVar, Union, List
+from typing import Any, Optional, ParamSpec, Type, TypeVar, Union, List, TYPE_CHECKING
 import uuid
 
 import aiohttp
@@ -10,6 +10,9 @@ from discord.ext.tasks import Loop
 
 from .bot import BotU
 from .requests_http import _delete, _get, _patch, _post, _put
+
+if TYPE_CHECKING:
+    from .loops import MaybeManagedLoop
 
 # fmt: off
 __all__ = (
@@ -27,17 +30,38 @@ class CogU(Cog):
     """
 
     __loop_functions: List[Loop] = []
+    """List of all the loop functions in the cog. All loops, including non-managed and ignored loops, are included."""
+
+    __loops: List[Loop] = []
+    """This is a list of all the managed loops in the cog that are running. Non-managed and ignored loops are not included."""
+
     hidden: bool
     emoji: Optional[str]
     brief: Optional[str]
 
     @commands.Cog.listener("on_ready")
-    async def register_loops(self) -> None:
+    async def _register_on_ready_loops(self) -> None:
     #def cog_load(self) -> None:
         """Registers all the loops in the cog to start after the bot is ready."""
         for loop in self.__loop_functions:
+            if isinstance(loop, MaybeManagedLoop) and (not loop._should_load() or loop.load_when != "on_ready"):
+                # in order to not be managed, you have to be using the subclass and set the attribute
+                continue
             if not loop.is_running():
                 loop.start()
+                self.__loops.append(loop)
+        return None
+
+    async def cog_load(self) -> None:
+        """Registers all the loops in the cog when the cog is loaded."""
+        for loop in self.__loop_functions:
+            if isinstance(loop, MaybeManagedLoop) and (not loop._should_load() or loop.load_when != "cog_load"):
+                # in order to not be managed, you have to be using the subclass and set the attribute
+                continue
+            if not loop.is_running():
+                loop.start()
+                self.__loops.append(loop)
+        return await super().cog_load()
 
     #@commands.Cog.listener("on_unload")
     async def cog_unload(self) -> None:
@@ -47,10 +71,18 @@ class CogU(Cog):
 
     async def _unregister_loops(self) -> None:
         """Unregisters all the loops in the cog when the bot is unloaded."""
-        for loop in self.__loop_functions:
-            if loop.is_running():
-                loop.stop()
-        
+
+        # we now store the running loops, no need to go through all of them
+        # for loop in self.__loop_functions:
+        #     if isinstance(loop, MaybeManagedLoop) and not loop.is_managed:
+        #         # in order to not be managed, you have to be using the subclass and set the attribute
+        #         continue
+    
+        for loop in self.__loops:
+            if loop.is_running() and loop._can_be_cancelled(): # should i be using this private method? if not i guess i could implement it myself in my subclass
+                loop.stop() # allows it to finish before stopping
+                #loop.cancel() # stops immediately, even if mid-execution
+
         return None
 
     def __init_subclass__(cls: Type[CogU], **kwargs: Any) -> None:
