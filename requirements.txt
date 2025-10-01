@@ -1,12 +1,13 @@
 aiohttp
-discord.py @ git+https://github.com/Rapptz/discord.py
 discord-ext-menus
+discord.py @ git+https://github.com/Rapptz/discord.py
 emoji
 fuzzywuzzy # i promise, this exists for a good reason
 jishaku
 lru-dict
 numpydoc
 parsedatetime
+pytest==8.4.2
 python-dateutil
 python-environ
 python-Levenshtein
