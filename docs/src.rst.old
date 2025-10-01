@@ -1,0 +1,149 @@
+src package
+===========
+
+Submodules
+----------
+
+src.bot module
+--------------
+
+.. automodule:: src.bot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+src.checks module
+-----------------
+
+.. automodule:: src.checks
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+src.cog module
+--------------
+
+.. automodule:: src.cog
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+src.command module
+------------------
+
+.. automodule:: src.command
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+src.constants module
+--------------------
+
+.. automodule:: src.constants
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+src.context module
+------------------
+
+.. automodule:: src.context
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+src.converters module
+---------------------
+
+.. automodule:: src.converters
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+src.danny\_formats module
+-------------------------
+
+.. automodule:: src.danny_formats
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+src.danny\_time module
+----------------------
+
+.. automodule:: src.danny_time
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+src.enums module
+----------------
+
+.. automodule:: src.enums
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+src.help\_command module
+------------------------
+
+.. automodule:: src.help_command
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+src.logger module
+-----------------
+
+.. automodule:: src.logger
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+src.methods module
+------------------
+
+.. automodule:: src.methods
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+src.paginator module
+--------------------
+
+.. automodule:: src.paginator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+src.requests\_http module
+-------------------------
+
+.. automodule:: src.requests_http
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+src.tree module
+---------------
+
+.. automodule:: src.tree
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+src.views module
+----------------
+
+.. automodule:: src.views
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: src
+   :members:
+   :undoc-members:
+   :show-inheritance:

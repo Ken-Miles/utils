@@ -5,7 +5,6 @@ https://gist.github.com/Soheab/891c39d7294b1bdbadc7ecf35ce51cc5#file-1-how-to-md
 
 from __future__ import annotations
 
-import datetime
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -18,7 +17,7 @@ from typing import (
 )
 
 import discord
-from discord import Interaction, ui
+from discord import Interaction
 
 from . import emojidict
 from .context import ContextU

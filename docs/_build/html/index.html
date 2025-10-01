@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to Ken’s Utils</title> 
+  <!-- end extra head -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+  <link rel="stylesheet" type="text/css" href="_static/basic.css" />
+  <link rel="stylesheet" type="text/css" href="_static/tabs.css" />
+  <link rel="stylesheet" href="_static/style.css" type="text/css" />
+  <link rel="stylesheet" href="_static/codeblocks.css" type="text/css" />
+  <link rel="stylesheet" href="_static/icons.css" type="text/css" />
+  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+  <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+  <script src="_static/jquery.js"></script>
+  <script src="_static/underscore.js"></script>
+  <script src="_static/doctools.js"></script>
+  <script src="_static/tabs.js"></script>
+  <script src="_static/custom.js"></script>
+  <script src="_static/settings.js"></script>
+  <script src="_static/copy.js"></script>
+  <script src="_static/sidebar.js"></script>
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" />
+  <link rel="next" title="API Reference" href="subclasses.html" />
+</head>
+<body>
+  <div class="main-grid">
+    <header class="grid-item">
+      <nav>
+        <a href="#" class="main-heading">utils</a>
+        <a href="https://github.com/Ken-Miles/utils" title="GitHub"><span class="material-icons custom-icons">github</span></a>
+        <a href="faq.html" title="FAQ"><span class="material-icons">help_center</span></a>
+        <a onclick="mobileSearch.open();" title="Search" id="open-search" class="mobile-only"><span class="material-icons">search</span></a>
+        <a onclick="mobileSearch.close();" title="Close" id="close-search" class="mobile-only" hidden><span class="material-icons">close</span></a>
+      </nav>
+      <nav class="mobile-only">
+        <form role="search" class="search" action="search.html" method="get">
+          <div class="search-wrapper">
+            <input type="search" name="q" placeholder="Search documentation" />
+            <button type="submit">
+              <span class="material-icons">search</span>
+            </button>
+          </div>
+        </form>
+      </nav>
+    </header>
+    <div class="sub-header grid-item">
+      <label for="documentation_select">View Documentation For</label>
+      <select id="documentation_select" onchange="window.location = this.value;">
+        <option value="#" selected>discord</option>
+      </select>
+      <form id="search-form" role="search" class="search" action="search.html" method="get">
+        <div class="search-wrapper">
+          <input type="search" name="q" placeholder="Search documentation" />
+          <button type="submit" onmousedown="searchBarClick(event, document.getElementById('search-form'));">
+            <span class="material-icons">search</span>
+          </button>
+        </div>
+      </form>
+      <a accesskey="S" class="settings" onclick="settingsModal.open();"><span class="material-icons">settings</span></a>
+    </div>
+    <aside class="grid-item">
+      <span id="settings-toggle" class="settings" onclick="settingsModal.open();">
+        <span class="material-icons">settings</span>
+      </span>
+      <div id="sidebar">
+        <form id="sidebar-form" role="search" class="search" action="search.html" method="get">
+        <div class="search-wrapper search-sidebar">
+          <input type="search" name="q" placeholder="Search documentation" />
+          <button type="submit" onmousedown="searchBarClick(event, document.getElementById('sidebar-form'));">
+            <span class="material-icons">search</span>
+          </button>
+        </div>
+      </form>
+      </div>
+    </aside>
+    <main class="grid-item" role="main">
+      
+  <section id="welcome-to-ken-s-utils">
+<h1>Welcome to Ken’s Utils<a class="headerlink" href="#welcome-to-ken-s-utils" title="Permalink to this headline">¶</a></h1>
+<p>Ken’s Utils is a <a class="reference external" href="https://github.com/">GitHub</a>  <a class="reference external" href="https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-template-repository">Public Template repository</a> that provides simple and easy* to use utilities for <a class="reference external" href="https://discordpy.readthedocs.io/en/stable/">discord.py</a>.</p>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="subclasses.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="subclasses.html#main-library-subclasses">Main Library Subclasses</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="subclasses.html#bot-subclasses">Bot Subclasses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="subclasses.html#context-subclasses">Context Subclasses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="subclasses.html#cog-subclasses">Cog Subclasses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="subclasses.html#command-subclasses">Command Subclasses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="subclasses.html#converter-subclasses">Converter Subclasses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="subclasses.html#custom-enums">Custom Enums</a></li>
+<li class="toctree-l2"><a class="reference internal" href="subclasses.html#paginators">Paginators</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="subclasses.html#other-utilities">Other Utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="subclasses.html#embed-related-methods">Embed-related methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="subclasses.html#formatting-methods">Formatting methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="subclasses.html#autocomplete-methods">Autocomplete methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="subclasses.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+    </main>
+    <footer class="grid-item">
+        &#169; Copyright 2024, Ken Miles.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.4.0.
+     Documentation layout and theme <s>taken</s> inspired by <a href="https://discordpy.readthedocs.io/">discord.py docs</a>.
+    </footer>
+  </div>
+
+  <div id="settings" class="modal" onclick="if (event.target == this){ settingsModal.close(); }" hidden>
+    <div class="modal-content">
+      <span class="close" onclick="settingsModal.close();" title="Close">
+        <span class="material-icons">close</span>
+      </span>
+      <h1>Settings</h1>
+
+      <h2>Font</h2>
+      <div class="setting">
+        <h3>Use a serif font:
+          <label class="toggle"
+            title="Use a serif font? Your system font will be used, falling back to serif.">
+            <input type="checkbox" name="useSerifFont" onclick="updateSetting(this);">
+            <span class="toggle-slider"></span>
+          </label>
+        </h3>
+      </div>
+
+      <h2>Theme</h2>
+      <div class="setting">
+        <h3>
+          <label class="toggle" title="Set your theme based on your system preferences">
+            <input type="radio" name="setTheme" onclick="updateSetting(this);" value="automatic" checked>
+          </label>
+          Automatic
+        </h3>
+        <h3>
+          <label class="toggle" title="Set your theme to light theme">
+            <input type="radio" name="setTheme" onclick="updateSetting(this);" value="light">
+          </label>
+          Light
+        </h3>
+        <h3>
+          <label class="toggle" title="Set your theme to dark theme">
+            <input type="radio" name="setTheme" onclick="updateSetting(this);" value="dark">
+          </label>
+          Dark
+        </h3>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="to-top" onclick="scrollToTop()" hidden>
+    <span><span class="material-icons">arrow_upward</span>to top</span>
+  </div>
+
+</body>
+</html>
