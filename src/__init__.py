@@ -21,6 +21,7 @@ from .enums import *
 from .converters import *
 from .bot import *
 from .cog import *
+from .loops import * # cog
 
 from .danny_caches import * # context
 from .danny_formats import * # context
