@@ -9,6 +9,12 @@ from discord.utils import MISSING
 from .cog import CogU
 from .methods import get_any_key
 
+# fmt: off
+__all__ = (
+    'MaybeManagedLoop',
+    'loop',
+)
+# fmt: on
 
 class MaybeManagedLoop(Loop, Generic[LF]):
     """A subclass of Loop that registers itself to the cog it is defined in, if the cog is a subclass of :class:`CogU`.
