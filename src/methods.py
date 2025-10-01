@@ -1,12 +1,16 @@
 from __future__ import annotations
+import asyncio
 from collections import Counter
 import datetime
 import difflib
 from functools import lru_cache
+import inspect
 import time
 from typing import (
     Any,
+    Callable,
     Dict,
+    Hashable,
     Iterable,
     List,
     Literal,
@@ -24,6 +28,7 @@ from discord import app_commands
 from discord.abc import Snowflake
 from discord.ext import commands
 from discord.ext.commands import Bot
+from discord.ext.tasks import LF, Loop
 from discord.utils import MISSING
 
 from .constants import (
@@ -440,8 +445,56 @@ def dchyperlink(
 
     return f"{texttoclick}({url}{hovertext})"
 
+def get_any_key(keys: Iterable[Hashable], d: Dict[Hashable, Any], *, default: Any=None, case_sensitive: bool = False, try_spaces: bool = False) -> Any:
+    """Tries to get any key from the provided dictionary. 
+
+    Parameters
+    ----------
+    keys : Iterable[:class:`Hashable`]
+        The keys to try to get from the dictionary.
+    d : Dict[:class:`Hashable`, :class:`Any`]
+        The dictionary to get the keys from.
+    default : :class:`Any`
+        The default value to return if none of the keys are found.
+    case_sensitive : :class:`bool`
+        Whether to perform a case sensitive search. Defaults to ``False``.
+    try_spaces : :class:`bool`
+
+        Whether to try replacing separator characters (such as spaces, underscores, etc.) in the keys. Defaults to ``False``.
+    Returns
+    -------
+    :class:`Any`
+        The value of the first key found in the dictionary, or the default value if none of the keys are found. If no keys are found, returns `default` (or None if default is not provided).
+    """
+    
+    for key in keys:
+        search_key = key
+        if not case_sensitive and isinstance(search_key, str):
+            search_key = search_key.lower()
+            d_keys: Dict = {k.lower(): v for k, v in d.items() if isinstance(k, str)}
+        else:
+            d_keys: Dict = d
+        
+        if try_spaces and isinstance(search_key, str):
+            SPACING_CHARS = [" ", "_", "-"]
+            possible_keys = set()
+            possible_keys.add(search_key)
+            for spacing_char in SPACING_CHARS:
+                for other_spacing_char in SPACING_CHARS:
+                    if spacing_char == other_spacing_char:
+                        continue
+                possible_keys.add(search_key.replace(spacing_char, other_spacing_char))
+            for pk in possible_keys:
+                if pk in d_keys:
+                    return d_keys[pk]
+        else:
+            if search_key in d_keys:
+                return d_keys.get(search_key, default) # should never default here but just in case it does
+    
+    return default
+
 async def create_codeblock(content: Union[str, app_commands.locale_str], lang: CodeblockLanguage = "py") -> str:
-    """Creates a codeblock formatted for Discord.
+    """Creates a codeblock for formatted for Discord.
 
     Parameters
     ----------
@@ -775,3 +828,97 @@ def get_copyable_slash_command_format(qualified_name: str, kwargs: Dict[str, Uni
         actual_kwargs[key] = value
 
     return f"/{qualified_name} {' '.join([k+':'+str(v) for k, v in actual_kwargs.items()])}"
+
+#@discord.utils.copy_doc(tasks.loop)
+def loop(
+    *,
+    seconds: float = MISSING,
+    minutes: float = MISSING,
+    hours: float = MISSING,
+    time: Union[datetime.time, Sequence[datetime.time]] = MISSING,
+    count: Optional[int] = None,
+    reconnect: bool = True,
+    name: Optional[str] = None,
+) -> Callable[[LF], Loop[LF]]:
+    """A decorator that schedules a task in the background for you with
+    optional reconnect logic. The decorator returns a :class:`Loop`.
+
+    Parameters
+    ------------
+    seconds: :class:`float`
+        The number of seconds between every iteration.
+    minutes: :class:`float`
+        The number of minutes between every iteration.
+    hours: :class:`float`
+        The number of hours between every iteration.
+    time: Union[:class:`datetime.time`, Sequence[:class:`datetime.time`]]
+        The exact times to run this loop at. Either a non-empty list or a single
+        value of :class:`datetime.time` should be passed. Timezones are supported.
+        If no timezone is given for the times, it is assumed to represent UTC time.
+
+        This cannot be used in conjunction with the relative time parameters.
+
+        .. note::
+
+            Duplicate times will be ignored, and only run once.
+
+        .. versionadded:: 2.0
+
+    count: Optional[:class:`int`]
+        The number of loops to do, ``None`` if it should be an
+        infinite loop.
+    reconnect: :class:`bool`
+        Whether to handle errors and restart the task
+        using an exponential back-off algorithm similar to the
+        one used in :meth:`discord.Client.connect`.
+    name: Optional[:class:`str`]
+        The name to assign to the internal task. By default
+        it is assigned a name based off of the callable name
+        such as ``discord-ext-tasks: function_name``.
+
+        .. versionadded:: 2.4
+
+    Raises
+    --------
+    ValueError
+        An invalid value was given.
+    TypeError
+        The function was not a coroutine, an invalid value for the ``time`` parameter was passed,
+        or ``time`` parameter was passed in conjunction with relative time parameters.
+    """
+
+    def decorator(func: LF) -> Loop[LF]:
+        sig = inspect.signature(func)
+        params = list(sig.parameters.values())
+
+        # Heuristic: treat a leading parameter literally named "self" as an instance-method style
+        expects_self = bool(
+            params
+            and params[0].name == "self"
+            and params[0].kind in (inspect.Parameter.POSITIONAL_ONLY,
+                                   inspect.Parameter.POSITIONAL_OR_KEYWORD)
+        )
+        if not asyncio.iscoroutinefunction(func) and not expects_self:
+            raise TypeError("Looped function must be a coroutine function.")
+        
+        func_class = params[0].annotation if expects_self else None
+
+        loop_object = Loop[LF](
+            func,
+            seconds=seconds,
+            minutes=minutes,
+            hours=hours,
+            count=count,
+            time=time,
+            reconnect=reconnect,
+            name=name,
+        )
+
+        if expects_self and func_class is not None:
+            if isinstance(func_class, CogU):
+                func_class.__loop_functions = getattr(func_class, '__loop_functions', [])
+                func_class.__loop_functions.append(loop_object)
+
+        return loop_object
+
+    return decorator
