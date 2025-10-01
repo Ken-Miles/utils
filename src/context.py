@@ -4,6 +4,7 @@ from typing import Optional, ParamSpec, TYPE_CHECKING, TypeVar, Union
 
 import discord
 from discord.ext import commands
+import logging
 
 from . import LOADING_EMOJI, USE_DEFER_EMOJI
 from .methods import get_max_file_upload_limit
@@ -23,6 +24,9 @@ __all__ = (
     'prompt',
 )
 # fmt: on
+
+
+logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 P = ParamSpec("P")
@@ -305,7 +309,16 @@ async def prompt(
         if interaction.response.is_done():
             view.message = await interaction.followup.send(**message_kwargs, view=view, ephemeral=delete_after)
         else:
-            view.message = await interaction.response.send_message(**message_kwargs, view=view, ephemeral=delete_after)
+            response = await interaction.response.send_message(**message_kwargs, view=view, ephemeral=delete_after)
+            if isinstance(response, discord.Message):
+                view.message = response
+            elif isinstance(response, discord.InteractionCallbackResponse):
+                if isinstance(response.resource, discord.InteractionMessage): # this is a subclass of discord.Message, but just in case it ever isn't we run it here
+                    view.message = response.resource
+                else:
+                    # If the resource is not an InteractionMessage, we can't use it. This somehow launched an activity or did something else
+                    logger.warning("prompt function received an unexpected interaction response resource type. Falling back to followup.")
+            
         await view.wait()
         return view.value
     
