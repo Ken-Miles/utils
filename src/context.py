@@ -6,7 +6,11 @@ import discord
 from discord.ext import commands
 import logging
 
-from . import LOADING_EMOJI, USE_DEFER_EMOJI
+try:
+    from . import LOADING_EMOJI, USE_DEFER_EMOJI
+except ImportError:
+    LOADING_EMOJI = None
+    USE_DEFER_EMOJI = False
 from .methods import get_max_file_upload_limit
 from .views import CustomBaseView
 

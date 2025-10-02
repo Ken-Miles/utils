@@ -19,7 +19,11 @@ from typing import (
 import discord
 from discord import Interaction
 
-from . import emojidict
+try:
+    from . import emojidict
+except ImportError:
+    emojidict = {}
+
 from .context import ContextU
 from .paginatorv1 import GoToPageButton
 # fmt: off

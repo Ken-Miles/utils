@@ -4,7 +4,14 @@ from typing import Union
 
 import aiohttp
 
-from .constants import BLOXLINK_API_KEY, HTTPCode, ROVER_API_KEY
+from .constants import HTTPCode
+
+try:
+    from .constants import BLOXLINK_API_KEY, ROVER_API_KEY
+except ImportError:
+    BLOXLINK_API_KEY = None
+    ROVER_API_KEY = None
+
 from .enums import RequestType
 from .logger import requests_logger
 
