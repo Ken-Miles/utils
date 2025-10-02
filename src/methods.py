@@ -10,7 +10,6 @@ from typing import (
     Hashable,
     Iterable,
     List,
-    Literal,
     Optional,
     Sequence,
     TYPE_CHECKING,
