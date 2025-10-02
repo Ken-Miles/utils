@@ -2920,7 +2920,11 @@ RE_SNOWFLAKE = re.compile(r"^[0-9]{15,19}$")
 
 RE_DCTIMESTAMP = re.compile(r"^<t:(?P<timestamp>[0-9]+)(?::(?P<style>[tTdDfFR]))?>$")
 
-DISCORD_EPOCH = 1420070400000
+DISCORD_EPOCH_MS = 1420070400000   # 2015-01-01T00:00:00Z
+DISCORD_EPOCH = DISCORD_EPOCH_MS # it was always ms, keep this so it's not a breaking change
+
+DISCORD_EPOCH_SECONDS = DISCORD_EPOCH_MS // 1000
+
 
 TRUSTED_USERS = []
 
@@ -2948,60 +2952,76 @@ else:
     BLOXLINK_API_KEY = None
     ROVER_API_KEY = None
 
-
 class Snowflake:
-    __binary: str
-    __epoch: int
+    __value: int
+    __epoch_ms: int
 
     @classmethod
-    def from_binary(cls, binary: str):
-        return cls(cls.binary_to_decimal(binary))
+    def from_binary(cls, binary: str, *, discord_snowflake: bool = False, custom_epoch: Union[int, float] = 0):
+        return cls(int(binary, 2), discord_snowflake=discord_snowflake, custom_epoch=custom_epoch)
 
     def __init__(
         self,
         snowflake: Union[str, int],
         *,
         discord_snowflake: bool = False,
-        custom_epoch: int = 0,
+        custom_epoch: Union[int, float] = 0,
     ):
-        if isinstance(snowflake, str):
-            snowflake = int(snowflake.strip())
+        self.__value = int(str(snowflake).strip())
+
         if discord_snowflake:
-            self.__epoch = DISCORD_EPOCH
+            self.__epoch_ms = DISCORD_EPOCH_MS
         else:
-            self.__epoch = custom_epoch
+            self.__epoch_ms = self.__class__._normalize_epoch_ms(custom_epoch)
 
-        self.__binary = bin(snowflake)[2:]
+    @classmethod
+    def _normalize_epoch_ms(cls, epoch: Union[int, float]) -> int:
+        """
+        Accept epoch in *either* seconds or milliseconds.
+        Heuristic: >= 1e11 -> already ms; otherwise treat as seconds.
+        """
+        if epoch is None:
+            return 0
+        epoch = float(epoch)
+        if epoch >= 1e11:         # looks like milliseconds
+            return int(epoch)
+        else:                      # looks like seconds
+            return int(epoch * 1000)
 
-    def __int__(self) -> int:
-        return int(self.__binary)
+    @property
+    def timestamp_ms(self) -> int:
+        # top 42 bits (ms since CUSTOM/DISCORD epoch), then offset by normalized epoch (ms)
+        return (self.__value >> 22) + self.__epoch_ms
 
     @property
     def datetime(self) -> datetime.datetime:
-        return datetime.datetime.fromtimestamp(
-            self.__class__.binary_to_decimal(self.__binary) + self.__epoch / 1000
-        )  # divide by 1000 to get seconds (from milliseconds)
+        # naive UTC; use tz=datetime.timezone.utc if you want aware datetimes
+        return datetime.datetime.fromtimestamp(self.timestamp_ms / 1000).astimezone(datetime.timezone.utc)
 
     @property
     def worker_id(self) -> int:
-        return int(self.__binary[-22:-17], 2)
+        return (self.__value >> 17) & 0b11111
 
     @property
     def process_id(self) -> int:
-        return int(self.__binary[-17:-12], 2)
+        return (self.__value >> 12) & 0b11111
 
     @property
     def increment(self) -> int:
-        return int(self.__binary[-12:])
+        return self.__value & 0xFFF
 
     @property
     def binary(self) -> str:
-        return self.__binary
+        return format(self.__value, "064b")
 
     @property
     def epoch(self) -> int:
-        return self.__epoch
+        # kept for compatibility; returns milliseconds
+        return self.__epoch_ms
 
-    @classmethod
-    def binary_to_decimal(cls, n: str):
+    def __int__(self) -> int:
+        return self.__value
+
+    @staticmethod
+    def binary_to_decimal(n: str) -> int:
         return int(n, 2)
