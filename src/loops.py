@@ -35,15 +35,15 @@ class MaybeManagedLoop(Loop, Generic[LF]):
     """
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        _, ignore_management_key: str = get_any_key(["ignore_management", "managed", "is_managed"], kwargs, default=None, try_spaces=True) # type: ignore STRINGS ARE HASHABLE STUPID TYPE CHECKER
+        _, ignore_management_key = get_any_key(["ignore_management", "managed", "is_managed"], kwargs, default=None, try_spaces=True) # type: ignore STRINGS ARE HASHABLE STUPID TYPE CHECKER
         if ignore_management_key:
             self._managed = kwargs.pop(ignore_management_key)
-        
-        _, disabled_key: str = get_any_key(["is_disabled", "disabled", "ignored", "is_ignored"], kwargs, default=None, try_spaces=True) # type: ignore STRINGS ARE HASHABLE STUPID TYPE CHECKER
+    
+        _, disabled_key = get_any_key(["is_disabled", "disabled", "ignored", "is_ignored"], kwargs, default=None, try_spaces=True) # type: ignore STRINGS ARE HASHABLE STUPID TYPE CHECKER
         if disabled_key:
             self._disabled = kwargs.pop(disabled_key)
 
-        _, load_when_key: str = get_any_key(["load_when", "start_when"], kwargs, default=None, try_spaces=True) # type: ignore STRINGS ARE HASHABLE STUPID TYPE CHECKER
+        _, load_when_key = get_any_key(["load_when", "start_when"], kwargs, default=None, try_spaces=True) # type: ignore STRINGS ARE HASHABLE STUPID TYPE CHECKER
         if load_when_key:
             self._load_when = kwargs.pop(load_when_key)
 
