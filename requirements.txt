@@ -7,8 +7,6 @@ jishaku
 lru-dict
 numpydoc
 parsedatetime
-pytest-asyncio
-pytest==8.4.2
 python-dateutil
 python-environ
 python-Levenshtein
