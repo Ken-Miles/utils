@@ -441,6 +441,40 @@ def dchyperlink(
 
     return f"{texttoclick}({url}{hovertext})"
 
+def parse_discord_snowflake(snowflake: Union[str, int]) -> Snowflake:
+    """Returns a :class:`Snowflake` object from a Discord snowflake.
+    See [this](https://i.imgur.com/UxWvdYD.png) image for more information.
+
+    Parameters
+    ----------
+    snowflake: Union[:class:`str`, :class:`int`]
+        The snowflake to parse.
+
+    Returns
+    -------
+    :class:`discord.Snowflake`
+        The parsed snowflake.
+    """
+    return Snowflake(snowflake=snowflake, discord_snowflake=True)
+
+@discord.utils.copy_doc(parse_discord_snowflake)
+def snowflake_timestamp(snowflake: Union[int, str]) -> datetime.datetime:
+    """Parses a Discord snowflake and returns the creation date in UTC.
+    Wrapper for :func:`discord.utils.parse_discord_snowflake`.
+
+    Parameters
+    ----------
+    snowflake: Union[:class:`str`, :class:`int`]
+        The snowflake to parse.
+
+    Returns
+    -------
+    :class:`datetime.datetime`
+        The creation date of the snowflake.
+    """
+
+    return parse_discord_snowflake(snowflake).datetime
+
 def get_any_key(keys: Iterable[Hashable], d: Dict[Hashable, Any], *, default: Any=None, case_sensitive: bool = False, try_spaces: bool = False) -> Tuple[Any, Hashable]:
     """Tries to get any key from the provided dictionary. 
 
