@@ -3,6 +3,7 @@
 *.code-workspace
 .vscode/
 
+
 # ignore testing files (files starting w/ an _) but not __init__
 _*.html
 _*.py
@@ -22,6 +23,7 @@ data visualization/
 *.pyc
 *.xz
 Python-3.10.0/
+.pytest_cache/
 
 # ignore logs + secret files
 *.txt
