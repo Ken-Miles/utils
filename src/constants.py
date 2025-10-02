@@ -33,8 +33,6 @@ __all__ = (
     'USE_DEFER_EMOJI',
     'formatter',
     'Snowflake',
-    'parse_discord_snowflake',
-    'snowflake_timestamp',
     'permission_descriptions',
     'permission_proper_names',
     'misc_flag_descriptions',
