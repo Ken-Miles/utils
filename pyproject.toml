@@ -57,6 +57,9 @@ test = [
     "pytest-asyncio",
     "pytest-cov",
     "pytest-mock",
+    "pytest-asyncio",
+    "pytest-order",
+    "pytest==8.4.2",
     "typing-extensions>=4.3,<5",
     "tzdata; sys_platform == 'win32'",
 ]
@@ -99,4 +102,12 @@ pythonVersion = "3.10"
 typeCheckingMode = "basic"
 
 [tool.pytest.ini_options]
+minversion = "6.0"
+addopts = [
+    "--import-mode=importlib",
+    #"-ra -q"
+]
+testpaths = [
+    "tests",
+]
 asyncio_mode = "strict"
