@@ -1,8 +1,7 @@
-from typing import List, Optional
+from typing import Optional
 
 import discord
 from discord import ui
-from discord.abc import MISSING
 
 # fmt: off
 __all__ = (
