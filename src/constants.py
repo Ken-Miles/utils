@@ -2953,9 +2953,9 @@ class Snowflake:
     __binary: str
     __epoch: int
 
-    @staticmethod
-    def from_binary(binary: str):
-        return Snowflake(__class__.binary_to_decimal(binary))
+    @classmethod
+    def from_binary(cls, binary: str):
+        return cls(cls.binary_to_decimal(binary))
 
     def __init__(
         self,
@@ -3002,6 +3002,6 @@ class Snowflake:
     def epoch(self) -> int:
         return self.__epoch
 
-    @staticmethod
-    def binary_to_decimal(n: str):
+    @classmethod
+    def binary_to_decimal(cls, n: str):
         return int(n, 2)
