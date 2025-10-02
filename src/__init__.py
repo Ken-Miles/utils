@@ -2,9 +2,16 @@ __title__ = 'Utils'
 __author__ = 'Ken-Miles'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2023-present Ken-Miles'
-__version__ = '2.1.0'
+__version__ = '2.2.0'
 
-__path__ = __import__('pkgutil').extend_path(__path__, __name__)
+# ensure that __path__ exists, it sometimes won't while running tests
+try:
+    from pkgutil import extend_path
+    __path__  # raises NameError if not a package yet
+except NameError:
+    pass
+else:
+    __path__ = extend_path(__path__, __name__)
 
 from .constants import * # logger
 from .logger import *
@@ -35,7 +42,7 @@ from .methods import *
 from .cogs.error_handler import *
 
 # check if custom_constants exists, if so import
-try: 
+try:
     from .custom_constants import * # type: ignore
     emojidict = constants.emojidict
 except ImportError: 
