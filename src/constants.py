@@ -2979,7 +2979,7 @@ class Snowflake:
     @property
     def datetime(self) -> datetime.datetime:
         return datetime.datetime.fromtimestamp(
-            __class__.binary_to_decimal(self.__binary) + self.__epoch / 1000
+            self.__class__.binary_to_decimal(self.__binary) + self.__epoch / 1000
         )  # divide by 1000 to get seconds (from milliseconds)
 
     @property
