@@ -22,7 +22,7 @@ import uuid
 
 import discord
 from discord import app_commands
-from discord.abc import Snowflake
+from discord.abc import Snowflake as DiscordSnowflake
 from discord.ext import commands
 from discord.ext.commands import Bot
 from discord.utils import MISSING
@@ -33,6 +33,7 @@ from .constants import (
     DISCORD_FILE_SIZE_LIMIT,
     RE_URL,
     emojidict,
+    Snowflake,
 )
 from .enums import IntegrationType
 from .views import SendModalView
@@ -347,14 +348,16 @@ def makeembed_successfulaction(
     return emb
 
 
-timestamptype = Literal["t", "T", "d", "D", "f", "F", "R"]
-
+#timestamptype = Literal["t", "T", "d", "D", "f", "F", "R"]
+timestamptype = discord.utils.TimestampStyle # helps with type checking when using inplace replacement for discord.utils.format_dt
+ 
 #@discord.utils.copy_doc(discord.utils.format_dt)
 def dctimestamp(
-    dt: Union[datetime.datetime, int, float], format: timestamptype = "f"
+    dt: Union[datetime.datetime, int, float], format: Optional[timestamptype] = "f"
 ) -> str:
     """Formats a timestamp for Discord.
     This method functions similar to :meth:`discord.utils.format_dt`, except it can also accepts a :class:`int` or :class:`float` as the timestamp.
+    In addition, if no format/style is specified, it uses the "f" format by default instead of no format at all.
 
     Discord Timestamps allows for a locale-independent way of presenting data using Discord specific Markdown.
 
@@ -395,6 +398,9 @@ def dctimestamp(
         dt = int(dt.timestamp())
     if isinstance(dt, (int, float)):
         dt = int(dt)
+    
+    if not format: # user intentionally provided None
+        return f"<t:{int(dt)}>"
     return f"<t:{int(dt)}:{format[:1]}>"
 
 def dchyperlink(
@@ -675,7 +681,7 @@ def oauth_url(
     client_id: Union[int, str],
     *,
     permissions: discord.Permissions = MISSING,
-    guild: Snowflake = MISSING,
+    guild: DiscordSnowflake = MISSING,
     integration_type: Union[IntegrationType, int] = IntegrationType.guild,
     redirect_uri: str = MISSING,
     scopes: Iterable[str] = MISSING,
