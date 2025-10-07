@@ -66,19 +66,20 @@ test = [
 
 [tool.setuptools]
 packages = [
-    "discord",
-    "discord.types",
-    "discord.ui",
-    "discord.webhook",
-    "discord.app_commands",
-    "discord.ext.commands",
-    "discord.ext.tasks",
+    "src",
 ]
 include-package-data = true
 
 [tool.black]
 line-length = 125
 skip-string-normalization = true
+
+[tool.ruff]
+line-length = 125
+
+[tool.ruff.format]
+line-ending = "lf"
+quote-style = "single"
 
 [tool.isort]
 profile = "black"
@@ -106,6 +107,9 @@ minversion = "6.0"
 addopts = [
     "--import-mode=importlib",
     #"-ra -q"
+]
+pythonpath = [
+    "src",
 ]
 testpaths = [
     "tests",

@@ -8,7 +8,7 @@ from urllib.parse import urlencode as urlquote
 import discord
 
 # Adjust this import path to match your project
-from ..src.methods import (
+from ..src.kens_utils.methods import (
     makeembed,
     makeembed_bot,
     makeembed_failedaction,
@@ -29,8 +29,8 @@ from ..src.methods import (
     send_modal_hybrid,
     get_copyable_slash_command_format,
 )
-from ..src.constants import DISCORD_FILE_SIZE_LIMIT
-from ..src.enums import IntegrationType
+from ..src.kens_utils.constants import DISCORD_FILE_SIZE_LIMIT
+from ..src.kens_utils.enums import IntegrationType
 
 
 
