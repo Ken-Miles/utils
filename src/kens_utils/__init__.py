@@ -40,10 +40,3 @@ from .viewsv2 import *
 from .methods import *
 
 from .cogs.error_handler import *
-
-# check if custom_constants exists, if so import
-try:
-    from .custom_constants import * # type: ignore
-    emojidict = constants.emojidict
-except ImportError: 
-    pass
