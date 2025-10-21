@@ -39,5 +39,3 @@ from .views import *
 from .viewsv2 import *
 from .methods import *
 from .colors import *
-
-from .cogs.error_handler import *

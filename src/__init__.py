@@ -4,5 +4,6 @@ from .kens_utils import *  # Import all utilities
 try:
     from .custom_constants import * # type: ignore
     emojidict = constants.emojidict
+    emojidict.update(custom_constants.emojidict)
 except (ImportError, NameError, ModuleNotFoundError):
     pass
