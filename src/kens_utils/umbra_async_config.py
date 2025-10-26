@@ -9,22 +9,44 @@ This file was sourced from [RoboDanny](https://github.com/Rapptz/RoboDanny).
 """
 
 from __future__ import annotations
-
 import asyncio
-from typing import TYPE_CHECKING, Any, TypeVar, overload
+import json
+from typing import Any, Generic, TYPE_CHECKING, TypeVar, overload
 
-from .formats import from_json, to_json
+try:
+    import orjson  # pyright: ignore[reportMissingImports]  # may not always exist
+except ImportError:
+
+    def to_json(obj: Any) -> str:
+        return json.dumps(obj, separators=(",", "."), ensure_ascii=True, indent=2, sort_keys=True)
+
+    def from_json(obj: str) -> Any:
+        return json.loads(obj)
+
+else:
+
+    def to_json(obj: Any) -> str:
+        return orjson.dumps(obj, option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS).decode()
+
+    def from_json(obj: str) -> Any:  # pyright: ignore[reportRedeclaration] # in a context with no orjson
+        return orjson.loads(obj)
 
 if TYPE_CHECKING:
     import pathlib
 
-    T = TypeVar("T", default=Any)
+    T = TypeVar("T")
+    #T = TypeVar("T", default=Any)
 else:
     T = TypeVar("T")
 _defT = TypeVar("_defT")  # noqa: N816 # how typeshed does it
 
+# fmt: off
+__all__ = (
+    "Config",
+)
+# fmt: on
 
-class Config[T]:
+class Config(Generic[T]):
     """The "database" object. Internally based on ``json``."""
 
     def __init__(
