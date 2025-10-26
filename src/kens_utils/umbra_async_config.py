@@ -13,23 +13,7 @@ import asyncio
 import json
 from typing import Any, Generic, TYPE_CHECKING, TypeVar, overload
 
-try:
-    import orjson  # pyright: ignore[reportMissingImports]  # may not always exist
-except ImportError:
-
-    def to_json(obj: Any) -> str:
-        return json.dumps(obj, separators=(",", "."), ensure_ascii=True, indent=2, sort_keys=True)
-
-    def from_json(obj: str) -> Any:
-        return json.loads(obj)
-
-else:
-
-    def to_json(obj: Any) -> str:
-        return orjson.dumps(obj, option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS).decode()
-
-    def from_json(obj: str) -> Any:  # pyright: ignore[reportRedeclaration] # in a context with no orjson
-        return orjson.loads(obj)
+from discord.utils import _from_json as from_json, _to_json as to_json
 
 if TYPE_CHECKING:
     import pathlib
