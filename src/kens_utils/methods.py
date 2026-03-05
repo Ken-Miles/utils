@@ -66,6 +66,7 @@ __all__ = (
 )
 # fmt: on
 
+
 def makeembed(
     title: Optional[Union[str, app_commands.locale_str]] = MISSING,
     timestamp: Optional[datetime.datetime] = MISSING,
@@ -118,19 +119,19 @@ def makeembed(
     """
 
     embed = discord.Embed()
-    #if title is not None:
+    # if title is not None:
     if title:
         embed.title = title
-    #if timestamp is not None:
+    # if timestamp is not None:
     if timestamp:
         embed.timestamp = timestamp
-    #if color is not None:
+    # if color is not None:
     if color:
         embed.color = color
-    #if description is not None:
+    # if description is not None:
     if description:
         embed.description = description
-    #if url is not None:
+    # if url is not None:
     if url:
         embed.url = url
     if author is not None:
@@ -141,7 +142,7 @@ def makeembed(
         embed.set_image(url=image)
     if thumbnail is not MISSING:
         embed.set_thumbnail(url=thumbnail)
-    
+
     return embed
 
 
@@ -162,7 +163,6 @@ def makeembed_bot(
     bot: Optional[Bot] = None,
     app_info: Optional[discord.AppInfo] = None,
     bot_owner: Optional[discord.User] = None,
-
     command_user: Optional[discord.abc.User] = None,
 ) -> discord.Embed:  # embedtype: Union[str, app_commands.locale_str]='rich'):
     """Creates an embed for the bot.
@@ -350,13 +350,14 @@ def makeembed_successfulaction(
     return emb
 
 
-#timestamptype = Literal["t", "T", "d", "D", "f", "F", "R"]
-timestamptype = discord.utils.TimestampStyle # helps with type checking when using inplace replacement for discord.utils.format_dt
- 
-#@discord.utils.copy_doc(discord.utils.format_dt)
-def dctimestamp(
-    dt: Union[datetime.datetime, int, float], format: Optional[timestamptype] = "f"
-) -> str:
+# timestamptype = Literal["t", "T", "d", "D", "f", "F", "R"]
+timestamptype = (
+    discord.utils.TimestampStyle
+)  # helps with type checking when using inplace replacement for discord.utils.format_dt
+
+
+# @discord.utils.copy_doc(discord.utils.format_dt)
+def dctimestamp(dt: Union[datetime.datetime, int, float], format: Optional[timestamptype] = "f") -> str:
     """Formats a timestamp for Discord.
     This method functions similar to :meth:`discord.utils.format_dt`, except it can also accepts a :class:`int` or :class:`float` as the timestamp.
     In addition, if no format/style is specified, it uses the "f" format by default instead of no format at all.
@@ -382,7 +383,7 @@ def dctimestamp(
     +-------------+----------------------------+-----------------+
 
     For more information, you can view the Discord Documentation on :ddocs:`reference#message-formatting`.
-    
+
     Parameters
     ----------
     dt: Union[:class:`datetime.datetime`, :class:`int`, :class:`float`]
@@ -395,15 +396,16 @@ def dctimestamp(
     :class:`str`
         The formatted timestamp.
     """
-    
+
     if isinstance(dt, datetime.datetime):
         dt = int(dt.timestamp())
     if isinstance(dt, (int, float)):
         dt = int(dt)
-    
-    if not format: # user intentionally provided None
+
+    if not format:  # user intentionally provided None
         return f"<t:{int(dt)}>"
     return f"<t:{int(dt)}:{format[:1]}>"
+
 
 def dchyperlink(
     url: Union[str, app_commands.locale_str],
@@ -441,7 +443,7 @@ def dchyperlink(
     # url and texttoclick could be switched
     if RE_URL.match(str(texttoclick)) is not None:
         texttoclick, url = url, texttoclick
-    texttoclick = f"[{texttoclick}]" 
+    texttoclick = f"[{texttoclick}]"
     hovertext = f' "{hovertext}"' if hovertext is not None else ""
 
     if suppress_embed is not None:
@@ -451,6 +453,7 @@ def dchyperlink(
         url = f"<{url}>"
 
     return f"{texttoclick}({url}{hovertext})"
+
 
 def parse_discord_snowflake(snowflake: Union[str, int]) -> Snowflake:
     """Returns a :class:`Snowflake` object from a Discord snowflake.
@@ -467,6 +470,7 @@ def parse_discord_snowflake(snowflake: Union[str, int]) -> Snowflake:
         The parsed snowflake.
     """
     return Snowflake(snowflake=snowflake, discord_snowflake=True)
+
 
 @discord.utils.copy_doc(parse_discord_snowflake)
 def snowflake_timestamp(snowflake: Union[int, str]) -> datetime.datetime:
@@ -486,8 +490,16 @@ def snowflake_timestamp(snowflake: Union[int, str]) -> datetime.datetime:
 
     return parse_discord_snowflake(snowflake).datetime
 
-def get_any_key(keys: Iterable[Hashable], d: Dict[Hashable, Any], *, default: Any=None, case_sensitive: bool = False, try_spaces: bool = False) -> Tuple[Any, Hashable]:
-    """Tries to get any key from the provided dictionary. 
+
+def get_any_key(
+    keys: Iterable[Hashable],
+    d: Dict[Hashable, Any],
+    *,
+    default: Any = None,
+    case_sensitive: bool = False,
+    try_spaces: bool = False,
+) -> Tuple[Any, Hashable]:
+    """Tries to get any key from the provided dictionary.
 
     Parameters
     ----------
@@ -510,7 +522,7 @@ def get_any_key(keys: Iterable[Hashable], d: Dict[Hashable, Any], *, default: An
         The key that was found in the dictionary. If no keys are found, returns None.
     The return is a tuple of the value and the key found.
     """
-    
+
     for key in keys:
         search_key = key
         if not case_sensitive and isinstance(search_key, str):
@@ -518,7 +530,7 @@ def get_any_key(keys: Iterable[Hashable], d: Dict[Hashable, Any], *, default: An
             d_keys: Dict = {k.lower(): v for k, v in d.items() if isinstance(k, str)}
         else:
             d_keys: Dict = d
-        
+
         if try_spaces and isinstance(search_key, str):
             SPACING_CHARS = [" ", "_", "-"]
             possible_keys = set()
@@ -533,9 +545,10 @@ def get_any_key(keys: Iterable[Hashable], d: Dict[Hashable, Any], *, default: An
                     return d_keys.get(pk, default), pk
         else:
             if search_key in d_keys:
-                return d_keys.get(search_key, default), search_key # should never default here but just in case it does
-    
+                return d_keys.get(search_key, default), search_key  # should never default here but just in case it does
+
     return default, None
+
 
 async def create_codeblock(content: Union[str, app_commands.locale_str], lang: CodeblockLanguage = "py") -> str:
     """Creates a codeblock for formatted for Discord.
@@ -556,7 +569,7 @@ async def create_codeblock(content: Union[str, app_commands.locale_str], lang: C
     ------
     :class:`ValueError`
         If the language is not a valid language code.
-    """    
+    """
     if lang not in CODEBLOCK_LANGUAGES:
         raise ValueError(f"Invalid Language: {lang}")
     fmt: Union[str, app_commands.locale_str] = "```"
@@ -573,7 +586,7 @@ def _autocomplete(
     """
     if not items:
         return []
-    
+
     if isinstance(current, app_commands.locale_str):
         current = current.message
     current = current.lower().strip()
@@ -627,7 +640,7 @@ async def generic_autocomplete(
     -------
     List[:class:`discord.app_commands.Choice`]
         The list of choices for the autocomplete. Will return a maximum of 24 choices.
-    """    
+    """
     allmatches = _autocomplete(current, tuple(items), cutoff=cutoff)
     return [app_commands.Choice(name=x[0], value=x[1]) for x in allmatches]
 
@@ -654,9 +667,7 @@ def merge_permissions(
             setattr(overwrite, perm, value)
 
 
-def generate_transaction_id(
-    guild_id: Optional[int] = None, user_id: Optional[int] = None, length: int = 36
-) -> str:
+def generate_transaction_id(guild_id: Optional[int] = None, user_id: Optional[int] = None, length: int = 36) -> str:
     """Generates a UUID for an error.
 
     Parameters
@@ -677,9 +688,7 @@ def generate_transaction_id(
         guild_id = 0
     if user_id is None:
         user_id = 0
-    return str(uuid.uuid5(uuid.NAMESPACE_DNS, f"{guild_id}-{user_id}-{time.time()}"))[
-        :length
-    ]
+    return str(uuid.uuid5(uuid.NAMESPACE_DNS, f"{guild_id}-{user_id}-{time.time()}"))[:length]
 
 
 def oauth_url(
@@ -739,15 +748,16 @@ def oauth_url(
 
     return url
 
+
 def get_max_file_upload_limit(
-    ctx: Optional[commands.Context]=None,
+    ctx: Optional[commands.Context] = None,
     *,
-    interaction: Optional[discord.Interaction]=None,
-    guild: Optional[discord.Guild]=None,
+    interaction: Optional[discord.Interaction] = None,
+    guild: Optional[discord.Guild] = None,
 ):
     """This method returns the maximum file upload limit for a guild, if provided.
     If a guild isn't provided, returns the default file upload limit for Discord (defined as ``DISCORD_FILE_SIZE_LIMIT``).
-    
+
     You can find the current file upload limit for Discord at :ddocs:`reference#uploading-files`.
 
     .. note::
@@ -761,7 +771,7 @@ def get_max_file_upload_limit(
         The interaction object related to the context of the guild. defaults to ``None``.
     guild: Optional[discord.Guild]
         The guild to get the file upload limit for. defaults to ``None``.
-    """ 
+    """
     if not guild:
         if ctx:
             guild = ctx.guild
@@ -773,13 +783,15 @@ def get_max_file_upload_limit(
 
     return DISCORD_FILE_SIZE_LIMIT
 
+
 def string_io(text: str) -> bytes:
     """StringIO for the `fp` parameter of a :class:`discord.File` is not officially supported, it only "works on accident".
     Because it could stop working at some point, this function takes a string and encodes it as a `bytes` object, and works
     as a drop-in replacement for StringIO in a `discord.File` context."""
     return text.encode('utf-8')
 
-def list_to_occurance_dict(items: List[str], *, normalize_items: bool=False, reverse: bool=True) -> Dict[str, int]:
+
+def list_to_occurance_dict(items: List[str], *, normalize_items: bool = False, reverse: bool = True) -> Dict[str, int]:
     """Method that counts the amount of strings in a list, and turns it into a dictionary with the string and the count.
 
     Example:
@@ -787,10 +799,10 @@ def list_to_occurance_dict(items: List[str], *, normalize_items: bool=False, rev
         reverse = False
         ->
         {"apple": 2, "cherry": 2, "banana": 1, "orange": 1}
-    
+
     The ``reverse`` argument will return the dictionary from greatest to least if False. Defaults to True.
 
-    The ``normalize_items`` argument will strip and lowercase all strings before constricting the dictonary. 
+    The ``normalize_items`` argument will strip and lowercase all strings before constricting the dictonary.
 
     Example (same as above, with reverse=False):
         {"banana": 1, "orange": 1, "apple": 2, "cherry": 2}
@@ -809,9 +821,10 @@ def list_to_occurance_dict(items: List[str], *, normalize_items: bool=False, rev
 
     return dict(sorted_occurrence)
 
+
 async def send_modal_hybrid(ctx: ContextU, modal: discord.ui.Modal, *args, **kwargs) -> Optional[discord.Message]:
     """A method that will send a modal in a hybrid command context.
-    You can only reply with a modal in reply to interactions, 
+    You can only reply with a modal in reply to interactions,
     meaning that you cannot send a modal if it is in reply to a prefix command.
     To get around this, this method replies with a button/view that the user can click to open the modal.
     If the command was invoken with an interaction, it will reply with a modal as normal.
@@ -827,20 +840,21 @@ async def send_modal_hybrid(ctx: ContextU, modal: discord.ui.Modal, *args, **kwa
     -------
     Optional[discord.Message]
         The message if it was a context invocation, or None if an interaction response.
-    """    
+    """
 
     if ctx.interaction:
         return await ctx.interaction.response.send_modal(modal)
-    
-    if not args and 'embed' not in kwargs.keys(): # no content, no embed
+
+    if not args and 'embed' not in kwargs.keys():  # no content, no embed
         kwargs['embed'] = makeembed_bot(description="Click the button below to open the modal/form.")
-    
+
     if kwargs.get('ephemeral', None) is None:
         kwargs['ephemeral'] = True
 
     kwargs['view'] = SendModalView(modal=modal, author_id=ctx.author.id)
     kwargs['view'].message = await ctx.reply(*args, **kwargs)
     return kwargs['view'].message
+
 
 def get_copyable_slash_command_format(qualified_name: str, kwargs: Dict[str, Union[str, int, float, bool]]):
     """This method generates a copyable slash command that is runnable when copied.
@@ -858,13 +872,13 @@ def get_copyable_slash_command_format(qualified_name: str, kwargs: Dict[str, Uni
     qualified_name="lookup ranked", kwargs={"platform": "Xbox", "username": "myusernamehere"}
     -> "/lookup ranked platform:Xbox username:myusernamehere"
     """
-    qualified_name = qualified_name.strip().lstrip('/') # no whitespace, remove slash from beginning if present
+    qualified_name = qualified_name.strip().lstrip('/')  # no whitespace, remove slash from beginning if present
 
     actual_kwargs = {}
     # special formatting for boolean values, null values
     for key, value in kwargs.items():
         if value is None:
-            value = "" # the key shuold still show, but just be blank if passed in.              
+            value = ""  # the key shuold still show, but just be blank if passed in.
         elif isinstance(value, bool):
             value = str(value)
         elif isinstance(value, int):
