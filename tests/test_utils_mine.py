@@ -229,6 +229,22 @@ def test_dchyperlink_suppress_embed():
     s = dchyperlink("https://example.com", "Click", suppress_embed=True)
     assert s == "[Click](<https://example.com>)"
 
+def test_dchyperlink_suppress_embed_true_with_hovertext():
+    s = dchyperlink("https://example.com", "Click", hovertext="hello", suppress_embed=True)
+    assert s == '[Click](<https://example.com> "hello")'
+
+def test_dchyperlink_suppress_embed_true_after_url_swap():
+    s = dchyperlink("Read this", "https://example.com", suppress_embed=True)
+    assert s == "[Read this](<https://example.com>)"
+
+def test_dchyperlink_suppress_embed_false_removes_existing_brackets():
+    s = dchyperlink("<https://example.com>", "Click", suppress_embed=False)
+    assert s == "[Click](https://example.com)"
+
+def test_dchyperlink_suppress_embed_none_keeps_existing_brackets():
+    s = dchyperlink("<https://example.com>", "Click", suppress_embed=None)
+    assert s == "[Click](<https://example.com>)"
+
 # ---------------------------
 # get_any_key
 # ---------------------------

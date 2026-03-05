@@ -410,7 +410,7 @@ def dchyperlink(
     texttoclick: Union[str, app_commands.locale_str],
     *,
     hovertext: Optional[Union[str, app_commands.locale_str]] = None,
-    suppress_embed: bool = False,
+    suppress_embed: Optional[bool] = None,
 ) -> str:
     """Creates a hyperlink for Discord.
     This method creates a hyperlink for Discord, with the option to suppress the embed.
@@ -429,8 +429,8 @@ def dchyperlink(
         The text to show up as the hyperlink.
     hovertext : Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
         The text to display when the link is hovered over. Defaults to ``None``.
-    suppress_embed : :class:`bool`
-        Whether to suppress the embed created by the link. Defaults to ``False``.
+    suppress_embed : Optional[:class:`bool`]
+        Whether to suppress the embed created by the link. If set explicitly, overrides any supresson passed into the url (eg. removes <> from the URL if False is passed). None means that it will remain unchanged Defaults to ``None``.
 
     Returns
     -------
@@ -444,7 +444,10 @@ def dchyperlink(
     texttoclick = f"[{texttoclick}]" 
     hovertext = f' "{hovertext}"' if hovertext is not None else ""
 
-    if suppress_embed:
+    if suppress_embed is not None:
+        url = str(url).strip("<>")
+
+    if suppress_embed is True:
         url = f"<{url}>"
 
     return f"{texttoclick}({url}{hovertext})"
