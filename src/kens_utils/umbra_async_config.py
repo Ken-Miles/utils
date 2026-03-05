@@ -10,7 +10,6 @@ This file was sourced from [RoboDanny](https://github.com/Rapptz/RoboDanny).
 
 from __future__ import annotations
 import asyncio
-import json
 from typing import Any, Generic, TYPE_CHECKING, TypeVar, overload
 
 from discord.utils import _from_json as from_json, _to_json as to_json
