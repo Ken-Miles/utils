@@ -73,7 +73,7 @@ class BotU(AutoShardedBot):
     @property
     def application_emojis(self) -> List[discord.Emoji]:
         """Cached version of all the bot's application emojis. Only populated if :meth:`.fetch_application_emojis` is called. 
-        By defualt, this is called in setup_hook.
+        By default, this is called in setup_hook.
         """
         return self._cached_application_emojis
 
@@ -184,6 +184,20 @@ class BotU(AutoShardedBot):
     async def fetch_application_emojis(self) -> List[discord.Emoji]:
         self._cached_application_emojis = await super().fetch_application_emojis()
         return self._cached_application_emojis
+    
+    async def get_or_fetch_application_emojis(self) -> List[discord.Emoji]:
+        """Returns cached application emojis if they exist, else fetches them. Will error if fetch fails.
+
+        Calls :func:`.fetch_application_emojis` if the emojis are not cached, which will cache them for future calls.
+
+        Returns
+        -------
+        List[discord.Emoji]
+            List of application emojis.
+        """
+        if self._cached_application_emojis:
+            return self._cached_application_emojis
+        return await self.fetch_application_emojis()
 
     async def on_shard_resumed(self, shard_id: int):
         #log.info('Shard ID %s has resumed...', shard_id)
