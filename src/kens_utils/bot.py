@@ -40,7 +40,7 @@ from discord.utils import deprecated
 from .methods import makeembed_failedaction
 from .context import ContextU
 from .tree import MentionableTree
-import weakref # Library's way of storing user cache
+import weakref  # Library's way of storing user cache
 
 # fmt: off
 __all__ = (
@@ -53,13 +53,14 @@ P = ParamSpec("P")
 
 ChannelT = TypeVar("ChannelT", GuildChannel, Thread, PrivateChannel)
 
+
 @discord.utils.copy_doc(commands.AutoShardedBot)
 class BotU(AutoShardedBot):
     """A subclass of discord.ext.commands.AutoShardedBot with additional features."""
+
     tree_cls: MentionableTree
 
     user: discord.ClientUser
-    appinfo: discord.AppInfo
     command_stats: Counter[str]
     socket_stats: Counter[str]
     command_types_used: Counter[bool]
@@ -69,31 +70,26 @@ class BotU(AutoShardedBot):
     blacklist: List
     started_at: datetime.datetime
     _cached_application_emojis: List[discord.Emoji] = []
+    _cached_appinfo: discord.AppInfo
 
-    @property
-    def application_emojis(self) -> List[discord.Emoji]:
-        """Cached version of all the bot's application emojis. Only populated if :meth:`.fetch_application_emojis` is called. 
-        By default, this is called in setup_hook.
-        """
-        return self._cached_application_emojis
+    _user_cache: weakref.WeakValueDictionary[int, User]  # similar to library approach
 
-    _user_cache: weakref.WeakValueDictionary[int, User] # similar to library approach
-
-    def __init__(self, 
+    def __init__(
+        self,
         *args,
         translator_cls: Optional[Translator] = None,
         translator_args: List = [],
         translator_kwargs: Dict = {},
-        **kwargs
+        **kwargs,
     ) -> None:
         if kwargs.get("cls", None):
             assert issubclass(kwargs["cls"], MentionableTree)
-        #kwargs["pm_help"] = None
+        # kwargs["pm_help"] = None
 
         # strip_after_prefix by default
-        if kwargs.get('strip_after_prefix',None) is None:
+        if kwargs.get('strip_after_prefix', None) is None:
             kwargs['strip_after_prefix'] = True
-         
+
         super().__init__(*args, **kwargs)
 
         # shard_id: List[datetime.datetime]
@@ -126,7 +122,28 @@ class BotU(AutoShardedBot):
         ]
         for listener_entry in self._listener_funcs:
             self.add_listener(listener_entry[0], name=listener_entry[1])
-    
+
+    # @discord.utils.copy_doc(commands.Bot.setup_hook)
+    async def setup_hook(self):
+        """|coro|
+        A hook to run after the bot has been setup.
+        This is called after the bot has been setup and is ready to run.
+
+        :meta private:
+        """
+        if not self.owner_ids:
+            assert self.application is not None
+            if self.application.team:
+                self.owner_ids = [x.id for x in self.application.team.members]
+            else:
+                self.owner_ids = [self.application.owner.id]
+
+        self.bot_app_info = await self.application_info()
+        # self.owner_id = self.bot_app_info.owner.id
+        # DO NOT UNCOMMENT, THIS WILL BREAK IS_OWNER CHECKS
+
+        await self.fetch_application_emojis()
+
     @property
     def avatar_url(self) -> str:
         """Get's the bot's avatar URL. If the bot has no avatar, raises :class:`AttributeError`.
@@ -145,46 +162,48 @@ class BotU(AutoShardedBot):
             return self.user.display_avatar.url
         raise AttributeError("Bot has no display_avatar")
 
-    #@discord.utils.copy_doc(commands.Bot.application_info)
+    # @discord.utils.copy_doc(commands.Bot.application_info)
     async def application_info(self) -> discord.AppInfo:
         """|coro|
-        Method updated to cache the application info when it is fetched.
+        It is recommend to call :func:`.get_or_fetch_application_info` instead of this method unless you want to fetch the application info again.
+
+        Subclass Method updated to cache the application info when it is fetched.
 
         Returns
         -------
         :class:`discord.AppInfo`
             The bot's application info.
-        
-        :meta private:
-        """
-        self.appinfo = await super().application_info()
-        return self.appinfo
-
-    #@discord.utils.copy_doc(commands.Bot.setup_hook)
-    async def setup_hook(self):
-        """|coro|
-        A hook to run after the bot has been setup.
-        This is called after the bot has been setup and is ready to run.
 
         :meta private:
         """
-        if not self.owner_ids:
-            assert self.application is not None
-            if self.application.team:
-                self.owner_ids = [x.id for x in self.application.team.members]
-            else:
-                self.owner_ids = [self.application.owner.id]
-    
-        self.bot_app_info = await self.application_info()
-        #self.owner_id = self.bot_app_info.owner.id
-        # DO NOT UNCOMMENT, THIS WILL BREAK IS_OWNER CHECKS
+        self._cached_appinfo = await super().application_info()
+        return self._cached_appinfo
 
-        await self.fetch_application_emojis()
+    async def get_or_fetch_application_info(self) -> discord.AppInfo:
+        """Returns cached application info if it exists, else fetches it. Will error if fetch fails.
+
+        Calls :func:`.application_info` if the application info is not cached, which will cache it for future calls.
+
+        Returns
+        -------
+        :class:`discord.AppInfo`
+            The bot's application info.
+        """
+        if hasattr(self, '_cached_appinfo'):
+            return self._cached_appinfo
+        return await self.application_info()
+
+    @property
+    def application_emojis(self) -> List[discord.Emoji]:
+        """Cached version of all the bot's application emojis. Only populated if :meth:`.fetch_application_emojis` is called.
+        By default, this is called in setup_hook.
+        """
+        return self._cached_application_emojis
 
     async def fetch_application_emojis(self) -> List[discord.Emoji]:
         self._cached_application_emojis = await super().fetch_application_emojis()
         return self._cached_application_emojis
-    
+
     async def get_or_fetch_application_emojis(self) -> List[discord.Emoji]:
         """Returns cached application emojis if they exist, else fetches them. Will error if fetch fails.
 
@@ -200,11 +219,11 @@ class BotU(AutoShardedBot):
         return await self.fetch_application_emojis()
 
     async def on_shard_resumed(self, shard_id: int):
-        #log.info('Shard ID %s has resumed...', shard_id)
+        # log.info('Shard ID %s has resumed...', shard_id)
         self.resumes[shard_id].append(discord.utils.utcnow())
-    
+
     async def on_shard_ready(self, shard_id: int):
-        #log.info('Shard ID %s has connected...', shard_id)
+        # log.info('Shard ID %s has connected...', shard_id)
         self.identifies[shard_id].append(discord.utils.utcnow())
 
     def _clear_gateway_data(self) -> None:
@@ -244,11 +263,11 @@ class BotU(AutoShardedBot):
         """
         self.application_info
         if getattr(self.bot_app_info, "team", None):
-            user = self.get_user(self.bot_app_info.team.owner.id) # type: ignore
+            user = self.get_user(self.bot_app_info.team.owner.id)  # type: ignore
             if user:
                 return user
-            return self.bot_app_info.team.owner # type: ignore
-            #return self.bot_app_info.team.owner. #type: ignore
+            return self.bot_app_info.team.owner  # type: ignore
+            # return self.bot_app_info.team.owner. #type: ignore
         return self.bot_app_info.owner
 
     async def get_context(
@@ -257,11 +276,14 @@ class BotU(AutoShardedBot):
         *,
         cls: Type[ContextU] = ContextU,
     ) -> ContextU:
-        #return await ContextU.from_interaction()
+        # return await ContextU.from_interaction()
         return await super().get_context(origin, cls=cls)
 
     async def _get_or_fetch_channel(
-        self, channelid: int, channel_type: Type[ChannelT], guild: Optional[Guild]=None, 
+        self,
+        channelid: int,
+        channel_type: Type[ChannelT],
+        guild: Optional[Guild] = None,
     ) -> ChannelT:
         """Internal method to get a certain Channel type."""
         if guild is not None:
@@ -309,7 +331,7 @@ class BotU(AutoShardedBot):
             if channel is None:
                 channel = await self.fetch_channel(channelid)
         return channel
-    
+
     @deprecated("get_or_fetch_channel")
     async def getorfetch_channel(self, *args, **kwargs):
         return await self.get_or_fetch_channel(*args, **kwargs)
@@ -336,7 +358,7 @@ class BotU(AutoShardedBot):
             The thread.
         """
         return await self._get_or_fetch_channel(threadid, Thread, guild)
-    
+
     @deprecated("get_or_fetch_thread")
     async def getorfetch_thread(self, *args, **kwargs):
         return await self.get_or_fetch_thread(*args, **kwargs)
@@ -362,15 +384,13 @@ class BotU(AutoShardedBot):
         :class:`discord.TextChannel`
             The channel.
         """
-        return await self._get_or_fetch_channel(channelid, TextChannel, guild) # type: ignore
-    
+        return await self._get_or_fetch_channel(channelid, TextChannel, guild)  # type: ignore
+
     @deprecated("get_or_fetch_textchannel")
     async def getorfetch_textchannel(self, *args, **kwargs):
         return await self.get_or_fetch_textchannel(*args, **kwargs)
 
-    async def get_or_fetch_voicechannel(
-        self, channelid: int, guild: Guild
-    ) -> VoiceChannel:
+    async def get_or_fetch_voicechannel(self, channelid: int, guild: Guild) -> VoiceChannel:
         """Gets or fetches a VoiceChannel from the provided guild.
 
         Parameters
@@ -390,15 +410,13 @@ class BotU(AutoShardedBot):
         :class:`discord.VoiceChannel`
             The channel.
         """
-        return await self._get_or_fetch_channel(channelid, VoiceChannel, guild) # type: ignore
-    
+        return await self._get_or_fetch_channel(channelid, VoiceChannel, guild)  # type: ignore
+
     @deprecated("get_or_fetch_voicechannel")
     async def getorfetch_voicechannel(self, *args, **kwargs):
         return await self.get_or_fetch_voicechannel(*args, **kwargs)
 
-    async def get_or_fetch_categorychannel(
-        self, channelid: int, guild: Guild
-    ) -> CategoryChannel:
+    async def get_or_fetch_categorychannel(self, channelid: int, guild: Guild) -> CategoryChannel:
         """Gets or fetches a CategoryChannel from the provided guild.
         If None or a non-CategoryChannel is returned, raises AssertionError
 
@@ -420,7 +438,7 @@ class BotU(AutoShardedBot):
         :class:`discord.CategoryChannel`
             The channel.
         """
-        return await self._get_or_fetch_channel(channelid, CategoryChannel, guild) # type: ignore
+        return await self._get_or_fetch_channel(channelid, CategoryChannel, guild)  # type: ignore
 
     get_or_fetch_category = get_or_fetch_categorychannel
 
@@ -428,9 +446,7 @@ class BotU(AutoShardedBot):
     async def getorfetch_category_channel(self, *args, **kwargs):
         return await self.get_or_fetch_categorychannel(*args, **kwargs)
 
-    async def get_or_fetch_stagechannel(
-        self, channelid: int, guild: Guild
-    ) -> StageChannel:
+    async def get_or_fetch_stagechannel(self, channelid: int, guild: Guild) -> StageChannel:
         """Gets or fetches a :class:`discord.StageChannel` from the provided guild.
         If None or a non-:class:`discord.StageChannel` is returned, raises AssertionError
 
@@ -451,7 +467,7 @@ class BotU(AutoShardedBot):
         :class:`discord.StageChannel`
             The channel.
         """
-        return await self._get_or_fetch_channel(channelid, StageChannel, guild) # type: ignore
+        return await self._get_or_fetch_channel(channelid, StageChannel, guild)  # type: ignore
 
     get_or_fetch_stage = get_or_fetch_stagechannel
 
@@ -459,9 +475,7 @@ class BotU(AutoShardedBot):
     async def getorfetch_stage_channel(self, *args, **kwargs):
         return await self.get_or_fetch_stagechannel(*args, **kwargs)
 
-    async def get_or_fetch_forumchannel(
-        self, channelid: int, guild: Guild
-    ) -> ForumChannel:
+    async def get_or_fetch_forumchannel(self, channelid: int, guild: Guild) -> ForumChannel:
         """Gets or fetches a :class:`discord.ForumChannel` from the provided guild.
         If None or a non-:class:`discord.ForumChannel` is returned, raises AssertionError.
 
@@ -483,7 +497,7 @@ class BotU(AutoShardedBot):
         :class:`discord.ForumChannel`
             The channel.
         """
-        return await self._get_or_fetch_channel(channelid, ForumChannel, guild) # type: ignore
+        return await self._get_or_fetch_channel(channelid, ForumChannel, guild)  # type: ignore
 
     get_or_fetch_forum = get_or_fetch_forumchannel
     getorfetch_forum = get_or_fetch_forumchannel
@@ -492,9 +506,7 @@ class BotU(AutoShardedBot):
     async def getorfetch_forum_channel(self, *args, **kwargs):
         return await self.get_or_fetch_forumchannel(*args, **kwargs)
 
-    async def get_or_fetch_user(
-        self, userid: int, guild: Optional[Guild]
-    ) -> Union[User, Member]:
+    async def get_or_fetch_user(self, userid: int, guild: Optional[Guild]) -> Union[User, Member]:
         """Gets a :class:`discord.User` or :class:`discord.Member` from a guild (if provided) or bot's cache, else fetches it. Will error if fetch fails.
 
         Parameters
@@ -527,7 +539,7 @@ class BotU(AutoShardedBot):
         if user is None:
             user = await self.fetch_user(userid)
         return user
-    
+
     @deprecated('get_or_fetch_user')
     async def getorfetch_user(self, *args, **kwargs):
         return await self.get_or_fetch_user(*args, **kwargs)
@@ -547,7 +559,7 @@ class BotU(AutoShardedBot):
         -------
         :class:`discord.Member`
             The Member object.
-        
+
         Raises
         ------
         :class:`discord.NotFound`
@@ -560,12 +572,14 @@ class BotU(AutoShardedBot):
         if member is None:
             member = await guild.fetch_member(userid)
         return member
-    
+
     @deprecated('get_or_fetch_member')
     async def getorfetch_member(self, *args, **kwargs):
         return await self.get_or_fetch_member(*args, **kwargs)
 
-    async def get_or_fetch_user_or_snowflake(self, userid: int, guild: Optional[discord.Guild]) -> Union[discord.abc.Snowflake, User, Member]:
+    async def get_or_fetch_user_or_snowflake(
+        self, userid: int, guild: Optional[discord.Guild]
+    ) -> Union[discord.abc.Snowflake, User, Member]:
         """Wrapper for :meth:`.get_or_fetch_user`.
         Instead of raising an error should the user not be found, it will return a :class:`discord.abc.Snowflake` (a :class:`discord.Object` at runtime) with the ID of the user.
         The main intention of this method is for banning/unbanning users.
@@ -599,7 +613,7 @@ class BotU(AutoShardedBot):
         if guild is None:
             guild = await self.fetch_guild(guildid)
         return guild
-    
+
     @deprecated('get_or_fetch_guild')
     async def getorfetch_guild(self, *args, **kwargs):
         return await self.get_or_fetch_guild(*args, **kwargs)
@@ -620,7 +634,7 @@ class BotU(AutoShardedBot):
         if user.dm_channel is None:
             return await user.create_dm()
         return user.dm_channel
-    
+
     @deprecated('get_or_fetch_dmchannel')
     async def getorfetch_dmchannel(self, *args, **kwargs):
         return await self.get_or_fetch_dmchannel(*args, **kwargs)
@@ -665,11 +679,11 @@ class BotU(AutoShardedBot):
         return cmd
 
     async def check_blacklist(self, ctx):
-        #__ = await get_translation_callable(ctx.interaction)
+        # __ = await get_translation_callable(ctx.interaction)
 
         if getattr(self, 'blacklist', None):
             if blacklist_obj := discord.utils.find(lambda x: x.offender_id == ctx.author.id, self.blacklist):
-                #desc = await __("You are currently blacklisted from using the bot. Please reach out to the bot developer on the support server for more information.")
+                # desc = await __("You are currently blacklisted from using the bot. Please reach out to the bot developer on the support server for more information.")
                 desc = "You are currently blacklisted from using the bot."
                 if blacklist_obj.reason:
                     desc += "Reason: `{}`".format(blacklist_obj.reason)
@@ -699,7 +713,7 @@ class BotU(AutoShardedBot):
         return user
 
     # cache listeners
-    async def _maybe_update_user_cache(self, snowflake: Optional[discord.abc.Snowflake]=None):
+    async def _maybe_update_user_cache(self, snowflake: Optional[discord.abc.Snowflake] = None):
         """Internal methoid intended to update the cache if the snowflake is a User.
         Useful in a context where a snowflake may either be a User or Member."""
         if isinstance(snowflake, User):
@@ -710,16 +724,16 @@ class BotU(AutoShardedBot):
 
     # async def _cache_update_on_message(self, message: discord.Message):
     #     await self._maybe_update_user_cache(message.author)
-    
+
     async def _cache_update_on_interaction(self, interaction: discord.Interaction):
         await self._maybe_update_user_cache(interaction.user)
-    
+
     # async def _cache_update_on_member(self, member: discord.Member):
     #     await self._maybe_update_user_cache(member)
-    
+
     # async def _cache_update_on_user_update(self, before: discord.User, after: discord.User):
     #     await self._maybe_update_user_cache(after)
-    
+
     # async def _cache_update_on_user(self, user: discord.User):
     #     await self._maybe_update_user_cache(user)
 
@@ -729,7 +743,7 @@ class BotU(AutoShardedBot):
         for arg in ctx.args, ctx.kwargs.values():
             if isinstance(arg, discord.abc.User):
                 await self._maybe_update_user_cache(arg)
-    
+
     async def _update_cache_from_dpy_cache(self):
         for user in super().users:
             await self._update_user_cache(user)
