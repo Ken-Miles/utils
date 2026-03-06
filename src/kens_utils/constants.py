@@ -30,6 +30,7 @@ __all__ = (
     'DISCORD_EPOCH',
     'TRUSTED_USERS',
     'GUILDS',
+    'guild_features',
     'USE_DEFER_EMOJI',
     'formatter',
     'Snowflake',
@@ -2391,6 +2392,23 @@ misc_flag_descriptions: Annotated[Dict[str, str],
     'spammer': 'Spammer',
     'verified_bot': 'Verified Bot',
     'bot_http_interactions': 'HTTP Interactions Bot',
+}
+
+guild_features = {
+    'PARTNERED': 'Partnered',
+    'VERIFIED': 'Verified',
+    'DISCOVERABLE': 'Server Discovery',
+    'COMMUNITY': 'Community Server',
+    'FEATURABLE': 'Featured',
+    'WELCOME_SCREEN_ENABLED': 'Welcome Screen',
+    'INVITE_SPLASH': 'Invite Splash',
+    'VIP_REGIONS': 'VIP Voice Servers',
+    'VANITY_URL': 'Vanity Invite',
+    'COMMERCE': 'Commerce',
+    'LURKABLE': 'Lurkable',
+    'NEWS': 'News Channels',
+    'ANIMATED_ICON': 'Animated Icon',
+    'BANNER': 'Banner',
 }
 
 http_codes = {
