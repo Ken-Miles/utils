@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 import discord
 
 if TYPE_CHECKING:
-    from typing import Self
+    from typing_extensions import Self
 
 __all__ = ("UmbraBaseView", "UmbraConfirmationView", "UmbraSelfDeleteView")
 
