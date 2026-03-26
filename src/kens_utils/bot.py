@@ -67,12 +67,11 @@ class BotU(AutoShardedBot):
     socket_stats: Counter[str]
     command_types_used: Counter[bool]
     logging_handler: Any
-    bot_app_info: discord.AppInfo
     old_tree_error = Callable[[discord.Interaction, discord.app_commands.AppCommandError], Coroutine[Any, Any, None]]
     blacklist: List
     started_at: datetime.datetime
     _cached_application_emojis: List[discord.Emoji] = []
-    _cached_appinfo: discord.AppInfo
+    # _application: discord.AppInfo
 
     _user_cache: weakref.WeakValueDictionary[int, User]  # similar to library approach
 
@@ -140,15 +139,20 @@ class BotU(AutoShardedBot):
             else:
                 self.owner_ids = [self.application.owner.id]
 
-        self.bot_app_info = await self.application_info()
-        # self.owner_id = self.bot_app_info.owner.id
+        # we already cache this, no need in storing it twice
+        # self._application = await self.application_info()
+
+        # self.owner_id = self._application.owner.id
         # DO NOT UNCOMMENT, THIS WILL BREAK IS_OWNER CHECKS
 
-        await self.fetch_application_emojis()
+        await self.get_or_fetch_application_emojis()
 
     @property
     def avatar_url(self) -> str:
-        """Get's the bot's avatar URL. If the bot has no avatar, raises :class:`AttributeError`.
+        """
+        Get's the bot's custom avatar URL. If the bot has no avatar, raises :class:`AttributeError`.
+        .. note::
+            You likely want to use :attr:`display_avatar_url` instead, which will return the default avatar if no custom avatar is set, as opposed to raising an error.
 
         Raises
         ------
@@ -160,9 +164,51 @@ class BotU(AutoShardedBot):
         :class:`str`
             The bot's avatar URL.
         """
+        if self.user.avatar:
+            return self.user.avatar.url
+        raise AttributeError("Bot has no avatar")
+
+    @property
+    def display_avatar_url(self) -> str:
+        """Get's the bot's display avatar URL. If the bot has no avatar, returns the default avatar URL.
+
+        Raises
+        ------
+        :class:`AttributeError`
+            If the bot has no display avatar. (Should be impossible)
+
+        Returns
+        -------
+        :class:`str`
+            The bot's display avatar URL.
+        """
         if self.user.display_avatar:
             return self.user.display_avatar.url
-        raise AttributeError("Bot has no display_avatar")
+        raise AttributeError("Bot has no display avatar")
+
+    @property
+    def application(self) -> Optional[discord.AppInfo]:
+        """The bot's application info. This is cached after the first fetch.
+
+        Raises
+        ------
+        :class:`AttributeError`
+            If the application info has not been fetched yet.
+
+        Returns
+        -------
+        :class:`discord.AppInfo`
+            The bot's application info.
+        """
+        if hasattr(self, '_application'):
+            return self._application
+        return None
+
+    @property
+    # @discord.utils.copy_doc(application)
+    def app_info(self) -> Optional[discord.AppInfo]:
+        """Alias for :attr:`application`."""
+        return self.application
 
     # @discord.utils.copy_doc(commands.Bot.application_info)
     async def application_info(self) -> discord.AppInfo:
@@ -178,8 +224,12 @@ class BotU(AutoShardedBot):
 
         :meta private:
         """
-        self._cached_appinfo = await super().application_info()
-        return self._cached_appinfo
+        self._application = await super().application_info()
+        self.application
+        return self._application
+
+    # method alias for consistency with get_or_fetch methods
+    fetch_application_info = application_info
 
     async def get_or_fetch_application_info(self) -> discord.AppInfo:
         """Returns cached application info if it exists, else fetches it. Will error if fetch fails.
@@ -191,9 +241,9 @@ class BotU(AutoShardedBot):
         :class:`discord.AppInfo`
             The bot's application info.
         """
-        if hasattr(self, '_cached_appinfo'):
-            return self._cached_appinfo
-        return await self.application_info()
+        if getattr(self, '_application', None) is not None:
+            return self._application  # type: ignore
+        return await self.fetch_application_info()
 
     @property
     def application_emojis(self) -> List[discord.Emoji]:
@@ -202,7 +252,59 @@ class BotU(AutoShardedBot):
         """
         return self._cached_application_emojis
 
+    async def fetch_application_emoji(self, emoji_id: int, /) -> Optional[discord.Emoji]:
+        """Fetches a specific application emoji by ID. Will error if fetch fails.
+
+        You probably want to use :func:`.get_or_fetch_application_emoji` instead of this method
+        unless you want to fetch the emoji again, as this method will cache the emoji when fetched for future calls.
+
+        Parameters
+        ----------
+        emoji_id: :class:`int`
+            The ID of the emoji to fetch.
+
+        Returns
+        -------
+        Optional[:class:`discord.Emoji`]
+            The fetched emoji, or None if not found.
+        """
+        emoji = await super().fetch_application_emoji(emoji_id)
+        # cache emoji if we don't already have it cached
+        if emoji and emoji not in self._cached_application_emojis:
+            self._cached_application_emojis.append(emoji)
+        return emoji
+
+    async def get_or_fetch_application_emoji(self, emoji_id: int, /) -> Optional[discord.Emoji]:
+        """Returns a specific application emoji by ID from the cache if it exists, else fetches it. Will error if fetch fails.
+
+        Calls :func:`.fetch_application_emoji` if the emoji is not cached, which will cache it for future calls.
+
+        Parameters
+        ----------
+        emoji_id: :class:`int`
+            The ID of the emoji to get.
+
+        Returns
+        -------
+        Optional[:class:`discord.Emoji`]
+            The fetched emoji, or None if not found.
+        """
+
+        cached_emoji = discord.utils.find(lambda e: e.id == emoji_id, self._cached_application_emojis)
+        if cached_emoji:
+            return cached_emoji
+        return await self.fetch_application_emoji(emoji_id)
+
     async def fetch_application_emojis(self) -> List[discord.Emoji]:
+        """Fetches all of the bot's application emojis. Will error if fetch fails.
+        You probably want to use :func:`.get_or_fetch_application_emojis` instead of this method
+        unless you want to fetch the emojis again, as this method will cache the emojis when fetched for future calls.
+
+        Returns
+        -------
+        List[:class:`discord.Emoji`]
+            A list of the bot's application emojis.
+        """
         self._cached_application_emojis = await super().fetch_application_emojis()
         return self._cached_application_emojis
 
@@ -263,14 +365,17 @@ class BotU(AutoShardedBot):
         :class:`discord.User`
             The bot's owner.
         """
-        self.application_info
-        if getattr(self.bot_app_info, "team", None):
-            user = self.get_user(self.bot_app_info.team.owner.id)  # type: ignore
+        # TODO: figure out what to return without app_info being cached
+        if not self.app_info:
+            return None  # type: ignore
+
+        if getattr(self.app_info, "team", None):
+            user = self.get_user(self.app_info.team.owner.id)  # type: ignore
             if user:
                 return user
-            return self.bot_app_info.team.owner  # type: ignore
-            # return self.bot_app_info.team.owner.
-        return self.bot_app_info.owner
+            return self.app_info.team.owner  # type: ignore
+            # return self.app_info.team.owner.
+        return self.app_info.owner
 
     async def get_context(
         self,
@@ -581,7 +686,7 @@ class BotU(AutoShardedBot):
             try:
                 member = await guild.fetch_member(member_id)
             except discord.HTTPException as e:
-                #return None
+                # return None
                 raise e
             else:
                 return member
@@ -745,9 +850,7 @@ class BotU(AutoShardedBot):
         else:
             members = await guild.query_members(argument, limit=100, cache=cache)
             return discord.utils.find(lambda m: m.name == argument or m.nick == argument, members)
-        
 
-    
     def wrap(self, func: Callable[P, T], *args: P.args, **kwargs: P.kwargs):
         return asyncio.to_thread(functools.partial(func, *args, **kwargs))
 
