@@ -45,6 +45,9 @@ __all__ = (
 def constant_factory(value):
     return lambda: value
 
+DEFAULT_FOOTER_NAME = "@aidenpearce3066"
+"""Default footer name with the bot owner's name. This is used when no other footer information is available.""" 
+
 emojidict: Annotated[emojidictionary, 
 "A dictionary that maps strings to emojis in the form `name`: `emoji_str`."
 ] = emojidictionary(
