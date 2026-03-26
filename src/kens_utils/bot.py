@@ -225,7 +225,6 @@ class BotU(AutoShardedBot):
         :meta private:
         """
         self._application = await super().application_info()
-        self.application
         return self._application
 
     # method alias for consistency with get_or_fetch methods
