@@ -27,12 +27,13 @@ from discord.ext.commands import Bot
 from discord.utils import MISSING
 
 from .constants import (
+    DEFAULT_FOOTER_NAME,
     CODEBLOCK_LANGUAGES,
     CodeblockLanguage,
     DISCORD_FILE_SIZE_LIMIT,
     RE_URL,
-    emojidict,
     Snowflake,
+    emojidict,
 )
 from .enums import IntegrationType
 from .views import SendModalView
@@ -51,6 +52,7 @@ __all__ = (
     'dchyperlink',
     'parse_discord_snowflake',
     'snowflake_timestamp',
+    'utcnow',
     'get_any_key',
     'create_codeblock',
     '_autocomplete',
@@ -65,7 +67,6 @@ __all__ = (
     'get_copyable_slash_command_format',
 )
 # fmt: on
-
 
 def makeembed(
     title: Optional[Union[str, app_commands.locale_str]] = MISSING,
@@ -161,7 +162,6 @@ def makeembed_bot(
     thumbnail: Optional[Union[str, app_commands.locale_str]] = None,
     *,
     bot: Optional[Bot] = None,
-    app_info: Optional[discord.AppInfo] = None,
     bot_owner: Optional[discord.User] = None,
     command_user: Optional[discord.abc.User] = None,
 ) -> discord.Embed:  # embedtype: Union[str, app_commands.locale_str]='rich'):
@@ -177,34 +177,54 @@ def makeembed_bot(
 
     if not timestamp:
         timestamp = datetime.datetime.now()
-
-    if not footer:
-        if bot:
-            if bot_owner:
-                owner = bot_owner
-            if not app_info and getattr(bot, "appinfo", None):
-                app_info = getattr(bot, "appinfo", None)
-            if app_info and getattr(app_info, "team", None):
-                # i'm not the team owner its a burner
-                owner = discord.utils.find(lambda x: x.name == 'aidenpearce3066', app_info.team.members)
-                if not owner:
-                    owner = app_info.team.owner
-            else:
-                owner = bot.owner_id
-            footer = f"Made by @{owner}"
-
-            if not footer_icon_url:
-                if getattr(bot, "avatar_url", None):
-                    footer_icon_url = bot.avatar_url
-                elif getattr(bot, 'user', None):
-                    footer_icon_url = bot.user.display_avatar.url
+    
+    # Only set footer to "made by owner" if a command user isn't provided
+    if not footer and not command_user:
+        owner_obj = bot_owner or None
+        owner_name = None
+        # Prefer explicit bot_owner if provided
+        if bot_owner is not None:
+            owner_obj = bot_owner
+            owner_name = getattr(bot_owner, "name", str(bot_owner))
         else:
-            footer = "Made by @aidenpearce3066"
+            # Try to get app_info from bot if not provided
+            resolved_app_info = bot.application if bot else None
 
-    if command_user and not author:
-        author = f"Requested by {command_user}"
-        if not author_icon_url:
-            author_icon_url = command_user.display_avatar.url
+            if resolved_app_info and resolved_app_info.team:
+                team_members = list(resolved_app_info.team.members)
+                if team_members:
+                    owner_obj = team_members[0]
+                    owner_name = getattr(owner_obj, "name", str(owner_obj))
+            elif resolved_app_info and resolved_app_info.owner:
+                owner_obj = resolved_app_info.owner
+                owner_name = getattr(owner_obj, "name", str(owner_obj))
+        
+        # Fallbacks
+        if owner_name is None and owner_obj is not None:
+            # set owner_name if we have owner_obj
+            owner_name = getattr(owner_obj, "name", str(owner_obj))
+        if owner_name is None and bot and getattr(bot, "owner_id", None):
+            # try to get owner_name from bot.owner_id if we have a bot and it has an owner_id
+            owner_name = str(bot.owner_id)
+        if owner_name:
+            footer = f"Made by @{owner_name}"
+        else:
+            footer = f"Made by {DEFAULT_FOOTER_NAME}"
+
+        if not footer_icon_url:
+            if bot and bot.user:
+                footer_icon_url = bot.user.display_avatar.url
+            elif owner_obj:
+                footer_icon_url = owner_obj.display_avatar.url
+    
+    # we used to make command author the title, instead let's make it the footer.
+    elif command_user and not footer:
+        footer = f"Requested by {command_user}"
+        if not footer_icon_url:
+            footer_icon_url = command_user.display_avatar.url
+
+    elif not footer and not bot:
+        footer = f"Made by {DEFAULT_FOOTER_NAME}"
 
     # i would put this in the default args, but then it will only be when the bot is started
     return makeembed(
@@ -490,6 +510,10 @@ def snowflake_timestamp(snowflake: Union[int, str]) -> datetime.datetime:
 
     return parse_discord_snowflake(snowflake).datetime
 
+def utcnow() -> datetime.datetime:
+    """Returns the current UTC time as a timezone-aware datetime object.
+    Intended to be a drop-in replacement for the depricated :func:`datetime.datetime.utcnow` or :func:`discord.utils.utcnow` functions."""
+    return datetime.datetime.now(datetime.timezone.utc)
 
 def get_any_key(
     keys: Iterable[Hashable],
