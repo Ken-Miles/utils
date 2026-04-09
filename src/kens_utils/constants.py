@@ -1751,21 +1751,21 @@ emojidict: Annotated[emojidictionary,
         "cool": "\U0001f192",
         "new": "\U0001f195",
         "free": "\U0001f193",
-        "zero": "\ufe0f\u20e3",
-        "one": "\1\ufe0f\u20e3",
-        "two": "\2\ufe0f\u20e3",
-        "three": "\3\ufe0f\u20e3",
-        "four": "\4\ufe0f\u20e3",
-        "five": "\5\ufe0f\u20e3",
-        "six": "\6\ufe0f\u20e3",
-        "seven": "\7\ufe0f\u20e3",
-        "eight": "\8\ufe0f\u20e3",
-        "nine": "\9\ufe0f\u20e3",
+        "zero": "0\ufe0f\u20e3",
+        "one": "1\ufe0f\u20e3",
+        "two": "2\ufe0f\u20e3",
+        "three": "3\ufe0f\u20e3",
+        "four": "4\ufe0f\u20e3",
+        "five": "5\ufe0f\u20e3",
+        "six": "6\ufe0f\u20e3",
+        "seven": "7\ufe0f\u20e3",
+        "eight": "8\ufe0f\u20e3",
+        "nine": "9\ufe0f\u20e3",
         "keycap_ten": "\U0001f51f",
         "1234": "\U0001f522",
-        "hash": "\#\ufe0f\u20e3",
-        "asterisk": "\*\ufe0f\u20e3",
-        "keycap_asterisk": "\*\ufe0f\u20e3",
+        "hash": "#\ufe0f\u20e3",
+        "asterisk": "*\ufe0f\u20e3",
+        "keycap_asterisk": "*\ufe0f\u20e3",
         "eject": "\u23cf\ufe0f",
         "eject_symbol": "\u23cf\ufe0f",
         "arrow_forward": "\u25b6\ufe0f",
@@ -2934,7 +2934,7 @@ CodeblockLanguage = Literal[
 
 # only way to get a list of all the codeblock langs and create a type for it
 # is to use this hacky method -_-
-CODEBLOCK_LANGUAGES: List[Union[str, app_commands.locale_str]] = list(CodeblockLanguage.__args__)  # type: ignore
+CODEBLOCK_LANGUAGES: List[Union[str, app_commands.locale_str]] = list(CodeblockLanguage.__args__)
 
 class HTTPCode:
     status: int
