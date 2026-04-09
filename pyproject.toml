@@ -108,8 +108,11 @@ addopts = [
     "--import-mode=importlib",
     #"-ra -q"
 ]
+filterwarnings = [
+    "ignore:'audioop' is deprecated and slated for removal in Python 3.13:DeprecationWarning",
+]
 pythonpath = [
-    "src",
+    "src/kens_utils",
 ]
 testpaths = [
     "tests",
