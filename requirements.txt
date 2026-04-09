@@ -1,7 +1,6 @@
 aiohttp
 discord-ext-menus
-discord.py @ git+https://github.com/Rapptz/discord.py
-emoji
+discord.py>=2.6.0
 fuzzywuzzy # i promise, this exists for a good reason
 jishaku
 lru-dict
