@@ -204,7 +204,7 @@ class CommandU(commands.Command, Generic[CogT, P, T]):
             if isinstance(value, list) and isinstance(value[0], Parameter):
                 fmt = []
                 for item in value:
-                    fmt.append('- `{0}`: {1}'.format(item.name, ' '.join(item.desc)))  # type: ignore
+                    fmt.append('- `{0}`: {1}'.format(item.name, ' '.join(item.desc)))
 
                 value = '\n'.join(fmt)
             elif isinstance(value, list):

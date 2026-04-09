@@ -5,14 +5,17 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from ._types import DiscordClientT
+
 # fmt: off
 __all__ = (
     'MentionableTree',
 )
 # fmt: on
 
-class MentionableTree(app_commands.CommandTree):
-    """"
+class MentionableTree(app_commands.CommandTree[DiscordClientT]):
+    """A command tree that can generate mentions for application commands.
+
     This was written by @leocx1000 on Discord.
     Copied from https://gist.github.com/LeoCx1000/021dc52981299b95ea7790416e4f5ca4
     """
