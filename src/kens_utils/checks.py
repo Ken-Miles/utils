@@ -287,3 +287,18 @@ def disable_command():
         raise commands.DisabledCommand()
 
     return commands.check(predicate)
+
+def ensure_chunked(ephemeral: bool = False):
+    """
+    Sourced from Dockbot's check utils: https://github.com/DuckBot-Discord/DuckBot/blob/rewrite/utils/checks.py 
+
+    Ensures a guild is chunked before running a command. This is useful for commands that require access to the member list.
+    If the guild is not chunked, it will defer the response and chunk the guild before running the command.
+    """
+    async def decorator(ctx: ContextU) -> bool:
+        if ctx.guild and not ctx.guild.chunked:
+            await ctx.defer(ephemeral=ephemeral)
+            await ctx.guild.chunk()
+        return True
+
+    return commands.check(decorator)
