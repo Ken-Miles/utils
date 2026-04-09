@@ -85,7 +85,6 @@ class CogU(Cog,):# metaclass=CogUMeta):
 
         super().__init__(*args, **kwargs)
 
-
     async def cog_load(self) -> None:
         await self._register_loops()
         return await super().cog_load()
