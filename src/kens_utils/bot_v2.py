@@ -8,7 +8,6 @@ from typing import (
     AsyncIterator,
     Callable,
     Coroutine,
-    Dict,
     Iterable,
     List,
     Optional,
@@ -17,8 +16,11 @@ from typing import (
     TypeVar,
     Union,
 )
+import weakref
+
 import discord
 from discord import (
+    AutoShardedClient,
     CategoryChannel,
     DMChannel,
     ForumChannel,
@@ -34,15 +36,18 @@ from discord import (
     VoiceChannel,
 )
 from discord.abc import GuildChannel, PrivateChannel
-from discord.app_commands import Translator
 from discord.ext import commands
-from discord.ext.commands import AutoShardedBot
+from discord.ext.commands.bot import BotBase
+from discord.ext.commands.core import GroupMixin
 from discord.utils import deprecated
 
-from .methods import makeembed_failedaction
+from src.kens_utils._types.types import DiscordClientT
+
+
 from .context import ContextU
 from .tree import MentionableTree
-import weakref  # Library's way of storing user cache
+
+
 
 # fmt: off
 __all__ = (
@@ -56,73 +61,47 @@ P = ParamSpec("P")
 ChannelT = TypeVar("ChannelT", GuildChannel, Thread, PrivateChannel)
 
 
-@discord.utils.copy_doc(commands.AutoShardedBot)
-class BotU(AutoShardedBot):
-    """A subclass of discord.ext.commands.AutoShardedBot with additional features."""
 
-    tree_cls: MentionableTree
+# TODO: should i also implement GroupMixIn?
+@discord.utils.copy_doc(BotBase)
+class BotBaseU(BotBase, GroupMixin[None]):
+    __tree: MentionableTree
+    """Overrides the base type of the bot's tree to be the custom MentionableTree.
+    This helps with better typing and typehinting for all tree-related operations."""
 
-    user: discord.ClientUser
-    command_stats: Counter[str]
-    socket_stats: Counter[str]
-    command_types_used: Counter[bool]
-    logging_handler: Any
-    old_tree_error = Callable[[discord.Interaction, discord.app_commands.AppCommandError], Coroutine[Any, Any, None]]
-    blacklist: List
-    started_at: datetime.datetime
     _cached_application_emojis: List[discord.Emoji] = []
-    # _application: discord.AppInfo
 
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+    
+
+    @discord.utils.copy_doc(BotBase.get_cog)
+    def get_cog(self, name: str, /) -> Optional['CogU']:
+        # TODO: fix type error here, cogT is a cog?
+        return super().get_cog(name) # type: ignore
+
+    @property
+    def tree(self) -> MentionableTree[DiscordClientT]:
+        """Overrides the base tree property to be the custom MentionableTree.
+        This helps with better typing and typehinting for all tree-related operations."""
+        return super().tree # type: ignore
+
+    async def get_context(
+        self,
+        origin: Union[Message, Interaction],
+        *,
+        cls: Type[ContextU] = ContextU,
+    ) -> ContextU:
+        return await super().get_context(origin, cls=cls)
+
+class ClientU(discord.Client):
+    started_at: datetime.datetime
     _user_cache: weakref.WeakValueDictionary[int, User]  # similar to library approach
 
-    def __init__(
-        self,
-        *args,
-        translator_cls: Optional[Translator] = None,
-        translator_args: List = [],
-        translator_kwargs: Dict = {},
-        **kwargs,
-    ) -> None:
-        if kwargs.get("cls", None):
-            assert issubclass(kwargs["cls"], MentionableTree)
-        # kwargs["pm_help"] = None
-
-        # strip_after_prefix by default
-        if kwargs.get('strip_after_prefix', None) is None:
-            kwargs['strip_after_prefix'] = True
-
-        super().__init__(*args, **kwargs)
-
-        # shard_id: List[datetime.datetime]
-        # shows the last attempted IDENTIFYs and RESUMEs
-        self.resumes: defaultdict[int, List[datetime.datetime]] = defaultdict(list)
-        self.identifies: defaultdict[int, List[datetime.datetime]] = defaultdict(list)
-
-        # in case of even further spam, add a cooldown mapping
-        # for people who excessively spam commands
-        self.spam_control = commands.CooldownMapping.from_cooldown(10, 12.0, commands.BucketType.user)
-
-        # A counter to auto-ban frequent spammers
-        # Triggering the rate limit 5 times in a row will auto-ban the user from the bot.
-        self._auto_spam_count = Counter()
-
-        # if translator_cls is not None:
-        #     await self.tree.set_translator(translator_cls(*translator_args, **translator_kwargs))
-
+    def __init__(self, *args, **kwargs) -> None:        
         self._user_cache = weakref.WeakValueDictionary()
-
-        self._listener_funcs = [
-            #     (_cache_update_on_message, 'on_message'),
-            (self._cache_update_on_interaction, 'on_interaction'),
-            #     (_cache_update_on_member, 'on_member_join'),
-            #     (_cache_update_on_member, 'on_member_update'),
-            #     (_cache_update_on_user_update, 'on_user_update'),
-            #     (_cache_update_on_user, 'on_user_remove'),
-            (self._cache_update_on_command, 'on_command'),
-            #     (_update_cache_from_dpy_cache, 'on_ready'),
-        ]
-        for listener_entry in self._listener_funcs:
-            self.add_listener(listener_entry[0], name=listener_entry[1])
+        return super().__init__(*args, **kwargs)
 
     # @discord.utils.copy_doc(commands.Bot.setup_hook)
     async def setup_hook(self):
@@ -147,103 +126,10 @@ class BotU(AutoShardedBot):
 
         await self.get_or_fetch_application_emojis()
 
-    @property
-    def avatar_url(self) -> str:
-        """
-        Get's the bot's custom avatar URL. If the bot has no avatar, raises :class:`AttributeError`.
-        .. note::
-            You likely want to use :attr:`display_avatar_url` instead, which will return the default avatar if no custom avatar is set, as opposed to raising an error.
+        self.started_at = discord.utils.utcnow()
 
-        Raises
-        ------
-        :class:`AttributeError`
-            If the bot has no avatar.
-
-        Returns
-        -------
-        :class:`str`
-            The bot's avatar URL.
-        """
-        if self.user.avatar:
-            return self.user.avatar.url
-        raise AttributeError("Bot has no avatar")
-
-    @property
-    def display_avatar_url(self) -> str:
-        """Get's the bot's display avatar URL. If the bot has no avatar, returns the default avatar URL.
-
-        Raises
-        ------
-        :class:`AttributeError`
-            If the bot has no display avatar. (Should be impossible)
-
-        Returns
-        -------
-        :class:`str`
-            The bot's display avatar URL.
-        """
-        if self.user.display_avatar:
-            return self.user.display_avatar.url
-        raise AttributeError("Bot has no display avatar")
-
-    @property
-    def application(self) -> Optional[discord.AppInfo]:
-        """The bot's application info. This is cached after the first fetch.
-
-        Raises
-        ------
-        :class:`AttributeError`
-            If the application info has not been fetched yet.
-
-        Returns
-        -------
-        :class:`discord.AppInfo`
-            The bot's application info.
-        """
-        if hasattr(self, '_application'):
-            return self._application
-        return None
-
-    @property
-    # @discord.utils.copy_doc(application)
-    def app_info(self) -> Optional[discord.AppInfo]:
-        """Alias for :attr:`application`."""
-        return self.application
-
-    # @discord.utils.copy_doc(commands.Bot.application_info)
-    async def application_info(self) -> discord.AppInfo:
-        """|coro|
-        It is recommend to call :func:`.get_or_fetch_application_info` instead of this method unless you want to fetch the application info again.
-
-        Subclass Method updated to cache the application info when it is fetched.
-
-        Returns
-        -------
-        :class:`discord.AppInfo`
-            The bot's application info.
-
-        :meta private:
-        """
-        self._application = await super().application_info()
-        return self._application
-
-    # method alias for consistency with get_or_fetch methods
-    fetch_application_info = application_info
-
-    async def get_or_fetch_application_info(self) -> discord.AppInfo:
-        """Returns cached application info if it exists, else fetches it. Will error if fetch fails.
-
-        Calls :func:`.application_info` if the application info is not cached, which will cache it for future calls.
-
-        Returns
-        -------
-        :class:`discord.AppInfo`
-            The bot's application info.
-        """
-        if getattr(self, '_application', None) is not None:
-            return self._application  # type: ignore
-        return await self.fetch_application_info()
-
+        return await super().setup_hook()
+    
     @property
     def application_emojis(self) -> List[discord.Emoji]:
         """Cached version of all the bot's application emojis. Only populated if :meth:`.fetch_application_emojis` is called.
@@ -321,69 +207,63 @@ class BotU(AutoShardedBot):
             return self._cached_application_emojis
         return await self.fetch_application_emojis()
 
-    async def on_shard_resumed(self, shard_id: int):
-        # log.info('Shard ID %s has resumed...', shard_id)
-        self.resumes[shard_id].append(discord.utils.utcnow())
-
-    async def on_shard_ready(self, shard_id: int):
-        # log.info('Shard ID %s has connected...', shard_id)
-        self.identifies[shard_id].append(discord.utils.utcnow())
-
-    def _clear_gateway_data(self) -> None:
-        one_week_ago = discord.utils.utcnow() - datetime.timedelta(days=7)
-        for shard_id, dates in self.identifies.items():
-            to_remove = [index for index, dt in enumerate(dates) if dt < one_week_ago]
-            for index in reversed(to_remove):
-                del dates[index]
-
-        for shard_id, dates in self.resumes.items():
-            to_remove = [index for index, dt in enumerate(dates) if dt < one_week_ago]
-            for index in reversed(to_remove):
-                del dates[index]
-
-    async def before_identify_hook(self, shard_id: int, *, initial: bool):
-        self._clear_gateway_data()
-        self.identifies[shard_id].append(discord.utils.utcnow())
-        await super().before_identify_hook(shard_id, initial=initial)
-
-    # async def add_to_blacklist(self, object_id: int):
-    #     await self.blacklist.put(object_id, True)
-
-    # async def remove_from_blacklist(self, object_id: int):
-    #     try:
-    #         await self.blacklist.remove(object_id)
-    #     except KeyError:
-    #         pass
-
     @property
-    def owner(self) -> discord.User:
-        """Renamed because is_owner doesn't work with the new application_info.
+    def application(self) -> Optional[discord.AppInfo]:
+        """The bot's application info. This is cached after the first fetch.
+
+        Raises
+        ------
+        :class:`AttributeError`
+            If the application info has not been fetched yet.
 
         Returns
         -------
-        :class:`discord.User`
-            The bot's owner.
+        :class:`discord.AppInfo`
+            The bot's application info.
         """
-        # TODO: figure out what to return without app_info being cached
-        if not self.app_info:
-            return None  # type: ignore
+        if hasattr(self, '_application'):
+            return self._application
+        return None
 
-        if getattr(self.app_info, "team", None):
-            user = self.get_user(self.app_info.team.owner.id)  # type: ignore
-            if user:
-                return user
-            return self.app_info.team.owner  # type: ignore
-            # return self.app_info.team.owner.
-        return self.app_info.owner
+    @property
+    # @discord.utils.copy_doc(application)
+    def app_info(self) -> Optional[discord.AppInfo]:
+        """Alias for :attr:`application`."""
+        return self.application
 
-    async def get_context(
-        self,
-        origin: Union[Message, Interaction],
-        *,
-        cls: Type[ContextU] = ContextU,
-    ) -> ContextU:
-        # return await ContextU.from_interaction()
-        return await super().get_context(origin, cls=cls)
+    # @discord.utils.copy_doc(commands.Bot.application_info)
+    async def application_info(self) -> discord.AppInfo:
+        """|coro|
+        It is recommend to call :func:`.get_or_fetch_application_info` instead of this method unless you want to fetch the application info again.
+
+        Subclass Method updated to cache the application info when it is fetched.
+
+        Returns
+        -------
+        :class:`discord.AppInfo`
+            The bot's application info.
+
+        :meta private:
+        """
+        self._application = await super().application_info()
+        return self._application
+
+    # method alias for consistency with get_or_fetch methods
+    fetch_application_info = application_info
+
+    async def get_or_fetch_application_info(self) -> discord.AppInfo:
+        """Returns cached application info if it exists, else fetches it. Will error if fetch fails.
+
+        Calls :func:`.application_info` if the application info is not cached, which will cache it for future calls.
+
+        Returns
+        -------
+        :class:`discord.AppInfo`
+            The bot's application info.
+        """
+        if getattr(self, '_application', None) is not None:
+            return self._application  # type: ignore
+        return await self.fetch_application_info()
 
     async def _get_or_fetch_channel(
         self,
@@ -822,6 +702,104 @@ class BotU(AutoShardedBot):
 
     get_or_fetch_dm = get_or_fetch_dmchannel
 
+    @property
+    def owner(self) -> discord.User:
+        """Renamed because is_owner doesn't work with the new application_info.
+
+        Returns
+        -------
+        :class:`discord.User`
+            The bot's owner.
+        """
+        # TODO: figure out what to return without app_info being cached
+        if not self.application:
+            return None  # type: ignore
+
+        if getattr(self.application, "team", None):
+            user = self.get_user(self.application.team.owner.id)  # type: ignore
+            if user:
+                return user
+            return self.application.team.owner  # type: ignore
+            # return self.application.team.owner.
+        return self.application.owner
+
+    @property
+    def user(self) -> discord.ClientUser:
+        """The bot's user. This is cached after the first fetch.
+
+        Raises
+        ------
+        :class:`AttributeError`
+            If the user has not been fetched yet.
+
+        Returns
+        -------
+        :class:`discord.ClientUser`
+            The bot's user.
+        """
+        # TODO: verify this *should* never be none
+        return super().user # type: ignore
+    
+
+    @property
+    def avatar_url(self) -> str:
+        """
+        Get's the bot's custom avatar URL. If the bot has no avatar, raises :class:`AttributeError`.
+        .. note::
+            You likely want to use :attr:`display_avatar_url` instead, which will return the default avatar if no custom avatar is set, as opposed to raising an error.
+
+        Raises
+        ------
+        :class:`AttributeError`
+            If the bot has no avatar.
+
+        Returns
+        -------
+        :class:`str`
+            The bot's avatar URL.
+        """
+        if self.user.avatar:
+            return self.user.avatar.url
+        raise AttributeError("Bot has no avatar")
+
+    @property
+    def display_avatar_url(self) -> str:
+        """Get's the bot's display avatar URL. If the bot has no avatar, returns the default avatar URL.
+
+        Raises
+        ------
+        :class:`AttributeError`
+            If the bot has no display avatar. (Should be impossible)
+
+        Returns
+        -------
+        :class:`str`
+            The bot's display avatar URL.
+        """
+        if self.user.display_avatar:
+            return self.user.display_avatar.url
+        raise AttributeError("Bot has no display avatar")
+
+    # overridden methods/properties
+
+    # user cache management
+    @property
+    def users(self) -> List[User]:
+        return super().users + list(self._user_cache.values())
+
+    async def fetch_user(self, user_id: int, /) -> User:
+        user = await super().fetch_user(user_id)
+
+        await self._maybe_update_user_cache(user)
+
+        return user
+
+    def get_user(self, user_id: int, /) -> Optional[User]:
+        user = super().get_user(user_id)
+        if not user:
+            user = self._user_cache.get(user_id)
+        return user
+    
     # copied from RoboDanny
     async def query_member_named(
         self, guild: discord.Guild, argument: str, *, cache: bool = False
@@ -850,76 +828,10 @@ class BotU(AutoShardedBot):
             members = await guild.query_members(argument, limit=100, cache=cache)
             return discord.utils.find(lambda m: m.name == argument or m.nick == argument, members)
 
-    def wrap(self, func: Callable[P, T], *args: P.args, **kwargs: P.kwargs):
-        return asyncio.to_thread(functools.partial(func, *args, **kwargs))
-
+    # TODO: determine if this is called or usable by clients/bots
     async def on_ready(self):
         if not hasattr(self, 'uptime'):
             self.uptime = discord.utils.utcnow()
-
-    async def get_command_mention(self, command: Union[str, commands.Command]):
-        """Gets the Mention string for a command. If the tree is a MentionableTree, it will return the mention string for the command.
-        If the command ID cannot be found, it will return a string with the command name in backticks.
-
-        Parameters
-        ----------
-        command: Union[:class:`str`, :class:`discord.ext.commands.Command`]
-            The command/name of the command to get the mention for.
-
-        Returns
-        -------
-        :class:`str`
-            The mention string for the command.
-        """
-        # # command_name = command_name.strip().lstrip('/').lower()
-        # # cmd_name = command_name.split(' ')[0]
-        # cmd = self.bot.tree.get_command(cmd_name)
-        if isinstance(self.tree, MentionableTree):
-            tree: MentionableTree = self.tree
-            cmd = await tree.find_mention_for(command)  # type: ignore
-        else:
-            cmd = None
-
-        if not cmd:
-            if isinstance(command, str):
-                cmd = f"`/{command}`"
-            else:
-                cmd = f"`/{command.name}`"
-        return cmd
-
-    async def check_blacklist(self, ctx):
-        # __ = await get_translation_callable(ctx.interaction)
-
-        if getattr(self, 'blacklist', None):
-            if blacklist_obj := discord.utils.find(lambda x: x.offender_id == ctx.author.id, self.blacklist):
-                # desc = await __("You are currently blacklisted from using the bot. Please reach out to the bot developer on the support server for more information.")
-                desc = "You are currently blacklisted from using the bot."
-                if blacklist_obj.reason:
-                    desc += "Reason: `{}`".format(blacklist_obj.reason)
-                emb = makeembed_failedaction(description=desc)
-                await ctx.reply(embed=emb, ephemeral=True, delete_after=10 if not ctx.interaction else None)
-                return False
-        return True
-
-    # overridden methods/properties
-
-    # user cache management
-    @property
-    def users(self) -> List[User]:
-        return super().users + list(self._user_cache.values())
-
-    async def fetch_user(self, user_id: int, /) -> User:
-        user = await super().fetch_user(user_id)
-
-        await self._maybe_update_user_cache(user)
-
-        return user
-
-    def get_user(self, user_id: int, /) -> Optional[User]:
-        user = super().get_user(user_id)
-        if not user:
-            user = self._user_cache.get(user_id)
-        return user
 
     # cache listeners
     async def _maybe_update_user_cache(self, snowflake: Optional[discord.abc.Snowflake] = None):
@@ -956,3 +868,132 @@ class BotU(AutoShardedBot):
     async def _update_cache_from_dpy_cache(self):
         for user in super().users:
             await self._update_user_cache(user)
+
+
+# TODO: autoshardedclient first ensures that super() calls autoshardedclient methods
+# also ensure that clientU methods are used over Client methods
+class AutoShardedClientU(ClientU, AutoShardedClient):
+
+    def __init__(self, *args, **kwargs) -> None:
+
+        # this hopefully calls AutoShardedClient
+        super().__init__(*args, **kwargs)
+        
+        # shard_id: List[datetime.datetime]
+        # shows the last attempted IDENTIFYs and RESUMEs
+        self.resumes: defaultdict[int, List[datetime.datetime]] = defaultdict(list)
+        self.identifies: defaultdict[int, List[datetime.datetime]] = defaultdict(list)
+
+    async def before_identify_hook(self, shard_id: int, *, initial: bool):
+        self._clear_gateway_data()
+        self.identifies[shard_id].append(discord.utils.utcnow())
+        await super().before_identify_hook(shard_id, initial=initial)
+
+    def _clear_gateway_data(self) -> None:
+        one_week_ago = discord.utils.utcnow() - datetime.timedelta(days=7)
+        for shard_id, dates in self.identifies.items():
+            to_remove = [index for index, dt in enumerate(dates) if dt < one_week_ago]
+            for index in reversed(to_remove):
+                del dates[index]
+
+        for shard_id, dates in self.resumes.items():
+            to_remove = [index for index, dt in enumerate(dates) if dt < one_week_ago]
+            for index in reversed(to_remove):
+                del dates[index]
+
+    async def on_shard_resumed(self, shard_id: int):
+        # log.info('Shard ID %s has resumed...', shard_id)
+        self.resumes[shard_id].append(discord.utils.utcnow())
+
+    async def on_shard_ready(self, shard_id: int):
+        # log.info('Shard ID %s has connected...', shard_id)
+        self.identifies[shard_id].append(discord.utils.utcnow())
+
+
+
+@discord.utils.copy_doc(commands.Bot)
+class BotU(commands.Bot, BotBaseU, ClientU):
+    """A subclass of discord.ext.commands.AutoShardedBot with additional features."""
+    command_stats: Counter[str]
+    socket_stats: Counter[str]
+    command_types_used: Counter[bool]
+    logging_handler: Any
+    old_tree_error = Callable[[discord.Interaction, discord.app_commands.AppCommandError], Coroutine[Any, Any, None]]
+    blacklist: List[int]
+
+    def __init__(
+        self,
+        *args,
+        **kwargs,
+    ) -> None:
+        if kwargs.get("cls", None):
+            assert issubclass(kwargs["cls"], MentionableTree)
+        # kwargs["pm_help"] = None
+
+        # strip_after_prefix by default
+        if kwargs.get('strip_after_prefix', None) is None:
+            kwargs['strip_after_prefix'] = True
+
+        super().__init__(*args, **kwargs)
+
+        # in case of even further spam, add a cooldown mapping
+        # for people who excessively spam commands
+        self.spam_control = commands.CooldownMapping.from_cooldown(10, 12.0, commands.BucketType.user)
+
+        # A counter to auto-ban frequent spammers
+        # Triggering the rate limit 5 times in a row will auto-ban the user from the bot.
+        self._auto_spam_count = Counter()
+
+        # if translator_cls is not None:
+        #     await self.tree.set_translator(translator_cls(*translator_args, **translator_kwargs))
+
+
+        self._listener_funcs = [
+            #     (_cache_update_on_message, 'on_message'),
+            (self._cache_update_on_interaction, 'on_interaction'),
+            #     (_cache_update_on_member, 'on_member_join'),
+            #     (_cache_update_on_member, 'on_member_update'),
+            #     (_cache_update_on_user_update, 'on_user_update'),
+            #     (_cache_update_on_user, 'on_user_remove'),
+            (self._cache_update_on_command, 'on_command'),
+            #     (_update_cache_from_dpy_cache, 'on_ready'),
+        ]
+        for listener_entry in self._listener_funcs:
+            self.add_listener(listener_entry[0], name=listener_entry[1])
+
+    def wrap(self, func: Callable[P, T], *args: P.args, **kwargs: P.kwargs):
+        return asyncio.to_thread(functools.partial(func, *args, **kwargs))
+
+    async def get_command_mention(self, command: Union[str, commands.Command]):
+        """Gets the Mention string for a command. If the tree is a MentionableTree, it will return the mention string for the command.
+        If the command ID cannot be found, it will return a string with the command name in backticks.
+
+        Parameters
+        ----------
+        command: Union[:class:`str`, :class:`discord.ext.commands.Command`]
+            The command/name of the command to get the mention for.
+
+        Returns
+        -------
+        :class:`str`
+            The mention string for the command.
+        """
+        # # command_name = command_name.strip().lstrip('/').lower()
+        # # cmd_name = command_name.split(' ')[0]
+        # cmd = self.bot.tree.get_command(cmd_name)
+        if isinstance(self.tree, MentionableTree):
+            tree: MentionableTree = self.tree
+            cmd = await tree.find_mention_for(command)  # type: ignore
+        else:
+            cmd = None
+
+        if not cmd:
+            if isinstance(command, str):
+                cmd = f"`/{command}`"
+            else:
+                cmd = f"`/{command.name}`"
+        return cmd
+
+class AutoShardedBotU(BotU, AutoShardedClientU):
+    """A subclass of BotU and AutoShardedClientU with additional features."""
+    pass
