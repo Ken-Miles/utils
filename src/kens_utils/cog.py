@@ -85,20 +85,26 @@ class CogU(Cog,):# metaclass=CogUMeta):
 
         super().__init__(*args, **kwargs)
 
-    @commands.Cog.listener("on_ready")
-    async def _register_on_ready_loops(self) -> None:
-    #def cog_load(self) -> None:
-        """Registers all the loops in the cog to start after the bot is ready."""
-        for loop in self.__loop_functions:
-            if isinstance(loop, MaybeManagedLoop) and (not loop._should_load() or loop.load_when != "on_ready"):
-                # in order to not be managed, you have to be using the subclass and set the attribute
-                continue
-            if not loop.is_running():
-                loop.start()
-                self.__loops.append(loop)
-        return None
 
     async def cog_load(self) -> None:
+        await self._register_loops()
+        return await super().cog_load()
+
+    #@commands.Cog.listener("on_unload")
+    async def cog_unload(self) -> None:
+        """Unregisters all the loops in the cog when the bot is unloaded."""
+        # Do away with bot.loop operations in cog_unload
+        # as if the cog fails to load the bot doesn't have a loop by this point
+        #self.bot.loop.create_task(self._unregister_loops())
+        await self._unregister_loops()
+        return await super().cog_unload()
+
+    @commands.Cog.listener("on_ready")
+    async def _register_on_ready_loops(self) -> None:
+        await self._register_loops()
+        return None
+
+    async def _register_loops(self) -> None:
         """Registers all the loops in the cog when the cog is loaded."""
         for loop in self.__loop_functions:
             if isinstance(loop, MaybeManagedLoop) and (not loop._should_load() or loop.load_when != "cog_load"):
@@ -107,13 +113,7 @@ class CogU(Cog,):# metaclass=CogUMeta):
             if not loop.is_running():
                 loop.start()
                 self.__loops.append(loop)
-        return await super().cog_load()
-
-    #@commands.Cog.listener("on_unload")
-    async def cog_unload(self) -> None:
-        """Unregisters all the loops in the cog when the bot is unloaded."""
-        self.bot.loop.create_task(self._unregister_loops())
-        return await super().cog_unload()
+        return None
 
     async def _unregister_loops(self) -> None:
         """Unregisters all the loops in the cog when the bot is unloaded."""
@@ -128,7 +128,6 @@ class CogU(Cog,):# metaclass=CogUMeta):
             if loop.is_running() and loop._can_be_cancelled(): # should i be using this private method? if not i guess i could implement it myself in my subclass
                 loop.stop() # allows it to finish before stopping
                 #loop.cancel() # stops immediately, even if mid-execution
-
         return None
 
     @property
@@ -189,4 +188,3 @@ class CogU(Cog,):# metaclass=CogUMeta):
         """
         return await self.bot.get_command_mention(command)
 
-    
