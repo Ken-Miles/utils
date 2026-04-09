@@ -13,6 +13,7 @@ graphs.py
 selfbot.py
 wikidata.py
 custom_constants.py
+custom_constants*.py
 data visualization/
 
 # ignore mac garbage
