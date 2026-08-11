@@ -32,6 +32,7 @@ from .loops import * # cog
 
 from .danny_caches import * # context
 from .danny_formats import * # context
+from .danny_fuzzy import *
 from .danny_pages import * # context
 from .danny_time import * # context
 from .mysty_lru import * # context
