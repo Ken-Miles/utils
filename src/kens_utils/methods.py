@@ -3,6 +3,7 @@ from collections import Counter
 import datetime
 import difflib
 from functools import lru_cache
+import re
 import time
 from typing import (
     Any,
@@ -428,26 +429,27 @@ def dctimestamp(dt: Union[datetime.datetime, int, float], format: Optional[times
 
 
 def dchyperlink(
-    url: Union[str, app_commands.locale_str],
-    texttoclick: Union[str, app_commands.locale_str],
+    text: Optional[Union[str, app_commands.locale_str]]=None,
+    url: Optional[Union[str, app_commands.locale_str]]=None,
     *,
     hovertext: Optional[Union[str, app_commands.locale_str]] = None,
     suppress_embed: Optional[bool] = None,
+    **kwargs
 ) -> str:
     """Creates a hyperlink for Discord.
     This method creates a hyperlink for Discord, with the option to suppress the embed.
 
     The return string will be in the following format which will create a hyperlink in Discord:
-    `[texttoclick](url "hovertext")`
+    `[text](url "hovertext")`
 
     .. note::
-        If the `texttoclick` parameter is a URL, the `url` and `texttoclick` parameters will be switched.
+        If the `text` parameter is a URL, the `url` and `text` parameters will be switched.
 
     Parameters
     ----------
     url : Union[:class:`str`, :class:`discord.app_commands.locale_str`]
         The URL to hyperlink to.
-    texttoclick : Union[:class:`str`, :class:`discord.app_commands.locale_str`]
+    text : Union[:class:`str`, :class:`discord.app_commands.locale_str`]
         The text to show up as the hyperlink.
     hovertext : Optional[Union[:class:`str`, :class:`discord.app_commands.locale_str`]]
         The text to display when the link is hovered over. Defaults to ``None``.
@@ -460,10 +462,15 @@ def dchyperlink(
         The hyperlink string.
     """
 
-    # url and texttoclick could be switched
-    if RE_URL.match(str(texttoclick)) is not None:
-        texttoclick, url = url, texttoclick
-    texttoclick = f"[{texttoclick}]"
+    if not text:
+        # legacy support, accept old texttoclick param
+        text = kwargs.get("texttoclick", None) or url or ""
+
+    # url and text could be switched; Discord may wrap URLs in <...> when suppressing embeds.
+    if RE_URL.match(str(text).strip("<>")) is not None:
+        text, url = url, text
+    
+    text = f"[{text}]"
     hovertext = f' "{hovertext}"' if hovertext is not None else ""
 
     if suppress_embed is not None:
@@ -472,7 +479,7 @@ def dchyperlink(
     if suppress_embed is True:
         url = f"<{url}>"
 
-    return f"{texttoclick}({url}{hovertext})"
+    return f"{text}({url}{hovertext})"
 
 
 def parse_discord_snowflake(snowflake: Union[str, int]) -> Snowflake:
@@ -599,6 +606,113 @@ async def create_codeblock(content: Union[str, app_commands.locale_str], lang: C
     fmt: Union[str, app_commands.locale_str] = "```"
     return f"{fmt}{lang}\n{content}{fmt}"
 
+# add some mentioning method shortcuts
+
+# regexes for each of the mention patterns
+
+# supports old format as well with the ! inside
+USER_MENTION_STR_FORMAT: re.Pattern[str] = re.compile(r"<@!?(\d+)>")
+
+ROLE_MENTION_STR_FORMAT: re.Pattern[str] = re.compile(r"<@&(\d+)>")
+
+CHANNEL_MENTION_STR_FORMAT: re.Pattern[str] = re.compile(r"<#(\d+)>")
+
+
+def _generic_mention_str(
+    obj: Union[discord.abc.User, discord.Role, discord.abc.GuildChannel, int, str],
+    /,
+    *,
+    pattern: re.Pattern[str],
+    mention_prefix: str,
+    default_dpy: bool = True,
+) -> str:
+    """Returns a normalized mention string from an object, raw ID, or mention string."""
+    mention_str = ""
+
+    if not obj:
+        return ""
+
+    if isinstance(obj, (discord.abc.User, discord.Role, discord.abc.GuildChannel)):
+        if default_dpy:
+            # default to what discord.py uses
+            return obj.mention
+        obj = int(obj.id)
+
+    if isinstance(obj, str):
+        raw_obj = obj.strip()
+
+        # If it's already a valid mention for this type, extract the ID from the regex capture group.
+        match = pattern.fullmatch(raw_obj)
+        if match is not None:
+            obj = int(match.group(1))
+        else:
+            # Fallback to raw numeric IDs passed as strings.
+            if raw_obj.isdigit():
+                obj = int(raw_obj)
+            else:
+                # Can't parse this into the requested mention type.
+                return raw_obj
+
+    if isinstance(obj, int):
+        mention_str = f"<{mention_prefix}{obj}>"
+    
+    return mention_str
+
+def user_mention_str(user_obj: Union[discord.abc.User, int, str], /, default_dpy: bool=True) -> str:
+    """Returns a user mention string for the given user object or ID.
+
+    Parameters
+    ----------
+    user_obj: Union[:class:`discord.abc.User`, :class:`discord.User`, :class:`discord.Member`, :class:`int`, :class:`str`]
+        The user object or ID to mention.
+    default_dpy: bool
+        Whether to use the default discord.py mention format if available. If false, uses a constant mention format defined in the utils library. Default to True.
+    Returns
+    -------
+    :class:`str`
+        The user mention string. Empty string if invalid input is given.
+    """
+    return _generic_mention_str(
+        user_obj,
+        pattern=USER_MENTION_STR_FORMAT,
+        mention_prefix="@",
+        default_dpy=default_dpy,
+    )
+
+def role_mention_str(role_obj: Union[discord.Role, int, str], /, default_dpy: bool=True) -> str:
+    """Returns a role mention string for the given role object or ID."""
+    return _generic_mention_str(
+        role_obj,
+        pattern=ROLE_MENTION_STR_FORMAT,
+        mention_prefix="@&",
+        default_dpy=default_dpy,
+    )
+
+
+umention = user_mention_str
+rmention = role_mention_str
+
+def channel_mention_str(channel_obj: Union[discord.abc.GuildChannel, int, str], /, default_dpy: bool=True) -> str:
+    """Returns a channel mention string for the given channel object or ID.
+
+    Parameters
+    ----------
+    channel_obj: Union[:class:`discord.abc.GuildChannel`, :class:`int`, :class:`str`]
+        The channel object or ID to mention.
+
+    Returns
+    -------
+    :class:`str`
+        The channel mention string. Empty string if invalid input is given.
+    """
+    return _generic_mention_str(
+        channel_obj,
+        pattern=CHANNEL_MENTION_STR_FORMAT,
+        mention_prefix="#",
+        default_dpy=default_dpy,
+    )
+
+cmention = channel_mention_str
 
 @lru_cache(maxsize=1000)
 def _autocomplete(
