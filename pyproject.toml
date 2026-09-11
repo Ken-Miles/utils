@@ -81,6 +81,16 @@ line-length = 125
 line-ending = "lf"
 quote-style = "single"
 
+[tool.ruff.lint]
+# Enable specific rulesets
+select = [
+    "F",    # Pyflakes (catches F401: unused imports)
+    "I",    # isort (automatically sorts and groups imports)
+    "UP",   # pyupgrade (automatically updates old typing syntax)
+    "FA",   # flake8-future-annotations (forces 'from __future__ import annotations')
+    "TCH",  # flake8-type-checking (moves typing-only imports into TYPE_CHECKING blocks)
+]
+
 [tool.isort]
 profile = "black"
 combine_as_imports = true

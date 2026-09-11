@@ -1,4 +1,3 @@
-from typing import List, Optional
 
 import discord
 from discord import ui
@@ -18,7 +17,7 @@ __all__ = (
 @deprecated('discord.ui.Button')
 class URLButton(discord.ui.View):
     def __init__(
-        self, url: str, buttontext: str, emoji: Optional[str] = None, **kwargs
+        self, url: str, buttontext: str, emoji: str | None = None, **kwargs
     ):
         super().__init__()
         self.add_item(
@@ -40,11 +39,11 @@ class CustomBaseView(discord.ui.View):
     - additional features
     """
 
-    message: Optional[discord.Message]
+    message: discord.Message | None
     delete_message_after: bool
-    author_id: Optional[int]
+    author_id: int | None
 
-    def __init__(self, *args,  message: Optional[discord.Message]=None, delete_message_after: bool=False, author_id: Optional[int]=None, **kwargs):
+    def __init__(self, *args,  message: discord.Message | None=None, delete_message_after: bool=False, author_id: int | None=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.message = message
         self.delete_message_after = delete_message_after
@@ -111,14 +110,14 @@ class CustomBaseSelect(discord.ui.Select):
 
     def __init__(self, *, 
         custom_id: str = MISSING, 
-        placeholder: Optional[str] = None, 
+        placeholder: str | None = None, 
         min_values: int = 1, 
         max_values: int = 1, 
-        options: List[discord.SelectOption] = MISSING, 
+        options: list[discord.SelectOption] = MISSING, 
         disabled: bool = False, 
-        row: Optional[int] = None,
-        author_id: Optional[int] = None,
-        parent_view: Optional[discord.ui.View] = None,
+        row: int | None = None,
+        author_id: int | None = None,
+        parent_view: discord.ui.View | None = None,
     ) -> None:
         
         self.author_id = author_id
@@ -172,7 +171,7 @@ class SendModalView(CustomBaseView):
 
     modal: ui.Modal
 
-    def __init__(self, *args, modal: discord.ui.Modal, button_text: str="View Modal", message: Optional[discord.Message] = None, delete_message_after: bool = False, author_id: Optional[int] = None, **kwargs):
+    def __init__(self, *args, modal: discord.ui.Modal, button_text: str="View Modal", message: discord.Message | None = None, delete_message_after: bool = False, author_id: int | None = None, **kwargs):
         super().__init__(*args, message=message, delete_message_after=delete_message_after, author_id=author_id, **kwargs)
 
         self.modal = modal

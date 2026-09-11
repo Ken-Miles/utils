@@ -9,8 +9,13 @@ Taken from https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/formats.p
 """
 
 from __future__ import annotations
+
 import datetime
-from typing import Any, Iterable, Optional, Sequence
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Sequence
+
 
 class plural:
     def __init__(self, value: int):
@@ -93,7 +98,7 @@ class TabularData:
         return "\n".join(to_draw)
 
 
-def format_dt(dt: datetime.datetime, style: Optional[str] = None) -> str:
+def format_dt(dt: datetime.datetime, style: str | None = None) -> str:
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=datetime.timezone.utc)
 
@@ -102,7 +107,7 @@ def format_dt(dt: datetime.datetime, style: Optional[str] = None) -> str:
     return f"<t:{int(dt.timestamp())}:{style}>"
 
 
-def tick(opt: Optional[bool], /) -> str:
+def tick(opt: bool | None, /) -> str:
     lookup = {
         True: "<:greenTick:330090705336664065>",
         False: "<:redTick:330090723011592193>",

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 """
 Tests for discord.ext.tasks
@@ -9,12 +8,12 @@ Link: https://github.com/Rapptz/discord.py/blob/master/tests/test_ext_tasks.py
 
 import asyncio
 import datetime
-
-import pytest
 import sys
 
+import pytest
 from discord import utils as discord_utils
 from discord.ext import tasks as discord_tasks
+
 from ..src import loop as tasks_loop
 
 

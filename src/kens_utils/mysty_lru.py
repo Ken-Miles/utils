@@ -21,7 +21,6 @@ from __future__ import annotations
 from collections import deque
 from typing import TYPE_CHECKING, Generic, TypeVar, overload
 
-
 if TYPE_CHECKING:
     from collections.abc import MutableMapping
 

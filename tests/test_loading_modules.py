@@ -1,7 +1,8 @@
 # tests/test_import_all_files.py
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
+
 import pytest
 
 SRC = Path(__file__).resolve().parents[1] / "src"
@@ -43,8 +44,7 @@ importlib.import_module(fullname)
         subprocess.run(
             [sys.executable, "-c", code, str(SRC), modname],
             check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             text=True,
         )
     except subprocess.CalledProcessError as e:

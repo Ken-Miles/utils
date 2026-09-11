@@ -1,8 +1,6 @@
-from docutils.parsers.rst import Directive
-from docutils.parsers.rst import states, directives
-from docutils.parsers.rst.roles import set_classes
 from docutils import nodes
-from sphinx.locale import _
+from docutils.parsers.rst import Directive
+
 
 class exception_hierarchy(nodes.General, nodes.Element):
     pass

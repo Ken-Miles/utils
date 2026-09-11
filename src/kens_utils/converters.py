@@ -8,16 +8,17 @@ Written by @danny on Discord
 Taken from https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/mod.py
 """
 
-from typing import ClassVar, List, Type, Union
-import discord
 import re
-from discord.ext import commands
-from discord.ext.commands.converter import _ID_REGEX
+from typing import ClassVar
+
+import discord
 import emoji
 from discord import app_commands
+from discord.ext import commands
+from discord.ext.commands.converter import _ID_REGEX
 
-from .enums import EnumU
 from .context import ContextU
+from .enums import EnumU
 from .methods import generic_autocomplete
 
 # fmt: off
@@ -149,8 +150,8 @@ class EnumBaseConverter(commands.Converter, app_commands.Transformer):
     
     To use this converter, you must override this class, and set the `enum_cls` class attribute to the class of your Enum."""
 
-    enum_cls: ClassVar[Type[EnumU]]
-    context_cls: ClassVar[Type[commands.Context]] = ContextU
+    enum_cls: ClassVar[type[EnumU]]
+    context_cls: ClassVar[type[commands.Context]] = ContextU
 
     max_choices: ClassVar[int] = 25
     """Constant defined in case discord ever decides to raise the max app command choices amount."""
@@ -166,7 +167,7 @@ class EnumBaseConverter(commands.Converter, app_commands.Transformer):
             return None
         return [x.to_choice() for x in self.enum_cls.all()]
     
-    async def autocomplete(self, interaction: discord.Interaction, value: Union[int, float, str], /) -> List[app_commands.Choice[Union[int, float, str]]]:
+    async def autocomplete(self, interaction: discord.Interaction, value: int | float | str, /) -> list[app_commands.Choice[int | float | str]]:
         if not self._has_max_choices:
             return []
         
@@ -180,5 +181,5 @@ class EnumBaseConverter(commands.Converter, app_commands.Transformer):
         except ValueError:
             raise commands.BadArgument(f"Invalid input: {argument}")
 
-    async def transform(self, interaction: discord.Interaction, value: Union[int, float, str]):
+    async def transform(self, interaction: discord.Interaction, value: int | float | str):
         return await self.convert(await self.context_cls.from_interaction(interaction), str(value))

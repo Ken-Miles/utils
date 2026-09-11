@@ -23,24 +23,30 @@ DEALINGS IN THE SOFTWARE.
 """
 
 from __future__ import annotations
-from collections.abc import Coroutine
-from typing import Any, Type
+
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock
 
 import discord
+import pytest
 from discord import app_commands
+
 #from discord.ext import commands
 from discord.ext.commands import GroupCog
-import pytest
 
 from ..src import (
     BotU as Bot,
+)
+from ..src import (
     CogU as Cog,
     # CommandU as Command,
     # GroupU as Group,
     # HybridCommandU as HybridCommand,
     # HybridGroupU as HybridGroup,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Coroutine
 
 
 @pytest.fixture
@@ -64,7 +70,7 @@ def mock_on_sub_group_error_handler() -> AsyncMock:
 
 
 @pytest.fixture
-def sub_group_class() -> Type[app_commands.Group]:
+def sub_group_class() -> type[app_commands.Group]:
     class MySubGroup(app_commands.Group):
         @app_commands.command()
         async def my_sub_group_command(self, interaction: discord.Interaction) -> None:
@@ -74,7 +80,7 @@ def sub_group_class() -> Type[app_commands.Group]:
 
 
 @pytest.fixture
-def sub_group_with_handler_class(mock_on_sub_group_error_handler: AsyncMock) -> Type[app_commands.Group]:
+def sub_group_with_handler_class(mock_on_sub_group_error_handler: AsyncMock) -> type[app_commands.Group]:
     class MySubGroup(app_commands.Group):
         @app_commands.command()
         async def my_sub_group_command(self, interaction: discord.Interaction) -> None:
@@ -91,7 +97,7 @@ def sub_group_with_handler_class(mock_on_sub_group_error_handler: AsyncMock) -> 
 
 
 @pytest.fixture
-def group_class(sub_group_class: Type[app_commands.Group]) -> Type[app_commands.Group]:
+def group_class(sub_group_class: type[app_commands.Group]) -> type[app_commands.Group]:
     class MyGroup(app_commands.Group):
         my_sub_group = sub_group_class()
 
@@ -104,8 +110,8 @@ def group_class(sub_group_class: Type[app_commands.Group]) -> Type[app_commands.
 
 @pytest.fixture
 def group_with_handler_class(
-    sub_group_class: Type[app_commands.Group], mock_on_group_error_handler: AsyncMock
-) -> Type[app_commands.Group]:
+    sub_group_class: type[app_commands.Group], mock_on_group_error_handler: AsyncMock
+) -> type[app_commands.Group]:
     class MyGroupWithHandler(app_commands.Group):
         my_sub_group = sub_group_class()
 
@@ -125,8 +131,8 @@ def group_with_handler_class(
 
 @pytest.fixture
 def group_with_handler_and_sub_group_handler_class(
-    sub_group_with_handler_class: Type[app_commands.Group], mock_on_group_error_handler: AsyncMock
-) -> Type[app_commands.Group]:
+    sub_group_with_handler_class: type[app_commands.Group], mock_on_group_error_handler: AsyncMock
+) -> type[app_commands.Group]:
     class MyGroupWithHandler(app_commands.Group):
         my_sub_group = sub_group_with_handler_class()
 
@@ -212,7 +218,7 @@ class TestCog:
         self,
         mock_bot: Bot,
         mock_interaction: discord.Interaction,
-        group_class: Type[app_commands.Group],
+        group_class: type[app_commands.Group],
     ) -> None:
         on_error = AsyncMock()
         error = app_commands.CheckFailure()
@@ -237,7 +243,7 @@ class TestCog:
         self,
         mock_bot: Bot,
         mock_interaction: discord.Interaction,
-        group_class: Type[app_commands.Group],
+        group_class: type[app_commands.Group],
     ) -> None:
         on_error = AsyncMock()
         error = app_commands.CheckFailure()
@@ -263,7 +269,7 @@ class TestCog:
         mock_bot: Bot,
         mock_interaction: discord.Interaction,
         mock_on_group_error_handler: AsyncMock,
-        group_with_handler_class: Type[app_commands.Group],
+        group_with_handler_class: type[app_commands.Group],
     ) -> None:
         on_error = AsyncMock()
         error = app_commands.CheckFailure()
@@ -290,7 +296,7 @@ class TestCog:
         mock_bot: Bot,
         mock_interaction: discord.Interaction,
         mock_on_group_error_handler: AsyncMock,
-        group_with_handler_class: Type[app_commands.Group],
+        group_with_handler_class: type[app_commands.Group],
     ) -> None:
         on_error = AsyncMock()
         error = app_commands.CheckFailure()
@@ -318,7 +324,7 @@ class TestCog:
         mock_interaction: discord.Interaction,
         mock_on_group_error_handler: AsyncMock,
         mock_on_sub_group_error_handler: AsyncMock,
-        group_with_handler_and_sub_group_handler_class: Type[app_commands.Group],
+        group_with_handler_and_sub_group_handler_class: type[app_commands.Group],
     ) -> None:
         on_error = AsyncMock()
         error = app_commands.CheckFailure()
@@ -409,7 +415,7 @@ class TestGroupCog:
         self,
         mock_bot: Bot,
         mock_interaction: discord.Interaction,
-        sub_group_class: Type[app_commands.Group],
+        sub_group_class: type[app_commands.Group],
     ) -> None:
         on_error = AsyncMock()
         error = app_commands.CheckFailure()
@@ -435,7 +441,7 @@ class TestGroupCog:
         mock_bot: Bot,
         mock_interaction: discord.Interaction,
         mock_on_sub_group_error_handler: AsyncMock,
-        sub_group_with_handler_class: Type[app_commands.Group],
+        sub_group_with_handler_class: type[app_commands.Group],
     ) -> None:
         on_error = AsyncMock()
         error = app_commands.CheckFailure()

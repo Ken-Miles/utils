@@ -10,9 +10,10 @@ Taken from https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/cache.py
 
 import asyncio
 import enum
-from functools import wraps
 import time
-from typing import Any, Callable, Coroutine, MutableMapping, Protocol, TypeVar
+from collections.abc import Callable, Coroutine, MutableMapping
+from functools import wraps
+from typing import Any, Protocol, TypeVar
 
 from lru import LRU
 

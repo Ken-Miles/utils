@@ -1,14 +1,19 @@
 from __future__ import annotations
+
 import sys
 import time
+from typing import TYPE_CHECKING
 
 from discord.ext import commands
 from sentry_sdk import capture_exception, push_scope
 
-from ..bot import BotU
 from ..cog import CogU
-from ..context import ContextU
 from ..methods import dctimestamp
+
+if TYPE_CHECKING:
+    from ..bot import BotU
+    from ..context import ContextU
+
 
 class ErrorHandler(CogU, hidden=True):
     bot: BotU
@@ -102,7 +107,7 @@ class ErrorHandler(CogU, hidden=True):
         else:
             # All other Errors not returned come here. And we can just print the default TraceBack.
             print(
-                "Ignoring exception in command {}:".format(ctx.command), file=sys.stderr
+                f"Ignoring exception in command {ctx.command}:", file=sys.stderr
             )
             # traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
             try:
@@ -118,7 +123,7 @@ class ErrorHandler(CogU, hidden=True):
                     scope.set_context("args", ctx.args)
                     scope.set_context("kwargs", ctx.kwargs)
                     capture_exception(error)
-            except Exception as e:
+            except Exception:
                 pass
             if isinstance(error, commands.CommandError):
                 message = str(error)

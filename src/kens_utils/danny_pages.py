@@ -10,11 +10,12 @@ Taken from https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/paginator
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, Optional
-import discord
 import traceback
-from discord.ext.commands import Paginator as CommandPaginator
+from typing import TYPE_CHECKING, Any
+
+import discord
 from discord.ext import menus
+from discord.ext.commands import Paginator as CommandPaginator
 
 if TYPE_CHECKING:
     from .context import ContextU as Context
@@ -23,7 +24,7 @@ if TYPE_CHECKING:
 class NumberedPageModal(discord.ui.Modal, title='Go to page'):
     page = discord.ui.TextInput(label='Page', placeholder='Enter a number', min_length=1)
 
-    def __init__(self, max_pages: Optional[int]) -> None:
+    def __init__(self, max_pages: int | None) -> None:
         super().__init__()
         if max_pages is not None:
             as_string = str(max_pages)
@@ -48,7 +49,7 @@ class RoboPages(discord.ui.View):
         self.source: menus.PageSource = source
         self.check_embeds: bool = check_embeds
         self.ctx: Context = ctx
-        self.message: Optional[discord.Message] = None
+        self.message: discord.Message | None = None
         self.current_page: int = 0
         self.compact: bool = compact
         self.clear_items()
@@ -74,7 +75,7 @@ class RoboPages(discord.ui.View):
                 self.add_item(self.numbered_page)
             self.add_item(self.stop_pages)
 
-    async def _get_kwargs_from_page(self, page: int) -> Dict[str, Any]:
+    async def _get_kwargs_from_page(self, page: int) -> dict[str, Any]:
         value = await discord.utils.maybe_coroutine(self.source.format_page, self, page)
         if isinstance(value, dict):
             return value
@@ -166,7 +167,7 @@ class RoboPages(discord.ui.View):
         except discord.HTTPException:
             pass
 
-    async def start(self, *, content: Optional[str] = None, ephemeral: bool = False) -> None:
+    async def start(self, *, content: str | None = None, ephemeral: bool = False) -> None:
         if self.check_embeds and not self.ctx.channel.permissions_for(self.ctx.me).embed_links:  # type: ignore
             await self.ctx.send('Bot does not have embed links permission in this channel.', ephemeral=True)
             return

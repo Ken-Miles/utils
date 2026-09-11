@@ -1,4 +1,3 @@
-from typing import Optional
 
 import discord
 from discord import ui
@@ -18,11 +17,11 @@ class CustomBaseViewV2(discord.ui.LayoutView):
     - additional features
     """
 
-    message: Optional[discord.Message]
+    message: discord.Message | None
     delete_message_after: bool
-    author_id: Optional[int]
+    author_id: int | None
 
-    def __init__(self, *args,  message: Optional[discord.Message]=None, delete_message_after: bool=False, author_id: Optional[int]=None, **kwargs):
+    def __init__(self, *args,  message: discord.Message | None=None, delete_message_after: bool=False, author_id: int | None=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.message = message
         self.delete_message_after = delete_message_after

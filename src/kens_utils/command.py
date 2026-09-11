@@ -1,19 +1,13 @@
 from __future__ import annotations
-import inspect
+
 import re
+from collections.abc import Awaitable, Callable, Iterable, Mapping
 from typing import (
+    TYPE_CHECKING,
     Any,
-    Awaitable,
-    Callable,
     Concatenate,
-    Dict,
     Generic,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
     ParamSpec,
-    Tuple,
     TypeVar,
     Union,
 )
@@ -26,13 +20,18 @@ from discord.ext.commands._types import CogT, ContextT, Coro
 from discord.ext.commands.core import hooked_wrapped_callback
 from discord.utils import MISSING
 from fuzzywuzzy import process
-from numpydoc.docscrape import NumpyDocString as process_doc, Parameter
+from numpydoc.docscrape import NumpyDocString as process_doc
+from numpydoc.docscrape import Parameter
 from typing_extensions import Self
 
-from .bot import BotU
-from .context import ContextU
 from .danny_formats import human_join
 from .views import CustomBaseView
+
+if TYPE_CHECKING:
+    import inspect
+
+    from .bot import BotU
+    from .context import ContextU
 
 # fmt: off
 __all__ = (
@@ -70,7 +69,7 @@ def _subber(match: re.Match) -> str:
 
 
 class PromptSelect(discord.ui.Select):
-    def __init__(self, parent: PromptView, matches: List[Tuple[int, str]]) -> None:
+    def __init__(self, parent: PromptView, matches: list[tuple[int, str]]) -> None:
         super().__init__(
             placeholder='Select an option below...',
             options=[
@@ -99,16 +98,16 @@ class PromptView(CustomBaseView):
         self,
         *,
         ctx: ContextU,
-        matches: List[Tuple[int, str]],
+        matches: list[tuple[int, str]],
         param: inspect.Parameter,
-        value: Union[str, app_commands.locale_str],
+        value: str | app_commands.locale_str,
     ) -> None:
         super().__init__()
         self.ctx: ContextU = ctx
-        self.matches: List[Tuple[int, str]] = matches
+        self.matches: list[tuple[int, str]] = matches
         self.param: inspect.Parameter = param
-        self.value: Union[str, app_commands.locale_str] = value
-        self.item: Optional[str] = None
+        self.value: str | app_commands.locale_str = value
+        self.item: str | None = None
 
         self.add_item(PromptSelect(self, matches))
 
@@ -167,15 +166,12 @@ class CommandU(commands.Command, Generic[CogT, P, T]):
 
     def __init__(
         self,
-        func: Union[
-            Callable[Concatenate[CogT, ContextT, P], Coro[T]],
-            Callable[Concatenate[ContextT, P], Coro[T]],
-        ],
+        func: Callable[Concatenate[CogT, ContextT, P], Coro[T]] | Callable[Concatenate[ContextT, P], Coro[T]],
         /,
         **kwargs: Any,
     ) -> None:
         super().__init__(func, **kwargs)  # type: ignore
-        self.autocompletes: Dict[str, AutoComplete] = {}
+        self.autocompletes: dict[str, AutoComplete] = {}
 
     @property
     def help_mapping(self) -> Mapping[str, str]:
@@ -204,7 +200,7 @@ class CommandU(commands.Command, Generic[CogT, P, T]):
             if isinstance(value, list) and isinstance(value[0], Parameter):
                 fmt = []
                 for item in value:
-                    fmt.append('- `{0}`: {1}'.format(item.name, ' '.join(item.desc)))
+                    fmt.append('- `{}`: {}'.format(item.name, ' '.join(item.desc)))
 
                 value = '\n'.join(fmt)
             elif isinstance(value, list):
@@ -543,10 +539,10 @@ class HybridGroupU(commands.HybridGroup, GroupU):
             return GroupU.autocomplete(self, name)
 
 def command(
-    name: Union[str, app_commands.locale_str] = MISSING,
-    description: Union[str, app_commands.locale_str] = MISSING,
-    brief: Union[str, app_commands.locale_str] = MISSING,
-    aliases: Iterable[Union[str, app_commands.locale_str]] = MISSING,
+    name: str | app_commands.locale_str = MISSING,
+    description: str | app_commands.locale_str = MISSING,
+    brief: str | app_commands.locale_str = MISSING,
+    aliases: Iterable[str | app_commands.locale_str] = MISSING,
     hybrid: bool = False,
     **attrs: Any,
 ) -> Callable[..., CommandU | HybridCommandU]:
@@ -587,10 +583,10 @@ def command(
     return decorator
 
 def hybrid_command(
-    name: Union[str, app_commands.locale_str] = MISSING,
-    description: Union[str, app_commands.locale_str] = MISSING,
-    brief: Union[str, app_commands.locale_str] = MISSING,
-    aliases: Iterable[Union[str, app_commands.locale_str]] = MISSING,
+    name: str | app_commands.locale_str = MISSING,
+    description: str | app_commands.locale_str = MISSING,
+    brief: str | app_commands.locale_str = MISSING,
+    aliases: Iterable[str | app_commands.locale_str] = MISSING,
     **attrs: Any,
 ) -> Callable[..., HybridCommandU]:
     """Register a function as a :class:`HybridCommandU`.
@@ -629,12 +625,12 @@ def hybrid_command(
     return decorator
 
 def group(
-    name: Union[str, app_commands.locale_str] = MISSING,
-    description: Union[str, app_commands.locale_str] = MISSING,
-    brief: Union[str, app_commands.locale_str] = MISSING,
-    aliases: Iterable[Union[str, app_commands.locale_str]] = MISSING,
+    name: str | app_commands.locale_str = MISSING,
+    description: str | app_commands.locale_str = MISSING,
+    brief: str | app_commands.locale_str = MISSING,
+    aliases: Iterable[str | app_commands.locale_str] = MISSING,
     hybrid: bool = False,
-    fallback: Union[str, app_commands.locale_str] | None = None,
+    fallback: str | app_commands.locale_str | None = None,
     invoke_without_command: bool = True,
     **attrs: Any,
 ) -> Callable[..., GroupU | HybridGroupU]:
@@ -659,7 +655,7 @@ def group(
         if isinstance(func, GroupU):
             raise TypeError('Callback is already a command.')
 
-        kwargs: Dict[str, Any] = {'invoke_without_command': invoke_without_command}
+        kwargs: dict[str, Any] = {'invoke_without_command': invoke_without_command}
         kwargs.update(attrs)
         if name is not MISSING:
             kwargs['name'] = name
@@ -679,11 +675,11 @@ def group(
     return decorator
 
 def hybrid_group(
-    name: Union[str, app_commands.locale_str] = MISSING,
-    description: Union[str, app_commands.locale_str] = MISSING,
-    brief: Union[str, app_commands.locale_str] = MISSING,
-    aliases: Iterable[Union[str, app_commands.locale_str]] = MISSING,
-    fallback: Union[str, app_commands.locale_str] | None = None,
+    name: str | app_commands.locale_str = MISSING,
+    description: str | app_commands.locale_str = MISSING,
+    brief: str | app_commands.locale_str = MISSING,
+    aliases: Iterable[str | app_commands.locale_str] = MISSING,
+    fallback: str | app_commands.locale_str | None = None,
     invoke_without_command: bool = True,
     **attrs: Any,
 ) -> Callable[..., HybridGroupU]:
@@ -707,7 +703,7 @@ def hybrid_group(
         if isinstance(func, HybridGroupU):
             raise TypeError('Callback is already a command.')
 
-        kwargs: Dict[str, Any] = {'invoke_without_command': invoke_without_command}
+        kwargs: dict[str, Any] = {'invoke_without_command': invoke_without_command}
         kwargs.update(attrs)
         if name is not MISSING:
             kwargs['name'] = name

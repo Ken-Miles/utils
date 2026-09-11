@@ -13,33 +13,30 @@ except NameError:
 else:
     __path__ = extend_path(__path__, __name__)
 
-from .constants import * # logger
-from .logger import *
-from .tree import *
-from .help_command import *
-
-from .checks import * # context
-from .paginatorv1 import * # context
-from .paginatorv2 import * # context
-from .command import * # context, views, danny_formats
-from .requests_http import * # constants
-from .context import * # requests
-from .enums import *
-from .converters import *
 from .bot import *
+from .checks import *  # context
 from .cog import *
-from .loops import * # cog
-
-from .danny_caches import * # context
-from .danny_formats import * # context
+from .colors import *
+from .command import *  # context, views, danny_formats
+from .constants import *  # logger
+from .context import *  # requests
+from .converters import *
+from .danny_caches import *  # context
+from .danny_formats import *  # context
 from .danny_fuzzy import *
-from .danny_pages import * # context
-from .danny_time import * # context
-from .mysty_lru import * # context
-from .umbra_async_config import * # context
-from .umbra_ui import * # context, views
-
+from .danny_pages import *  # context
+from .danny_time import *  # context
+from .enums import *
+from .help_command import *
+from .logger import *
+from .loops import *  # cog
+from .methods import *
+from .mysty_lru import *  # context
+from .paginatorv1 import *  # context
+from .paginatorv2 import *  # context
+from .requests_http import *  # constants
+from .tree import *
+from .umbra_async_config import *  # context
+from .umbra_ui import *  # context, views
 from .views import *
 from .viewsv2 import *
-from .methods import *
-from .colors import *

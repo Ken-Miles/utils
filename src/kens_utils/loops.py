@@ -1,7 +1,8 @@
 import asyncio
 import datetime
 import inspect
-from typing import Any, Callable, Generic, Literal, Optional, Sequence, Union
+from collections.abc import Callable, Sequence
+from typing import Any, Generic, Literal
 
 from discord.ext.tasks import LF, Loop
 from discord.utils import MISSING, cached_property
@@ -27,7 +28,7 @@ class MaybeManagedLoop(Loop, Generic[LF]):
 
     _disabled: bool = False
 
-    _load_when: Optional[Literal["cog_load", "on_ready"]] = "on_ready"
+    _load_when: Literal["cog_load", "on_ready"] | None = "on_ready"
     """Sets when the loop should be started.
     If set to "cog_load", the loop will be started when the cog is loaded
     If set to "on_ready", the loop will be started when the bot is ready.
@@ -60,7 +61,7 @@ class MaybeManagedLoop(Loop, Generic[LF]):
         return self._disabled
 
     @cached_property
-    def load_when(self) -> Optional[Literal["cog_load", "on_ready"]]:
+    def load_when(self) -> Literal["cog_load", "on_ready"] | None:
         """When the loop should be started."""
         return self._load_when
 
@@ -90,10 +91,10 @@ def loop(
     seconds: float = MISSING,
     minutes: float = MISSING,
     hours: float = MISSING,
-    time: Union[datetime.time, Sequence[datetime.time]] = MISSING,
-    count: Optional[int] = None,
+    time: datetime.time | Sequence[datetime.time] = MISSING,
+    count: int | None = None,
     reconnect: bool = True,
-    name: Optional[str] = None,
+    name: str | None = None,
     disabled: bool = False,
     managed: bool = False,
 

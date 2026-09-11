@@ -1,7 +1,9 @@
 
-import pytest
 import discord
+import pytest
+
 from ...src.kens_utils import bot
+
 
 @pytest.mark.asyncio
 async def test_bot_init_sets_attributes(mocker):

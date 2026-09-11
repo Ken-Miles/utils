@@ -1,18 +1,20 @@
 from __future__ import annotations
-import logging
-from typing import Any, List, Optional, ParamSpec, TYPE_CHECKING, Type, TypeVar, Union
-import uuid
 
-import aiohttp
+import logging
+import uuid
+from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar
+
 from discord.ext import commands
 from discord.ext.commands import Cog
-from discord.ext.tasks import Loop
 
-from .bot import BotU
+from .loops import MaybeManagedLoop
 from .requests_http import _delete, _get, _patch, _post, _put
 
 if TYPE_CHECKING:
-    from .loops import MaybeManagedLoop
+    import aiohttp
+    from discord.ext.tasks import Loop
+
+    from .bot import BotU
 
 # fmt: off
 __all__ = (
@@ -53,18 +55,18 @@ class CogU(Cog,):# metaclass=CogUMeta):
     Intended for use in Help commands where entire cogs shouldn't be shown by default.
     """
 
-    __loop_functions: List[Loop] = []
+    __loop_functions: list[Loop] = []
     """List of all the loop functions in the cog. All loops, including non-managed and ignored loops, are included."""
 
-    __loops: List[Loop] = []
+    __loops: list[Loop] = []
     """This is a list of all the managed loops in the cog that are running. Non-managed and ignored loops are not included."""
 
     hidden: bool
-    emoji: Optional[str]
-    brief: Optional[str]
+    emoji: str | None
+    brief: str | None
     nsfw: bool
 
-    def __init_subclass__(cls: Type[CogU], **kwargs: Any) -> None:
+    def __init_subclass__(cls: type[CogU], **kwargs: Any) -> None:
         """This is called when a subclass is created.
         Its purpose is to add parameters to the cog
         that will later be used in the help command.
@@ -166,7 +168,7 @@ class CogU(Cog,):# metaclass=CogUMeta):
         This method is a wrapper for :meth:`aiohttp.ClientSession.delete`."""
         return await _delete( *args, **kwargs)
 
-    async def get_command_mention(self, command: Union[str, commands.Command]):
+    async def get_command_mention(self, command: str | commands.Command):
         """|coro|
         Gets the Mention string for a command. If the tree is a MentionableTree, it will return the mention string for the command.
         If the command ID cannot be found, it will return a string with the command name in backticks.

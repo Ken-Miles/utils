@@ -1,14 +1,20 @@
 from __future__ import annotations
-from typing import Callable, TypeVar, Union
+
+from typing import TYPE_CHECKING, TypeVar
 
 import discord
 from discord import app_commands
 from discord.ext import commands
-from discord.ext.commands.cooldowns import BucketType
 
-from .bot import BotU
 from .constants import GUILDS, TRUSTED_USERS
-from .context import ContextU
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from discord.ext.commands.cooldowns import BucketType
+
+    from .bot import BotU
+    from .context import ContextU
 
 # fmt: off
 __all__ = (
@@ -35,13 +41,13 @@ __all__ = (
 
 T = TypeVar("T")
 
-def is_owner(user: Union[discord.User, discord.Member], bot: BotU):
+def is_owner(user: discord.User | discord.Member, bot: BotU):
     """A check to see if a user is the owner of the bot."""
     assert bot.owner_ids is not None
     return user.id in bot.owner_ids or user.id == bot.owner_id
 
 
-def check_is_trusted(user: Union[discord.User, discord.Member], bot: BotU):
+def check_is_trusted(user: discord.User | discord.Member, bot: BotU):
     """Internal function to check if the user is trusted.
     This is used in the :meth:`is_trusted` check.
     """

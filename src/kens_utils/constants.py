@@ -1,13 +1,16 @@
 from __future__ import annotations
-from collections import defaultdict as emojidictionary
+
 import datetime
 import logging
 import os
 import re
-from typing import Annotated, Dict, List, Literal, Union
+from collections import defaultdict as emojidictionary
+from typing import TYPE_CHECKING, Annotated, Literal
 
-from discord import app_commands
 import yaml
+
+if TYPE_CHECKING:
+    from discord import app_commands
 
 # fmt: off
 __all__ = (
@@ -2211,7 +2214,7 @@ emojidict: Annotated[emojidictionary,
 )
 
 try:
-    from .custom_constants import emojidict as new_emojidict # type: ignore
+    from .custom_constants import emojidict as new_emojidict  # type: ignore
 
     for k, v in new_emojidict.items():
         emojidict[k] = v
@@ -2220,7 +2223,7 @@ except ImportError:
 
 LOADING_EMOJI: Annotated[str, "The default emoji the bot uses when it is 'thinking'."] = emojidict.get("thinking", "\U0001f4bb")
 
-permission_proper_names: Annotated[Dict[str, str], 
+permission_proper_names: Annotated[dict[str, str], 
 "A list of all permissions in the Discord API. Dictionary goes in Alphabetical order in the form `api_name`: `proper_name`."
 ] = {
     "add_reactions": "Add Reactions",
@@ -2294,7 +2297,7 @@ permission_proper_names: Annotated[Dict[str, str],
     "view_guild_insights": "View Server Insights",
 }
 
-permission_descriptions: Annotated[Dict[str, str],
+permission_descriptions: Annotated[dict[str, str],
 "A list of all permissions in the Discord API. Dictionary goes in Alphabetical order in the form `api_name`: `description`."
 ] = {
     "add_reactions": "Allows members to add new emoji reactions to a message. If this permission is disabled, members can still react using any existing reactions on a message.",
@@ -2363,7 +2366,7 @@ else:
 # DISCORD_FILE_SIZE_LIMIT: Annotated[int, "The maximum file size that can be uploaded to Discord in bytes. (excluding guilds with the feature that increases it)"] = 8_388_608  # 8 MB
 # 8 MB is the maximum file size that can be uploaded to Discord as of 12-2-2024 unless a guild has the higher upload limit feature
 
-user_flag_descriptions: Annotated[Dict[str, str],
+user_flag_descriptions: Annotated[dict[str, str],
 "A dictionary of all current user flags and their descriptions in the form `flag_name`: `description`."
 ] = {
     'staff': 'Discord Staff',
@@ -2387,7 +2390,7 @@ user_flag_descriptions: Annotated[Dict[str, str],
 }
 
 # for discord user badges
-misc_flag_descriptions: Annotated[Dict[str, str],
+misc_flag_descriptions: Annotated[dict[str, str],
 "A dictionary of miscellaneous user flags and their descriptions in the form `flag_name`: `description`."
 ] = {
     'team_user': 'Application Team User',
@@ -2934,7 +2937,7 @@ CodeblockLanguage = Literal[
 
 # only way to get a list of all the codeblock langs and create a type for it
 # is to use this hacky method -_-
-CODEBLOCK_LANGUAGES: List[Union[str, app_commands.locale_str]] = list(CodeblockLanguage.__args__)
+CODEBLOCK_LANGUAGES: list[str | app_commands.locale_str] = list(CodeblockLanguage.__args__)
 
 class HTTPCode:
     status: int
@@ -3016,7 +3019,7 @@ formatter = logging.Formatter(
 )
 
 if os.path.exists("apikeys.yml"):
-    with open("apikeys.yml", "r") as f:
+    with open("apikeys.yml") as f:
         config = dict(yaml.safe_load(f))
         BLOXLINK_API_KEY = config.get("bloxlink_api", None)
         ROVER_API_KEY = config.get("rover_api", None)
@@ -3029,15 +3032,15 @@ class Snowflake:
     __epoch_ms: int
 
     @classmethod
-    def from_binary(cls, binary: str, *, discord_snowflake: bool = False, custom_epoch: Union[int, float] = 0):
+    def from_binary(cls, binary: str, *, discord_snowflake: bool = False, custom_epoch: int | float = 0):
         return cls(int(binary, 2), discord_snowflake=discord_snowflake, custom_epoch=custom_epoch)
 
     def __init__(
         self,
-        snowflake: Union[str, int],
+        snowflake: str | int,
         *,
         discord_snowflake: bool = False,
-        custom_epoch: Union[int, float] = 0,
+        custom_epoch: int | float = 0,
     ):
         self.__value = int(str(snowflake).strip())
 
@@ -3047,7 +3050,7 @@ class Snowflake:
             self.__epoch_ms = self.__class__._normalize_epoch_ms(custom_epoch)
 
     @classmethod
-    def _normalize_epoch_ms(cls, epoch: Union[int, float]) -> int:
+    def _normalize_epoch_ms(cls, epoch: int | float) -> int:
         """
         Accept epoch in *either* seconds or milliseconds.
         Heuristic: >= 1e11 -> already ms; otherwise treat as seconds.

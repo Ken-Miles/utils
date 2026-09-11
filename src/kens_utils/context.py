@@ -1,10 +1,11 @@
 from __future__ import annotations
+
 import io
-from typing import Optional, ParamSpec, TYPE_CHECKING, TypeVar, Union
+import logging
+from typing import TYPE_CHECKING, ParamSpec, TypeVar
 
 import discord
 from discord.ext import commands
-import logging
 
 try:
     from . import LOADING_EMOJI, USE_DEFER_EMOJI
@@ -44,13 +45,13 @@ class ConfirmationView(CustomBaseView):
         author_id: int,
         delete_after: bool,
         timeout: float = 30.0,
-        text: Optional[str] = None,
+        text: str | None = None,
     ) -> None:
         super().__init__(message=None, author_id=author_id, timeout=timeout)
-        self.value: Optional[bool] = None
+        self.value: bool | None = None
         self.delete_after: bool = delete_after
         #self.author_id: int = author_id
-        self.message: Optional[discord.Message] = None
+        self.message: discord.Message | None = None
 
     # async def interaction_check(self, interaction: discord.Interaction) -> bool:
     #     if interaction.user and interaction.user.id == self.author_id:
@@ -95,7 +96,7 @@ class ContextU(commands.Context):
 
     bot: BotU
     has_been_deferred: bool = False
-    defer_reaction: Optional[discord.Reaction] = None
+    defer_reaction: discord.Reaction | None = None
 
     async def defer(self, *args, **kwargs):
         if not self.has_been_deferred:
@@ -148,13 +149,13 @@ class ContextU(commands.Context):
 
     async def prompt(
         self,
-        message: Optional[str] = None,
-        embed: Optional[discord.Embed] = None,
+        message: str | None = None,
+        embed: discord.Embed | None = None,
         *,
         timeout: float = 60.0,
         delete_after: bool = True,
-        author_id: Optional[int] = None,
-    ) -> Optional[bool]:
+        author_id: int | None = None,
+    ) -> bool | None:
         """An interactive reaction confirmation dialog.
 
         .. note::
@@ -207,14 +208,14 @@ class ContextU(commands.Context):
     
     # From Danny's context code
     @discord.utils.cached_property
-    def replied_reference(self) -> Optional[discord.MessageReference]:
+    def replied_reference(self) -> discord.MessageReference | None:
         ref = self.message.reference
         if ref and isinstance(ref.resolved, discord.Message):
             return ref.resolved.to_reference()
         return None
 
     @discord.utils.cached_property
-    def replied_message(self) -> Optional[discord.Message]:
+    def replied_message(self) -> discord.Message | None:
         ref = self.message.reference
         if ref and isinstance(ref.resolved, discord.Message):
             return ref.resolved
@@ -244,7 +245,7 @@ class GuildContextU(ContextU):
 
     author: discord.Member
     guild: discord.Guild
-    channel: Union[discord.VoiceChannel, discord.TextChannel, discord.Thread]
+    channel: discord.VoiceChannel | discord.TextChannel | discord.Thread
     me: discord.Member
     prefix: str
 
@@ -259,13 +260,13 @@ class DMContextU(ContextU):
 
 async def prompt(
         interaction: discord.Interaction,
-        message: Optional[str] = None,
-        embed: Optional[discord.Embed] = None,
+        message: str | None = None,
+        embed: discord.Embed | None = None,
         *,
         timeout: float = 60.0,
         delete_after: bool = True,
-        author_id: Optional[int] = None,
-    ) -> Optional[bool]:
+        author_id: int | None = None,
+    ) -> bool | None:
         """An interactive reaction confirmation dialog.
 
         .. note::

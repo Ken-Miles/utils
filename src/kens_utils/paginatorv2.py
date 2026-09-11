@@ -5,15 +5,12 @@ https://gist.github.com/Soheab/891c39d7294b1bdbadc7ecf35ce51cc5#file-1-how-to-md
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import (
     TYPE_CHECKING,
     Any,
     Generic,
-    List,
-    Optional,
-    Sequence,
     TypeVar,
-    Union,
 )
 
 import discord
@@ -24,8 +21,8 @@ try:
 except ImportError:
     emojidict = {}
 
-from .context import ContextU
 from .paginatorv1 import GoToPageButton
+
 # fmt: off
 __all__ = (
     "BaseButtonPaginatorV2",
@@ -39,6 +36,8 @@ __all__ = (
 
 if TYPE_CHECKING:
     from typing_extensions import Self
+
+    from .context import ContextU
 
     Interaction = discord.Interaction[Any]
 
@@ -70,7 +69,7 @@ class BaseButtonPaginatorV2(discord.ui.LayoutView, Generic[PageT_co]):
     message: discord.Message | None = None
 
     buttons_action_row: discord.ui.ActionRow[Self] = discord.ui.ActionRow(id=373)
-    go_to_button_action_row: Optional[discord.ui.ActionRow[Self]] = None
+    go_to_button_action_row: discord.ui.ActionRow[Self] | None = None
 
     def __init__(
         self,
@@ -89,7 +88,7 @@ class BaseButtonPaginatorV2(discord.ui.LayoutView, Generic[PageT_co]):
         super().__init__(timeout=timeout)
         self._add_buttons_to_container = add_buttons_to_container
 
-        self.author_id: Optional[int] = author_id
+        self.author_id: int | None = author_id
         self.delete_message_after: bool = delete_message_after
 
         self.current_page: int = 0
@@ -340,7 +339,7 @@ class GoToPageModalV2(discord.ui.Modal):
     def __init__(
         self,
         paginator: BaseButtonPaginator,
-        author_id: Optional[int] = None,
+        author_id: int | None = None,
         title: str = "Go to Page",
         **kwargs,
     ):
@@ -402,9 +401,9 @@ class GoToPageButtonV2(discord.ui.Button):
         label: str = "Go to Page",
         disabled: bool = False,
         custom_id: str = "go_to_page",
-        url: Optional[str] = None,
-        emoji: Optional[Union[str, discord.PartialEmoji]] = None,
-        row: Optional[int] = None,
+        url: str | None = None,
+        emoji: str | discord.PartialEmoji | None = None,
+        row: int | None = None,
         style: discord.ButtonStyle = discord.ButtonStyle.gray,
         **kwargs,
     ) -> None:
@@ -547,8 +546,8 @@ async def create_paginator_v2(
     ctx: ContextU,
     pages: Sequence[Any],
     paginator: type[BaseButtonPaginatorV2] = BaseButtonPaginatorV2,
-    author_id: Optional[int] = None,
-    timeout: Optional[float] = 180.0,
+    author_id: int | None = None,
+    timeout: float | None = 180.0,
     go_to_button: bool = False,
     delete_message_after: bool = False,
     per_page: int = 1,
@@ -595,11 +594,11 @@ async def create_paginator_v2(
 
 
 def generate_pages_v2(
-    items: List[str],
-    items_per_page: Optional[int] = None,
+    items: list[str],
+    items_per_page: int | None = None,
     add_page_nums: bool = True,
     **kwargs,
-) -> List[discord.ui.Container]:
+) -> list[discord.ui.Container]:
     """Generate pages for a Compontent V2 Paginator.
 
     Parameters

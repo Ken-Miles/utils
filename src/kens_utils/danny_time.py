@@ -9,17 +9,18 @@ Taken from https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/formats.p
 """
 
 from __future__ import annotations
+
 import datetime
 import re
-from typing import Any, Optional, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Any
 
+import parsedatetime as pdt
 from dateutil.relativedelta import relativedelta
 from discord import app_commands
 from discord.ext import commands
-import parsedatetime as pdt
 
-from .context import ContextU
-from .danny_formats import format_dt as format_dt, human_join, plural
+from .danny_formats import format_dt as format_dt
+from .danny_formats import human_join, plural
 
 # Monkey patch mins and secs into the units
 units = pdt.pdtLocales["en_US"].units
@@ -28,6 +29,8 @@ units["seconds"].append("secs")
 
 if TYPE_CHECKING:
     from typing_extensions import Self
+
+    from .context import ContextU
     from .context import ContextU as Context
 
 
@@ -53,7 +56,7 @@ class ShortTime:
         self,
         argument: str,
         *,
-        now: Optional[datetime.datetime] = None,
+        now: datetime.datetime | None = None,
         tzinfo: datetime.tzinfo = datetime.timezone.utc,
     ):
         match = self.compiled.fullmatch(argument)
@@ -115,7 +118,7 @@ class HumanTime:
         self,
         argument: str,
         *,
-        now: Optional[datetime.datetime] = None,
+        now: datetime.datetime | None = None,
         tzinfo: datetime.tzinfo = datetime.timezone.utc,
     ):
         now = now or datetime.datetime.now(tzinfo)
@@ -150,7 +153,7 @@ class Time(HumanTime):
         self,
         argument: str,
         *,
-        now: Optional[datetime.datetime] = None,
+        now: datetime.datetime | None = None,
         tzinfo: datetime.tzinfo = datetime.timezone.utc,
     ):
         try:
@@ -167,7 +170,7 @@ class FutureTime(Time):
         self,
         argument: str,
         *,
-        now: Optional[datetime.datetime] = None,
+        now: datetime.datetime | None = None,
         tzinfo: datetime.tzinfo = datetime.timezone.utc,
     ):
         super().__init__(argument, now=now, tzinfo=tzinfo)
@@ -237,7 +240,7 @@ class UserFriendlyTime(commands.Converter):
 
     def __init__(
         self,
-        converter: Optional[Union[type[commands.Converter], commands.Converter]] = None,
+        converter: type[commands.Converter] | commands.Converter | None = None,
         *,
         default: Any = None,
     ):
@@ -364,8 +367,8 @@ class UserFriendlyTime(commands.Converter):
 def human_timedelta(
     dt: datetime.datetime,
     *,
-    source: Optional[datetime.datetime] = None,
-    accuracy: Optional[int] = 3,
+    source: datetime.datetime | None = None,
+    accuracy: int | None = 3,
     brief: bool = False,
     suffix: bool = True,
 ) -> str:

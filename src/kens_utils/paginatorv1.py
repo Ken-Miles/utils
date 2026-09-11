@@ -1,6 +1,7 @@
 from __future__ import annotations
+
 import datetime
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any
 
 import discord
 from discord import Embed, Interaction, InteractionMessage, Message, WebhookMessage
@@ -11,8 +12,12 @@ try:
 except ImportError:
     emojidict = {}
 
-from .context import ContextU
 from .methods import makeembed_bot
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from .context import ContextU
 
 # fmt: off
 __all__ = (
@@ -30,14 +35,14 @@ __all__ = (
 class BaseButtonPaginator(discord.ui.View):
     """Made by @soheab on Discord, taken from the Discord.py Discord Server"""
 
-    message: Optional[Message] = None
+    message: Message | None = None
 
     def __init__(
         self,
         pages: Sequence[Any],
         *,
-        author_id: Optional[int] = None,
-        timeout: Optional[float] = 180.0,
+        author_id: int | None = None,
+        timeout: float | None = 180.0,
         delete_message_after: bool = False,
         per_page: int = 1,
         go_to_button: bool = False,
@@ -67,7 +72,7 @@ class BaseButtonPaginator(discord.ui.View):
 
         super().__init__(timeout=timeout)
 
-        self.author_id: Optional[int] = author_id
+        self.author_id: int | None = author_id
         self.delete_message_after: bool = delete_message_after
 
         self.current_page: int = 0
@@ -131,7 +136,7 @@ class BaseButtonPaginator(discord.ui.View):
                 page.set_footer(text=new_footer.strip())
         return page
 
-    async def get_page_kwargs(self, page: Any) -> Dict[str, Any]:
+    async def get_page_kwargs(self, page: Any) -> dict[str, Any]:
         formatted_page = await discord.utils.maybe_coroutine(self.format_page, page)
 
         kwargs = {"content": None, "embeds": [], "view": self}
@@ -214,8 +219,8 @@ class BaseButtonPaginator(discord.ui.View):
         await self.update_page(interaction)
 
     async def start(
-        self, obj: Union[Interaction, Messageable]
-    ) -> Optional[Union[Message, InteractionMessage, WebhookMessage]]:
+        self, obj: Interaction | Messageable
+    ) -> Message | InteractionMessage | WebhookMessage | None:
         self.update_buttons()
         kwargs = await self.get_page_kwargs(self.get_page(self.current_page))
         if self.max_pages < 2:
@@ -254,7 +259,7 @@ class GoToPageModal(discord.ui.Modal):
     def __init__(
         self,
         paginator: BaseButtonPaginator,
-        author_id: Optional[int] = None,
+        author_id: int | None = None,
         title: str = "Go to Page",
         **kwargs,
     ):
@@ -316,9 +321,9 @@ class GoToPageButton(discord.ui.Button):
         label: str = "Go to Page",
         disabled: bool = False,
         custom_id: str = "go_to_page",
-        url: Optional[str] = None,
-        emoji: Optional[Union[str, discord.PartialEmoji]] = None,
-        row: Optional[int] = None,
+        url: str | None = None,
+        emoji: str | discord.PartialEmoji | None = None,
+        row: int | None = None,
         style: discord.ButtonStyle = discord.ButtonStyle.gray,
         **kwargs,
     ) -> None:
@@ -468,8 +473,8 @@ async def create_paginator(
     ctx: ContextU,
     pages: Sequence[Any],
     paginator: type[BaseButtonPaginator] = BaseButtonPaginator,
-    author_id: Optional[int] = None,
-    timeout: Optional[float] = 180.0,
+    author_id: int | None = None,
+    timeout: float | None = 180.0,
     go_to_button: bool = False,
     delete_message_after: bool = False,
     per_page: int = 1,
@@ -516,11 +521,11 @@ async def create_paginator(
 
 
 def generate_pages(
-    items: List[str],
-    items_per_page: Optional[int] = None,
+    items: list[str],
+    items_per_page: int | None = None,
     add_page_nums: bool = True,
     **kwargs,
-) -> List[Embed]:
+) -> list[Embed]:
     """Generate pages for an Embed Paginator.
 
     Parameters

@@ -1,12 +1,14 @@
 from __future__ import annotations
-from typing import Dict, Any
 
-from sphinx.util.docutils import SphinxDirective
-from docutils.parsers.rst import directives
-from docutils import nodes
+from typing import TYPE_CHECKING, Any
 
 import sphinx
-from sphinx.application import Sphinx
+from docutils import nodes
+from docutils.parsers.rst import directives
+from sphinx.util.docutils import SphinxDirective
+
+if TYPE_CHECKING:
+    from sphinx.application import Sphinx
 
 
 class colour_input(nodes.General, nodes.Element):
@@ -45,7 +47,7 @@ class ColourDirective(SphinxDirective):
         return [node]
 
 
-def setup(app: Sphinx) -> Dict[str, Any]:
+def setup(app: Sphinx) -> dict[str, Any]:
     app.add_node(colour_input, html=(visit_colour_node, depart_colour_node))
     app.add_directive('colour', ColourDirective)
     return {'version': sphinx.__display_version__, 'parallel_read_safe': True}

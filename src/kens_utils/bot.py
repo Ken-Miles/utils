@@ -1,22 +1,18 @@
 from __future__ import annotations
+
 import asyncio
-from collections import Counter, defaultdict
 import datetime
 import functools
+import weakref  # Library's way of storing user cache
+from collections import Counter, defaultdict
+from collections.abc import AsyncIterator, Callable, Coroutine, Iterable
 from typing import (
+    TYPE_CHECKING,
     Any,
-    AsyncIterator,
-    Callable,
-    Coroutine,
-    Dict,
-    Iterable,
-    List,
-    Optional,
     ParamSpec,
-    Type,
     TypeVar,
-    Union,
 )
+
 import discord
 from discord import (
     CategoryChannel,
@@ -34,15 +30,16 @@ from discord import (
     VoiceChannel,
 )
 from discord.abc import GuildChannel, PrivateChannel
-from discord.app_commands import Translator
 from discord.ext import commands
 from discord.ext.commands import AutoShardedBot
 from discord.utils import deprecated
 
-from .methods import makeembed_failedaction
 from .context import ContextU
+from .methods import makeembed_failedaction
 from .tree import MentionableTree
-import weakref  # Library's way of storing user cache
+
+if TYPE_CHECKING:
+    from discord.app_commands import Translator
 
 # fmt: off
 __all__ = (
@@ -68,9 +65,9 @@ class BotU(AutoShardedBot):
     command_types_used: Counter[bool]
     logging_handler: Any
     old_tree_error = Callable[[discord.Interaction, discord.app_commands.AppCommandError], Coroutine[Any, Any, None]]
-    blacklist: List
+    blacklist: list
     started_at: datetime.datetime
-    _cached_application_emojis: List[discord.Emoji] = []
+    _cached_application_emojis: list[discord.Emoji] = []
     # _application: discord.AppInfo
 
     _user_cache: weakref.WeakValueDictionary[int, User]  # similar to library approach
@@ -78,9 +75,9 @@ class BotU(AutoShardedBot):
     def __init__(
         self,
         *args,
-        translator_cls: Optional[Translator] = None,
-        translator_args: List = [],
-        translator_kwargs: Dict = {},
+        translator_cls: Translator | None = None,
+        translator_args: list = [],
+        translator_kwargs: dict = {},
         **kwargs,
     ) -> None:
         if kwargs.get("cls", None):
@@ -95,8 +92,8 @@ class BotU(AutoShardedBot):
 
         # shard_id: List[datetime.datetime]
         # shows the last attempted IDENTIFYs and RESUMEs
-        self.resumes: defaultdict[int, List[datetime.datetime]] = defaultdict(list)
-        self.identifies: defaultdict[int, List[datetime.datetime]] = defaultdict(list)
+        self.resumes: defaultdict[int, list[datetime.datetime]] = defaultdict(list)
+        self.identifies: defaultdict[int, list[datetime.datetime]] = defaultdict(list)
 
         # in case of even further spam, add a cooldown mapping
         # for people who excessively spam commands
@@ -187,7 +184,7 @@ class BotU(AutoShardedBot):
         raise AttributeError("Bot has no display avatar")
 
     @property
-    def application(self) -> Optional[discord.AppInfo]:
+    def application(self) -> discord.AppInfo | None:
         """The bot's application info. This is cached after the first fetch.
 
         Raises
@@ -206,7 +203,7 @@ class BotU(AutoShardedBot):
 
     @property
     # @discord.utils.copy_doc(application)
-    def app_info(self) -> Optional[discord.AppInfo]:
+    def app_info(self) -> discord.AppInfo | None:
         """Alias for :attr:`application`."""
         return self.application
 
@@ -245,13 +242,13 @@ class BotU(AutoShardedBot):
         return await self.fetch_application_info()
 
     @property
-    def application_emojis(self) -> List[discord.Emoji]:
+    def application_emojis(self) -> list[discord.Emoji]:
         """Cached version of all the bot's application emojis. Only populated if :meth:`.fetch_application_emojis` is called.
         By default, this is called in setup_hook.
         """
         return self._cached_application_emojis
 
-    async def fetch_application_emoji(self, emoji_id: int, /) -> Optional[discord.Emoji]:
+    async def fetch_application_emoji(self, emoji_id: int, /) -> discord.Emoji | None:
         """Fetches a specific application emoji by ID. Will error if fetch fails.
 
         You probably want to use :func:`.get_or_fetch_application_emoji` instead of this method
@@ -273,7 +270,7 @@ class BotU(AutoShardedBot):
             self._cached_application_emojis.append(emoji)
         return emoji
 
-    async def get_or_fetch_application_emoji(self, emoji_id: int, /) -> Optional[discord.Emoji]:
+    async def get_or_fetch_application_emoji(self, emoji_id: int, /) -> discord.Emoji | None:
         """Returns a specific application emoji by ID from the cache if it exists, else fetches it. Will error if fetch fails.
 
         Calls :func:`.fetch_application_emoji` if the emoji is not cached, which will cache it for future calls.
@@ -294,7 +291,7 @@ class BotU(AutoShardedBot):
             return cached_emoji
         return await self.fetch_application_emoji(emoji_id)
 
-    async def fetch_application_emojis(self) -> List[discord.Emoji]:
+    async def fetch_application_emojis(self) -> list[discord.Emoji]:
         """Fetches all of the bot's application emojis. Will error if fetch fails.
         You probably want to use :func:`.get_or_fetch_application_emojis` instead of this method
         unless you want to fetch the emojis again, as this method will cache the emojis when fetched for future calls.
@@ -307,7 +304,7 @@ class BotU(AutoShardedBot):
         self._cached_application_emojis = await super().fetch_application_emojis()
         return self._cached_application_emojis
 
-    async def get_or_fetch_application_emojis(self) -> List[discord.Emoji]:
+    async def get_or_fetch_application_emojis(self) -> list[discord.Emoji]:
         """Returns cached application emojis if they exist, else fetches them. Will error if fetch fails.
 
         Calls :func:`.fetch_application_emojis` if the emojis are not cached, which will cache them for future calls.
@@ -378,9 +375,9 @@ class BotU(AutoShardedBot):
 
     async def get_context(
         self,
-        origin: Union[Message, Interaction],
+        origin: Message | Interaction,
         *,
-        cls: Type[ContextU] = ContextU,
+        cls: type[ContextU] = ContextU,
     ) -> ContextU:
         # return await ContextU.from_interaction()
         return await super().get_context(origin, cls=cls)
@@ -388,8 +385,8 @@ class BotU(AutoShardedBot):
     async def _get_or_fetch_channel(
         self,
         channelid: int,
-        channel_type: Type[ChannelT],
-        guild: Optional[Guild] = None,
+        channel_type: type[ChannelT],
+        guild: Guild | None = None,
     ) -> ChannelT:
         """Internal method to get a certain Channel type."""
         if guild is not None:
@@ -406,8 +403,8 @@ class BotU(AutoShardedBot):
         return channel
 
     async def get_or_fetch_channel(
-        self, channelid: int, guild: Optional[Guild] = None
-    ) -> Union[GuildChannel, Thread, PrivateChannel]:
+        self, channelid: int, guild: Guild | None = None
+    ) -> GuildChannel | Thread | PrivateChannel:
         """Gets a channel from a guild (if provided) or bot's cache, else fetches it. Will error if fetch fails.
 
         Parameters
@@ -427,7 +424,7 @@ class BotU(AutoShardedBot):
         Union[:class:`discord.abc.GuildChannel`, :class:`discord.Thread`, :class:`discord.PrivateChannel`]
             The channel.
         """
-        channel: Optional[Union[GuildChannel, Thread, PrivateChannel]] = None
+        channel: GuildChannel | Thread | PrivateChannel | None = None
         if guild is not None:
             channel = guild.get_channel_or_thread(channelid)
             if channel is None:
@@ -612,7 +609,7 @@ class BotU(AutoShardedBot):
     async def getorfetch_forum_channel(self, *args, **kwargs):
         return await self.get_or_fetch_forumchannel(*args, **kwargs)
 
-    async def get_or_fetch_user(self, userid: int, guild: Optional[Guild]) -> Union[User, Member]:
+    async def get_or_fetch_user(self, userid: int, guild: Guild | None) -> User | Member:
         """Gets a :class:`discord.User` or :class:`discord.Member` from a guild (if provided) or bot's cache, else fetches it. Will error if fetch fails.
 
         Parameters
@@ -636,7 +633,7 @@ class BotU(AutoShardedBot):
             If the user is in a guild, it will return a Member.
             You must pass explicitly pass None for the guild if you wish to get a user not in a guild.
         """
-        user: Union[User, Member]
+        user: User | Member
         if guild is not None:
             user = await self.get_or_fetch_member(userid, guild)
             if user:
@@ -759,8 +756,8 @@ class BotU(AutoShardedBot):
         return await self.get_or_fetch_member(*args, **kwargs)
 
     async def get_or_fetch_user_or_snowflake(
-        self, userid: int, guild: Optional[discord.Guild]
-    ) -> Union[discord.abc.Snowflake, User, Member]:
+        self, userid: int, guild: discord.Guild | None
+    ) -> discord.abc.Snowflake | User | Member:
         """Wrapper for :meth:`.get_or_fetch_user`.
         Instead of raising an error should the user not be found, it will return a :class:`discord.abc.Snowflake` (a :class:`discord.Object` at runtime) with the ID of the user.
         The main intention of this method is for banning/unbanning users.
@@ -799,7 +796,7 @@ class BotU(AutoShardedBot):
     async def getorfetch_guild(self, *args, **kwargs):
         return await self.get_or_fetch_guild(*args, **kwargs)
 
-    async def get_or_fetch_dmchannel(self, user: Union[User, Member]) -> DMChannel:
+    async def get_or_fetch_dmchannel(self, user: User | Member) -> DMChannel:
         """Gets a DMChannel from the user's cache, else fetches it. Will error if fetch fails.
 
         Parameters
@@ -825,7 +822,7 @@ class BotU(AutoShardedBot):
     # copied from RoboDanny
     async def query_member_named(
         self, guild: discord.Guild, argument: str, *, cache: bool = False
-    ) -> Optional[discord.Member]:
+    ) -> discord.Member | None:
         """Queries a member by their name, name + discrim, or nickname.
 
         Parameters
@@ -857,7 +854,7 @@ class BotU(AutoShardedBot):
         if not hasattr(self, 'uptime'):
             self.uptime = discord.utils.utcnow()
 
-    async def get_command_mention(self, command: Union[str, commands.Command]):
+    async def get_command_mention(self, command: str | commands.Command):
         """Gets the Mention string for a command. If the tree is a MentionableTree, it will return the mention string for the command.
         If the command ID cannot be found, it will return a string with the command name in backticks.
 
@@ -895,7 +892,7 @@ class BotU(AutoShardedBot):
                 # desc = await __("You are currently blacklisted from using the bot. Please reach out to the bot developer on the support server for more information.")
                 desc = "You are currently blacklisted from using the bot."
                 if blacklist_obj.reason:
-                    desc += "Reason: `{}`".format(blacklist_obj.reason)
+                    desc += f"Reason: `{blacklist_obj.reason}`"
                 emb = makeembed_failedaction(description=desc)
                 await ctx.reply(embed=emb, ephemeral=True, delete_after=10 if not ctx.interaction else None)
                 return False
@@ -905,7 +902,7 @@ class BotU(AutoShardedBot):
 
     # user cache management
     @property
-    def users(self) -> List[User]:
+    def users(self) -> list[User]:
         return super().users + list(self._user_cache.values())
 
     async def fetch_user(self, user_id: int, /) -> User:
@@ -915,14 +912,14 @@ class BotU(AutoShardedBot):
 
         return user
 
-    def get_user(self, user_id: int, /) -> Optional[User]:
+    def get_user(self, user_id: int, /) -> User | None:
         user = super().get_user(user_id)
         if not user:
             user = self._user_cache.get(user_id)
         return user
 
     # cache listeners
-    async def _maybe_update_user_cache(self, snowflake: Optional[discord.abc.Snowflake] = None):
+    async def _maybe_update_user_cache(self, snowflake: discord.abc.Snowflake | None = None):
         """Internal methoid intended to update the cache if the snowflake is a User.
         Useful in a context where a snowflake may either be a User or Member."""
         if isinstance(snowflake, User):

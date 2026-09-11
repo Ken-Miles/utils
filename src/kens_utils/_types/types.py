@@ -1,12 +1,13 @@
+from typing import TypeVar
+
 import discord
 from discord import app_commands
 from discord.ext import commands
-from typing import Union, TypeVar
 
-DiscordClientT = TypeVar("DiscordClientT", bound=Union[discord.Client, discord.AutoShardedClient])
+DiscordClientT = TypeVar("DiscordClientT", bound=discord.Client | discord.AutoShardedClient)
 """Type variable representing a :class:`discord.Client` or any subclass of it."""
 
-CommandsBotT = TypeVar("CommandsBotT", bound=Union[commands.Bot, commands.AutoShardedBot])
+CommandsBotT = TypeVar("CommandsBotT", bound=commands.Bot | commands.AutoShardedBot)
 """Type variable representing a :class:`commands.Bot` or any subclass of it."""
 
 CommandTreeT = TypeVar("CommandTreeT", bound=app_commands.CommandTree)

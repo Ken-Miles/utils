@@ -1,38 +1,28 @@
 from __future__ import annotations
-from collections import Counter
+
 import datetime
 import difflib
-from functools import lru_cache
 import re
 import time
+import uuid
+from collections import Counter
+from functools import lru_cache
 from typing import (
-    Any,
-    Dict,
-    Hashable,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
     TYPE_CHECKING,
-    Tuple,
-    Union,
+    Any,
 )
 from urllib.parse import urlencode
-import uuid
 
 import discord
 from discord import app_commands
-from discord.abc import Snowflake as DiscordSnowflake
-from discord.ext import commands
-from discord.ext.commands import Bot
 from discord.utils import MISSING
 
 from .constants import (
-    DEFAULT_FOOTER_NAME,
     CODEBLOCK_LANGUAGES,
-    CodeblockLanguage,
+    DEFAULT_FOOTER_NAME,
     DISCORD_FILE_SIZE_LIMIT,
     RE_URL,
+    CodeblockLanguage,
     Snowflake,
     emojidict,
 )
@@ -40,6 +30,12 @@ from .enums import IntegrationType
 from .views import SendModalView
 
 if TYPE_CHECKING:
+    from collections.abc import Hashable, Iterable, Sequence
+
+    from discord.abc import Snowflake as DiscordSnowflake
+    from discord.ext import commands
+    from discord.ext.commands import Bot
+
     from .context import ContextU
 
 # fmt: off
@@ -70,18 +66,18 @@ __all__ = (
 # fmt: on
 
 def makeembed(
-    title: Optional[Union[str, app_commands.locale_str]] = MISSING,
-    timestamp: Optional[datetime.datetime] = MISSING,
-    color: Optional[discord.Colour] = None,
-    description: Optional[Union[str, app_commands.locale_str]] = MISSING,
-    author: Optional[Union[str, app_commands.locale_str]] = None,
-    author_url: Optional[Union[str, app_commands.locale_str]] = None,
-    author_icon_url: Optional[Union[str, app_commands.locale_str]] = None,
-    footer: Optional[Union[str, app_commands.locale_str]] = None,
-    footer_icon_url: Optional[Union[str, app_commands.locale_str]] = None,
-    url: Optional[Union[str, app_commands.locale_str]] = MISSING,
-    image: Optional[Union[str, app_commands.locale_str]] = None,
-    thumbnail: Optional[Union[str, app_commands.locale_str]] = None,
+    title: str | app_commands.locale_str | None = MISSING,
+    timestamp: datetime.datetime | None = MISSING,
+    color: discord.Colour | None = None,
+    description: str | app_commands.locale_str | None = MISSING,
+    author: str | app_commands.locale_str | None = None,
+    author_url: str | app_commands.locale_str | None = None,
+    author_icon_url: str | app_commands.locale_str | None = None,
+    footer: str | app_commands.locale_str | None = None,
+    footer_icon_url: str | app_commands.locale_str | None = None,
+    url: str | app_commands.locale_str | None = MISSING,
+    image: str | app_commands.locale_str | None = None,
+    thumbnail: str | app_commands.locale_str | None = None,
 ) -> discord.Embed:  # embedtype: Union[str, app_commands.locale_str]='rich'):
     """Creates an embed.
 
@@ -149,22 +145,22 @@ def makeembed(
 
 
 def makeembed_bot(
-    title: Optional[Union[str, app_commands.locale_str]] = MISSING,
-    timestamp: Optional[datetime.datetime] = MISSING,
-    color: Optional[discord.Colour] = None,
-    description: Optional[Union[str, app_commands.locale_str]] = MISSING,
-    author: Optional[Union[str, app_commands.locale_str]] = None,
-    author_url: Optional[Union[str, app_commands.locale_str]] = None,
-    author_icon_url: Optional[Union[str, app_commands.locale_str]] = None,
-    footer: Optional[Union[str, app_commands.locale_str]] = None,
-    footer_icon_url: Optional[Union[str, app_commands.locale_str]] = None,
-    url: Optional[Union[str, app_commands.locale_str]] = MISSING,
-    image: Optional[Union[str, app_commands.locale_str]] = None,
-    thumbnail: Optional[Union[str, app_commands.locale_str]] = None,
+    title: str | app_commands.locale_str | None = MISSING,
+    timestamp: datetime.datetime | None = MISSING,
+    color: discord.Colour | None = None,
+    description: str | app_commands.locale_str | None = MISSING,
+    author: str | app_commands.locale_str | None = None,
+    author_url: str | app_commands.locale_str | None = None,
+    author_icon_url: str | app_commands.locale_str | None = None,
+    footer: str | app_commands.locale_str | None = None,
+    footer_icon_url: str | app_commands.locale_str | None = None,
+    url: str | app_commands.locale_str | None = MISSING,
+    image: str | app_commands.locale_str | None = None,
+    thumbnail: str | app_commands.locale_str | None = None,
     *,
-    bot: Optional[Bot] = None,
-    bot_owner: Optional[discord.User] = None,
-    command_user: Optional[discord.abc.User] = None,
+    bot: Bot | None = None,
+    bot_owner: discord.User | None = None,
+    command_user: discord.abc.User | None = None,
 ) -> discord.Embed:  # embedtype: Union[str, app_commands.locale_str]='rich'):
     """Creates an embed for the bot.
     Changed defaults for makeembed: color, footer, timestamp.
@@ -245,19 +241,19 @@ def makeembed_bot(
 
 
 def makeembed_failedaction(
-    description: Optional[Union[str, app_commands.locale_str]] = MISSING,
+    description: str | app_commands.locale_str | None = MISSING,
     *,
-    title: Optional[Union[str, app_commands.locale_str]] = MISSING,
-    timestamp: Optional[datetime.datetime] = MISSING,
-    color: Optional[discord.Colour] = discord.Color.brand_red(),
-    author: Optional[Union[str, app_commands.locale_str]] = None,
-    author_url: Optional[Union[str, app_commands.locale_str]] = None,
-    author_icon_url: Optional[Union[str, app_commands.locale_str]] = None,
-    footer: Optional[Union[str, app_commands.locale_str]] = None,
-    footer_icon_url: Optional[Union[str, app_commands.locale_str]] = None,
-    url: Optional[Union[str, app_commands.locale_str]] = MISSING,
-    image: Optional[Union[str, app_commands.locale_str]] = None,
-    thumbnail: Optional[Union[str, app_commands.locale_str]] = None,
+    title: str | app_commands.locale_str | None = MISSING,
+    timestamp: datetime.datetime | None = MISSING,
+    color: discord.Colour | None = discord.Color.brand_red(),
+    author: str | app_commands.locale_str | None = None,
+    author_url: str | app_commands.locale_str | None = None,
+    author_icon_url: str | app_commands.locale_str | None = None,
+    footer: str | app_commands.locale_str | None = None,
+    footer_icon_url: str | app_commands.locale_str | None = None,
+    url: str | app_commands.locale_str | None = MISSING,
+    image: str | app_commands.locale_str | None = None,
+    thumbnail: str | app_commands.locale_str | None = None,
     **kwargs,
 ) -> discord.Embed:
     """Creates an embed for a failed action.
@@ -290,19 +286,19 @@ def makeembed_failedaction(
 
 
 def makeembed_partialaction(
-    description: Optional[Union[str, app_commands.locale_str]] = MISSING,
+    description: str | app_commands.locale_str | None = MISSING,
     *,
-    title: Optional[Union[str, app_commands.locale_str]] = MISSING,
-    timestamp: Optional[datetime.datetime] = MISSING,
-    color: Optional[discord.Colour] = discord.Color.gold(),
-    author: Optional[Union[str, app_commands.locale_str]] = None,
-    author_url: Optional[Union[str, app_commands.locale_str]] = None,
-    author_icon_url: Optional[Union[str, app_commands.locale_str]] = None,
-    footer: Optional[Union[str, app_commands.locale_str]] = None,
-    footer_icon_url: Optional[Union[str, app_commands.locale_str]] = None,
-    url: Optional[Union[str, app_commands.locale_str]] = MISSING,
-    image: Optional[Union[str, app_commands.locale_str]] = None,
-    thumbnail: Optional[Union[str, app_commands.locale_str]] = None,
+    title: str | app_commands.locale_str | None = MISSING,
+    timestamp: datetime.datetime | None = MISSING,
+    color: discord.Colour | None = discord.Color.gold(),
+    author: str | app_commands.locale_str | None = None,
+    author_url: str | app_commands.locale_str | None = None,
+    author_icon_url: str | app_commands.locale_str | None = None,
+    footer: str | app_commands.locale_str | None = None,
+    footer_icon_url: str | app_commands.locale_str | None = None,
+    url: str | app_commands.locale_str | None = MISSING,
+    image: str | app_commands.locale_str | None = None,
+    thumbnail: str | app_commands.locale_str | None = None,
     **kwargs,
 ):
     """Creates an embed for a partially successful action.
@@ -332,19 +328,19 @@ def makeembed_partialaction(
 
 
 def makeembed_successfulaction(
-    description: Optional[Union[str, app_commands.locale_str]] = MISSING,
+    description: str | app_commands.locale_str | None = MISSING,
     *,
-    title: Optional[Union[str, app_commands.locale_str]] = MISSING,
-    timestamp: Optional[datetime.datetime] = MISSING,
-    color: Optional[discord.Colour] = discord.Color.brand_green(),
-    author: Optional[Union[str, app_commands.locale_str]] = None,
-    author_url: Optional[Union[str, app_commands.locale_str]] = None,
-    author_icon_url: Optional[Union[str, app_commands.locale_str]] = None,
-    footer: Optional[Union[str, app_commands.locale_str]] = None,
-    footer_icon_url: Optional[Union[str, app_commands.locale_str]] = None,
-    url: Optional[Union[str, app_commands.locale_str]] = MISSING,
-    image: Optional[Union[str, app_commands.locale_str]] = None,
-    thumbnail: Optional[Union[str, app_commands.locale_str]] = None,
+    title: str | app_commands.locale_str | None = MISSING,
+    timestamp: datetime.datetime | None = MISSING,
+    color: discord.Colour | None = discord.Color.brand_green(),
+    author: str | app_commands.locale_str | None = None,
+    author_url: str | app_commands.locale_str | None = None,
+    author_icon_url: str | app_commands.locale_str | None = None,
+    footer: str | app_commands.locale_str | None = None,
+    footer_icon_url: str | app_commands.locale_str | None = None,
+    url: str | app_commands.locale_str | None = MISSING,
+    image: str | app_commands.locale_str | None = None,
+    thumbnail: str | app_commands.locale_str | None = None,
     **kwargs,
 ) -> discord.Embed:
     """Changed defaults for makeembed_bot: color.
@@ -378,7 +374,7 @@ timestamptype = (
 
 
 # @discord.utils.copy_doc(discord.utils.format_dt)
-def dctimestamp(dt: Union[datetime.datetime, int, float], format: Optional[timestamptype] = "f") -> str:
+def dctimestamp(dt: datetime.datetime | int | float, format: timestamptype | None = "f") -> str:
     """Formats a timestamp for Discord.
     This method functions similar to :meth:`discord.utils.format_dt`, except it can also accepts a :class:`int` or :class:`float` as the timestamp.
     In addition, if no format/style is specified, it uses the "f" format by default instead of no format at all.
@@ -429,11 +425,11 @@ def dctimestamp(dt: Union[datetime.datetime, int, float], format: Optional[times
 
 
 def dchyperlink(
-    text: Optional[Union[str, app_commands.locale_str]]=None,
-    url: Optional[Union[str, app_commands.locale_str]]=None,
+    text: str | app_commands.locale_str | None=None,
+    url: str | app_commands.locale_str | None=None,
     *,
-    hovertext: Optional[Union[str, app_commands.locale_str]] = None,
-    suppress_embed: Optional[bool] = None,
+    hovertext: str | app_commands.locale_str | None = None,
+    suppress_embed: bool | None = None,
     **kwargs
 ) -> str:
     """Creates a hyperlink for Discord.
@@ -482,7 +478,7 @@ def dchyperlink(
     return f"{text}({url}{hovertext})"
 
 
-def parse_discord_snowflake(snowflake: Union[str, int]) -> Snowflake:
+def parse_discord_snowflake(snowflake: str | int) -> Snowflake:
     """Returns a :class:`Snowflake` object from a Discord snowflake.
     See [this](https://i.imgur.com/UxWvdYD.png) image for more information.
 
@@ -500,7 +496,7 @@ def parse_discord_snowflake(snowflake: Union[str, int]) -> Snowflake:
 
 
 @discord.utils.copy_doc(parse_discord_snowflake)
-def snowflake_timestamp(snowflake: Union[int, str]) -> datetime.datetime:
+def snowflake_timestamp(snowflake: int | str) -> datetime.datetime:
     """Parses a Discord snowflake and returns the creation date in UTC.
     Wrapper for :func:`discord.utils.parse_discord_snowflake`.
 
@@ -524,12 +520,12 @@ def utcnow() -> datetime.datetime:
 
 def get_any_key(
     keys: Iterable[Hashable],
-    d: Dict[Hashable, Any],
+    d: dict[Hashable, Any],
     *,
     default: Any = None,
     case_sensitive: bool = False,
     try_spaces: bool = False,
-) -> Tuple[Any, Hashable]:
+) -> tuple[Any, Hashable]:
     """Tries to get any key from the provided dictionary.
 
     Parameters
@@ -558,9 +554,9 @@ def get_any_key(
         search_key = key
         if not case_sensitive and isinstance(search_key, str):
             search_key = search_key.lower()
-            d_keys: Dict = {k.lower(): v for k, v in d.items() if isinstance(k, str)}
+            d_keys: dict = {k.lower(): v for k, v in d.items() if isinstance(k, str)}
         else:
-            d_keys: Dict = d
+            d_keys: dict = d
 
         if try_spaces and isinstance(search_key, str):
             SPACING_CHARS = [" ", "_", "-"]
@@ -581,7 +577,7 @@ def get_any_key(
     return default, None
 
 
-async def create_codeblock(content: Union[str, app_commands.locale_str], lang: CodeblockLanguage = "py") -> str:
+async def create_codeblock(content: str | app_commands.locale_str, lang: CodeblockLanguage = "py") -> str:
     """Creates a codeblock for formatted for Discord.
 
     Parameters
@@ -603,7 +599,7 @@ async def create_codeblock(content: Union[str, app_commands.locale_str], lang: C
     """
     if lang not in CODEBLOCK_LANGUAGES:
         raise ValueError(f"Invalid Language: {lang}")
-    fmt: Union[str, app_commands.locale_str] = "```"
+    fmt: str | app_commands.locale_str = "```"
     return f"{fmt}{lang}\n{content}{fmt}"
 
 # add some mentioning method shortcuts
@@ -619,7 +615,7 @@ CHANNEL_MENTION_STR_FORMAT: re.Pattern[str] = re.compile(r"<#(\d+)>")
 
 
 def _generic_mention_str(
-    obj: Union[discord.abc.User, discord.Role, discord.abc.GuildChannel, int, str],
+    obj: discord.abc.User | discord.Role | discord.abc.GuildChannel | int | str,
     /,
     *,
     pattern: re.Pattern[str],
@@ -658,7 +654,7 @@ def _generic_mention_str(
     
     return mention_str
 
-def user_mention_str(user_obj: Union[discord.abc.User, int, str], /, default_dpy: bool=True) -> str:
+def user_mention_str(user_obj: discord.abc.User | int | str, /, default_dpy: bool=True) -> str:
     """Returns a user mention string for the given user object or ID.
 
     Parameters
@@ -679,7 +675,7 @@ def user_mention_str(user_obj: Union[discord.abc.User, int, str], /, default_dpy
         default_dpy=default_dpy,
     )
 
-def role_mention_str(role_obj: Union[discord.Role, int, str], /, default_dpy: bool=True) -> str:
+def role_mention_str(role_obj: discord.Role | int | str, /, default_dpy: bool=True) -> str:
     """Returns a role mention string for the given role object or ID."""
     return _generic_mention_str(
         role_obj,
@@ -692,7 +688,7 @@ def role_mention_str(role_obj: Union[discord.Role, int, str], /, default_dpy: bo
 umention = user_mention_str
 rmention = role_mention_str
 
-def channel_mention_str(channel_obj: Union[discord.abc.GuildChannel, int, str], /, default_dpy: bool=True) -> str:
+def channel_mention_str(channel_obj: discord.abc.GuildChannel | int | str, /, default_dpy: bool=True) -> str:
     """Returns a channel mention string for the given channel object or ID.
 
     Parameters
@@ -716,8 +712,8 @@ cmention = channel_mention_str
 
 @lru_cache(maxsize=1000)
 def _autocomplete(
-    current: Union[str, app_commands.locale_str], items: Sequence[Any], cutoff: float = 0.4
-) -> Sequence[Tuple[str, Any]]:
+    current: str | app_commands.locale_str, items: Sequence[Any], cutoff: float = 0.4
+) -> Sequence[tuple[str, Any]]:
     """
     Internal method for autocompleting a command choice. Utilizes an LRU cache (see :meth:`functools.lru_cache`) to store the results.
     If you want to use this method, use :meth:`generic_autocomplete` instead.
@@ -756,11 +752,11 @@ def _autocomplete(
 
 # @alru_cache(maxsize=1000)
 async def generic_autocomplete(
-    current: Union[str, app_commands.locale_str],
-    items: Union[Sequence[Any], Sequence[Tuple[Any, Any]]],
-    interaction: Optional[discord.Interaction] = None,
+    current: str | app_commands.locale_str,
+    items: Sequence[Any] | Sequence[tuple[Any, Any]],
+    interaction: discord.Interaction | None = None,
     cutoff: float = 0.4,
-) -> List[app_commands.Choice]:
+) -> list[app_commands.Choice]:
     """Autocompletes a command choice.
 
     Parameters
@@ -805,7 +801,7 @@ def merge_permissions(
             setattr(overwrite, perm, value)
 
 
-def generate_transaction_id(guild_id: Optional[int] = None, user_id: Optional[int] = None, length: int = 36) -> str:
+def generate_transaction_id(guild_id: int | None = None, user_id: int | None = None, length: int = 36) -> str:
     """Generates a UUID for an error.
 
     Parameters
@@ -830,15 +826,15 @@ def generate_transaction_id(guild_id: Optional[int] = None, user_id: Optional[in
 
 
 def oauth_url(
-    client_id: Union[int, str],
+    client_id: int | str,
     *,
     permissions: discord.Permissions = MISSING,
     guild: DiscordSnowflake = MISSING,
-    integration_type: Union[IntegrationType, int] = IntegrationType.guild,
+    integration_type: IntegrationType | int = IntegrationType.guild,
     redirect_uri: str = MISSING,
     scopes: Iterable[str] = MISSING,
     disable_guild_select: bool = False,
-    state: Union[str, app_commands.locale_str] = MISSING,
+    state: str | app_commands.locale_str = MISSING,
 ) -> str:
     """A helper function that returns the OAuth2 URL for inviting the bot into guilds.
 
@@ -888,10 +884,10 @@ def oauth_url(
 
 
 def get_max_file_upload_limit(
-    ctx: Optional[commands.Context] = None,
+    ctx: commands.Context | None = None,
     *,
-    interaction: Optional[discord.Interaction] = None,
-    guild: Optional[discord.Guild] = None,
+    interaction: discord.Interaction | None = None,
+    guild: discord.Guild | None = None,
 ):
     """This method returns the maximum file upload limit for a guild, if provided.
     If a guild isn't provided, returns the default file upload limit for Discord (defined as ``DISCORD_FILE_SIZE_LIMIT``).
@@ -929,7 +925,7 @@ def string_io(text: str) -> bytes:
     return text.encode('utf-8')
 
 
-def list_to_occurance_dict(items: List[str], *, normalize_items: bool = False, reverse: bool = True) -> Dict[str, int]:
+def list_to_occurance_dict(items: list[str], *, normalize_items: bool = False, reverse: bool = True) -> dict[str, int]:
     """Method that counts the amount of strings in a list, and turns it into a dictionary with the string and the count.
 
     Example:
@@ -960,7 +956,7 @@ def list_to_occurance_dict(items: List[str], *, normalize_items: bool = False, r
     return dict(sorted_occurrence)
 
 
-async def send_modal_hybrid(ctx: ContextU, modal: discord.ui.Modal, *args, **kwargs) -> Optional[discord.Message]:
+async def send_modal_hybrid(ctx: ContextU, modal: discord.ui.Modal, *args, **kwargs) -> discord.Message | None:
     """A method that will send a modal in a hybrid command context.
     You can only reply with a modal in reply to interactions,
     meaning that you cannot send a modal if it is in reply to a prefix command.
@@ -994,7 +990,7 @@ async def send_modal_hybrid(ctx: ContextU, modal: discord.ui.Modal, *args, **kwa
     return kwargs['view'].message
 
 
-def get_copyable_slash_command_format(qualified_name: str, kwargs: Dict[str, Union[str, int, float, bool]]):
+def get_copyable_slash_command_format(qualified_name: str, kwargs: dict[str, str | int | float | bool]):
     """This method generates a copyable slash command that is runnable when copied.
     If you are looking for a clickable mention of a slash command, look into the :meth:`src.MentionableTree.get_command_mention` method on the :class:`src.MentionableTree` class.
 

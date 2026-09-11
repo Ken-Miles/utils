@@ -6,12 +6,12 @@ These tests were copied and modified from discord.py's own tests for their utili
 Link: https://github.com/Rapptz/discord.py/blob/master/tests/test_annotated_annotation.py"""
 
 import datetime
-import typing
 
 import discord.utils as discord_utils
 import pytest
 
 from ..src import methods as my_utils
+
 
 # Async generator for async support
 async def async_iterate(array):
@@ -29,7 +29,7 @@ async def async_iterate(array):
         (1000000000000000000, (2022, 7, 22, 11, 22, 59)),
     ],
 )
-def test_snowflake_time(snowflake: int, time_tuple: typing.Tuple[int, int, int, int, int, int]):
+def test_snowflake_time(snowflake: int, time_tuple: tuple[int, int, int, int, int, int]):
     my_dt = my_utils.snowflake_timestamp(snowflake) # discord_utils.snowflake_time
     dc_dt = discord_utils.snowflake_time(snowflake)
 
@@ -48,7 +48,7 @@ def test_snowflake_time(snowflake: int, time_tuple: typing.Tuple[int, int, int, 
         (datetime.datetime(2033, 5, 18, 3, 33, 20, 0, tzinfo=datetime.timezone.utc), 'D', '<t:2000000000:D>'),
     ],
 )
-def test_format_dt(dt: datetime.datetime, style: typing.Optional[discord_utils.TimestampStyle], formatted: str):
+def test_format_dt(dt: datetime.datetime, style: discord_utils.TimestampStyle | None, formatted: str):
     my_dt = my_utils.dctimestamp(dt, format=style) == formatted # discord_utils.format_dt
     dc_dt = discord_utils.format_dt(dt, style=style) == formatted
 

@@ -1,22 +1,17 @@
 from __future__ import annotations
+
 import asyncio
-from collections import Counter, defaultdict
 import datetime
 import functools
-from typing import (
-    Any,
-    AsyncIterator,
-    Callable,
-    Coroutine,
-    Iterable,
-    List,
-    Optional,
-    ParamSpec,
-    Type,
-    TypeVar,
-    Union,
-)
 import weakref
+from collections import Counter, defaultdict
+from collections.abc import AsyncIterator, Callable, Coroutine, Iterable
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    ParamSpec,
+    TypeVar,
+)
 
 import discord
 from discord import (
@@ -41,13 +36,11 @@ from discord.ext.commands.bot import BotBase
 from discord.ext.commands.core import GroupMixin
 from discord.utils import deprecated
 
-from src.kens_utils._types.types import DiscordClientT
-
-
 from .context import ContextU
 from .tree import MentionableTree
 
-
+if TYPE_CHECKING:
+    from src.kens_utils._types.types import DiscordClientT
 
 # fmt: off
 __all__ = (
@@ -69,7 +62,7 @@ class BotBaseU(BotBase, GroupMixin[None]):
     """Overrides the base type of the bot's tree to be the custom MentionableTree.
     This helps with better typing and typehinting for all tree-related operations."""
 
-    _cached_application_emojis: List[discord.Emoji] = []
+    _cached_application_emojis: list[discord.Emoji] = []
 
 
     def __init__(self, *args, **kwargs):
@@ -77,7 +70,7 @@ class BotBaseU(BotBase, GroupMixin[None]):
     
 
     @discord.utils.copy_doc(BotBase.get_cog)
-    def get_cog(self, name: str, /) -> Optional['CogU']:
+    def get_cog(self, name: str, /) -> CogU | None:
         # TODO: fix type error here, cogT is a cog?
         return super().get_cog(name) # type: ignore
 
@@ -89,9 +82,9 @@ class BotBaseU(BotBase, GroupMixin[None]):
 
     async def get_context(
         self,
-        origin: Union[Message, Interaction],
+        origin: Message | Interaction,
         *,
-        cls: Type[ContextU] = ContextU,
+        cls: type[ContextU] = ContextU,
     ) -> ContextU:
         return await super().get_context(origin, cls=cls)
 
@@ -131,13 +124,13 @@ class ClientU(discord.Client):
         return await super().setup_hook()
     
     @property
-    def application_emojis(self) -> List[discord.Emoji]:
+    def application_emojis(self) -> list[discord.Emoji]:
         """Cached version of all the bot's application emojis. Only populated if :meth:`.fetch_application_emojis` is called.
         By default, this is called in setup_hook.
         """
         return self._cached_application_emojis
 
-    async def fetch_application_emoji(self, emoji_id: int, /) -> Optional[discord.Emoji]:
+    async def fetch_application_emoji(self, emoji_id: int, /) -> discord.Emoji | None:
         """Fetches a specific application emoji by ID. Will error if fetch fails.
 
         You probably want to use :func:`.get_or_fetch_application_emoji` instead of this method
@@ -159,7 +152,7 @@ class ClientU(discord.Client):
             self._cached_application_emojis.append(emoji)
         return emoji
 
-    async def get_or_fetch_application_emoji(self, emoji_id: int, /) -> Optional[discord.Emoji]:
+    async def get_or_fetch_application_emoji(self, emoji_id: int, /) -> discord.Emoji | None:
         """Returns a specific application emoji by ID from the cache if it exists, else fetches it. Will error if fetch fails.
 
         Calls :func:`.fetch_application_emoji` if the emoji is not cached, which will cache it for future calls.
@@ -180,7 +173,7 @@ class ClientU(discord.Client):
             return cached_emoji
         return await self.fetch_application_emoji(emoji_id)
 
-    async def fetch_application_emojis(self) -> List[discord.Emoji]:
+    async def fetch_application_emojis(self) -> list[discord.Emoji]:
         """Fetches all of the bot's application emojis. Will error if fetch fails.
         You probably want to use :func:`.get_or_fetch_application_emojis` instead of this method
         unless you want to fetch the emojis again, as this method will cache the emojis when fetched for future calls.
@@ -193,7 +186,7 @@ class ClientU(discord.Client):
         self._cached_application_emojis = await super().fetch_application_emojis()
         return self._cached_application_emojis
 
-    async def get_or_fetch_application_emojis(self) -> List[discord.Emoji]:
+    async def get_or_fetch_application_emojis(self) -> list[discord.Emoji]:
         """Returns cached application emojis if they exist, else fetches them. Will error if fetch fails.
 
         Calls :func:`.fetch_application_emojis` if the emojis are not cached, which will cache them for future calls.
@@ -208,7 +201,7 @@ class ClientU(discord.Client):
         return await self.fetch_application_emojis()
 
     @property
-    def application(self) -> Optional[discord.AppInfo]:
+    def application(self) -> discord.AppInfo | None:
         """The bot's application info. This is cached after the first fetch.
 
         Raises
@@ -227,7 +220,7 @@ class ClientU(discord.Client):
 
     @property
     # @discord.utils.copy_doc(application)
-    def app_info(self) -> Optional[discord.AppInfo]:
+    def app_info(self) -> discord.AppInfo | None:
         """Alias for :attr:`application`."""
         return self.application
 
@@ -268,8 +261,8 @@ class ClientU(discord.Client):
     async def _get_or_fetch_channel(
         self,
         channelid: int,
-        channel_type: Type[ChannelT],
-        guild: Optional[Guild] = None,
+        channel_type: type[ChannelT],
+        guild: Guild | None = None,
     ) -> ChannelT:
         """Internal method to get a certain Channel type."""
         if guild is not None:
@@ -286,8 +279,8 @@ class ClientU(discord.Client):
         return channel
 
     async def get_or_fetch_channel(
-        self, channelid: int, guild: Optional[Guild] = None
-    ) -> Union[GuildChannel, Thread, PrivateChannel]:
+        self, channelid: int, guild: Guild | None = None
+    ) -> GuildChannel | Thread | PrivateChannel:
         """Gets a channel from a guild (if provided) or bot's cache, else fetches it. Will error if fetch fails.
 
         Parameters
@@ -307,7 +300,7 @@ class ClientU(discord.Client):
         Union[:class:`discord.abc.GuildChannel`, :class:`discord.Thread`, :class:`discord.PrivateChannel`]
             The channel.
         """
-        channel: Optional[Union[GuildChannel, Thread, PrivateChannel]] = None
+        channel: GuildChannel | Thread | PrivateChannel | None = None
         if guild is not None:
             channel = guild.get_channel_or_thread(channelid)
             if channel is None:
@@ -492,7 +485,7 @@ class ClientU(discord.Client):
     async def getorfetch_forum_channel(self, *args, **kwargs):
         return await self.get_or_fetch_forumchannel(*args, **kwargs)
 
-    async def get_or_fetch_user(self, userid: int, guild: Optional[Guild]) -> Union[User, Member]:
+    async def get_or_fetch_user(self, userid: int, guild: Guild | None) -> User | Member:
         """Gets a :class:`discord.User` or :class:`discord.Member` from a guild (if provided) or bot's cache, else fetches it. Will error if fetch fails.
 
         Parameters
@@ -516,7 +509,7 @@ class ClientU(discord.Client):
             If the user is in a guild, it will return a Member.
             You must pass explicitly pass None for the guild if you wish to get a user not in a guild.
         """
-        user: Union[User, Member]
+        user: User | Member
         if guild is not None:
             user = await self.get_or_fetch_member(userid, guild)
             if user:
@@ -639,8 +632,8 @@ class ClientU(discord.Client):
         return await self.get_or_fetch_member(*args, **kwargs)
 
     async def get_or_fetch_user_or_snowflake(
-        self, userid: int, guild: Optional[discord.Guild]
-    ) -> Union[discord.abc.Snowflake, User, Member]:
+        self, userid: int, guild: discord.Guild | None
+    ) -> discord.abc.Snowflake | User | Member:
         """Wrapper for :meth:`.get_or_fetch_user`.
         Instead of raising an error should the user not be found, it will return a :class:`discord.abc.Snowflake` (a :class:`discord.Object` at runtime) with the ID of the user.
         The main intention of this method is for banning/unbanning users.
@@ -679,7 +672,7 @@ class ClientU(discord.Client):
     async def getorfetch_guild(self, *args, **kwargs):
         return await self.get_or_fetch_guild(*args, **kwargs)
 
-    async def get_or_fetch_dmchannel(self, user: Union[User, Member]) -> DMChannel:
+    async def get_or_fetch_dmchannel(self, user: User | Member) -> DMChannel:
         """Gets a DMChannel from the user's cache, else fetches it. Will error if fetch fails.
 
         Parameters
@@ -784,7 +777,7 @@ class ClientU(discord.Client):
 
     # user cache management
     @property
-    def users(self) -> List[User]:
+    def users(self) -> list[User]:
         return super().users + list(self._user_cache.values())
 
     async def fetch_user(self, user_id: int, /) -> User:
@@ -794,7 +787,7 @@ class ClientU(discord.Client):
 
         return user
 
-    def get_user(self, user_id: int, /) -> Optional[User]:
+    def get_user(self, user_id: int, /) -> User | None:
         user = super().get_user(user_id)
         if not user:
             user = self._user_cache.get(user_id)
@@ -803,7 +796,7 @@ class ClientU(discord.Client):
     # copied from RoboDanny
     async def query_member_named(
         self, guild: discord.Guild, argument: str, *, cache: bool = False
-    ) -> Optional[discord.Member]:
+    ) -> discord.Member | None:
         """Queries a member by their name, name + discrim, or nickname.
 
         Parameters
@@ -834,7 +827,7 @@ class ClientU(discord.Client):
             self.uptime = discord.utils.utcnow()
 
     # cache listeners
-    async def _maybe_update_user_cache(self, snowflake: Optional[discord.abc.Snowflake] = None):
+    async def _maybe_update_user_cache(self, snowflake: discord.abc.Snowflake | None = None):
         """Internal methoid intended to update the cache if the snowflake is a User.
         Useful in a context where a snowflake may either be a User or Member."""
         if isinstance(snowflake, User):
@@ -881,8 +874,8 @@ class AutoShardedClientU(ClientU, AutoShardedClient):
         
         # shard_id: List[datetime.datetime]
         # shows the last attempted IDENTIFYs and RESUMEs
-        self.resumes: defaultdict[int, List[datetime.datetime]] = defaultdict(list)
-        self.identifies: defaultdict[int, List[datetime.datetime]] = defaultdict(list)
+        self.resumes: defaultdict[int, list[datetime.datetime]] = defaultdict(list)
+        self.identifies: defaultdict[int, list[datetime.datetime]] = defaultdict(list)
 
     async def before_identify_hook(self, shard_id: int, *, initial: bool):
         self._clear_gateway_data()
@@ -919,7 +912,7 @@ class BotU(commands.Bot, BotBaseU, ClientU):
     command_types_used: Counter[bool]
     logging_handler: Any
     old_tree_error = Callable[[discord.Interaction, discord.app_commands.AppCommandError], Coroutine[Any, Any, None]]
-    blacklist: List[int]
+    blacklist: list[int]
 
     def __init__(
         self,
@@ -964,7 +957,7 @@ class BotU(commands.Bot, BotBaseU, ClientU):
     def wrap(self, func: Callable[P, T], *args: P.args, **kwargs: P.kwargs):
         return asyncio.to_thread(functools.partial(func, *args, **kwargs))
 
-    async def get_command_mention(self, command: Union[str, commands.Command]):
+    async def get_command_mention(self, command: str | commands.Command):
         """Gets the Mention string for a command. If the tree is a MentionableTree, it will return the mention string for the command.
         If the command ID cannot be found, it will return a string with the command name in backticks.
 

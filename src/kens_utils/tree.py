@@ -1,5 +1,4 @@
 # fmt: off
-from typing import List, Optional, Union
 
 import discord
 from discord import app_commands
@@ -22,15 +21,15 @@ class MentionableTree(app_commands.CommandTree[DiscordClientT]):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.application_commands: dict[Optional[int], List[app_commands.AppCommand]] = {}
+        self.application_commands: dict[int | None, list[app_commands.AppCommand]] = {}
 
-    async def sync(self, *, guild: Optional[discord.abc.Snowflake] = None):
+    async def sync(self, *, guild: discord.abc.Snowflake | None = None):
         """Method overwritten to store the commands."""
         ret = await super().sync(guild=guild)
         self.application_commands[guild.id if guild else None] = ret
         return ret
 
-    async def fetch_commands(self, *, guild: Optional[discord.abc.Snowflake] = None):
+    async def fetch_commands(self, *, guild: discord.abc.Snowflake | None = None):
         """Method overwritten to store the commands."""
         ret = await super().fetch_commands(guild=guild)
         self.application_commands[guild.id if guild else None] = ret
@@ -40,8 +39,8 @@ class MentionableTree(app_commands.CommandTree[DiscordClientT]):
         self,
         command: app_commands.Command | app_commands.Group | str,
         *,
-        guild: Optional[discord.abc.Snowflake] = None,
-    ) -> Optional[str]:
+        guild: discord.abc.Snowflake | None = None,
+    ) -> str | None:
         """Retrieves the mention of an AppCommand given a specific command name, and optionally, a guild.
         Parameters
         ----------
@@ -93,7 +92,7 @@ class MentionableTree(app_commands.CommandTree[DiscordClientT]):
 
         return f"</{_command.qualified_name}:{app_command_found.id}>"
     
-    async def get_command_mention(self, command: Union[str, commands.Command]) -> str:
+    async def get_command_mention(self, command: str | commands.Command) -> str:
         """Gets the Mention string for a command. If the tree is a MentionableTree, it will return the mention string for the command.
         If the command ID cannot be found, it will return a string with the command name in backticks.
 

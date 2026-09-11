@@ -1,5 +1,5 @@
+from collections.abc import Callable
 from enum import Enum
-from typing import Callable, List
 
 import aiohttp
 from discord import app_commands
@@ -31,7 +31,7 @@ class EnumU(Enum):
         return self.value
 
     @classmethod
-    def all(cls) -> List[Self]:
+    def all(cls) -> list[Self]:
         """A method to retrieve all instances of an enum.
         
         Returns an iterable with all instances of the enum within it."""

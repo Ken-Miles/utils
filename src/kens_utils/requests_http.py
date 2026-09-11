@@ -1,6 +1,6 @@
 from __future__ import annotations
+
 import asyncio
-from typing import Union
 
 import aiohttp
 
@@ -26,7 +26,7 @@ __all__ = (
 # fmt: on
 
 async def _request(
-    _method: Union[str, RequestType], /, url: str, **kwargs
+    _method: str | RequestType, /, url: str, **kwargs
 ) -> aiohttp.ClientResponse:
     """Performs a GET request on the given URL."""
     method: RequestType

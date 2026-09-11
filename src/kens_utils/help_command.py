@@ -1,32 +1,27 @@
 from __future__ import annotations
+
 import abc
 import difflib
 import functools
 import itertools
+from collections.abc import Callable, Generator, Iterable, Mapping, Sequence
 from typing import (
-    Any,
-    Callable,
-    Dict,
-    Generator,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
     TYPE_CHECKING,
-    Tuple,
-    Type,
+    Any,
+    Concatenate,
+    TypeAlias,
     TypeVar,
-    Union,
 )
 
 import discord
 from discord.ext import commands
-from discord.ext.commands import Cog, Context
-from typing_extensions import Concatenate, ParamSpec, Self, TypeAlias
+from typing_extensions import ParamSpec, Self
 
-from .bot import BotU
-from .context import ContextU
+if TYPE_CHECKING:
+    from discord.ext.commands import Cog, Context
+
+    from .bot import BotU
+    from .context import ContextU
 
 # fmt: off
 __all__ = (
@@ -66,7 +61,7 @@ def _wrap_init(__init__: BaseViewInit[P, T]) -> BaseViewInit[P, T]:
     return wrapped
 
 
-def _find_home(view: BaseView) -> Optional[BaseView]:
+def _find_home(view: BaseView) -> BaseView | None:
     home: BaseView = view
 
     while parent := getattr(home, "parent", None):
@@ -102,7 +97,7 @@ def _backup_command_embed(command: CommandType, prefix: str) -> discord.Embed:
     return embed
 
 
-def grouper(n: int, iterable: Iterable[T]) -> Generator[Tuple[T, ...], None, None]:
+def grouper(n: int, iterable: Iterable[T]) -> Generator[tuple[T, ...], None, None]:
     it = iter(iterable)
     while True:
         chunk = tuple(itertools.islice(it, n))
@@ -120,7 +115,7 @@ class Stop(discord.ui.Button["BaseView"]):
         The parent view of the help command.
     """
 
-    __slots__: Tuple[str, ...] = ("parent",)
+    __slots__: tuple[str, ...] = ("parent",)
 
     def __init__(self, parent: BaseView) -> None:
         self.parent: BaseView = parent
@@ -156,7 +151,7 @@ class GoHome(discord.ui.Button["BaseView"]):
         The bot that the help command is running on.
     """
 
-    __slots__: Tuple[str, ...] = (
+    __slots__: tuple[str, ...] = (
         "parent",
         "bot",
     )
@@ -191,7 +186,7 @@ class GoBack(discord.ui.Button["BaseView"]):
         The parent view of the help command.
     """
 
-    __slots__: Tuple[str, ...] = ("parent",)
+    __slots__: tuple[str, ...] = ("parent",)
 
     def __init__(self, parent: discord.ui.View) -> None:
         super().__init__(label="Go Back")
@@ -230,9 +225,9 @@ class BaseView(discord.ui.View, abc.ABC):
         The parent of this view. Defaults to ``None``.
     """
 
-    __slots__: Tuple[str, ...] = ("bot", "author", "parent", "context")
+    __slots__: tuple[str, ...] = ("bot", "author", "parent", "context")
 
-    def __init_subclass__(cls: Type[Self]) -> None:
+    def __init_subclass__(cls: type[Self]) -> None:
         cls.__init__ = _wrap_init(cls.__init__)  # pyright: ignore
         return super().__init_subclass__()
 
@@ -240,12 +235,12 @@ class BaseView(discord.ui.View, abc.ABC):
         self,
         *,
         context: Context[BotU],
-        timeout: Optional[float] = 120.0,
-        parent: Optional[BaseView] = None,
+        timeout: float | None = 120.0,
+        parent: BaseView | None = None,
     ) -> None:
         self.bot: BotU = context.bot
-        self.author: Union[discord.Member, discord.User] = context.author
-        self.parent: Optional[BaseView] = parent
+        self.author: discord.Member | discord.User = context.author
+        self.parent: BaseView | None = parent
         self.context: Context[BotU] = context
         super().__init__(timeout=timeout)
 
@@ -264,7 +259,7 @@ class BaseView(discord.ui.View, abc.ABC):
 
         self.add_item(Stop(self))
 
-    def dump_kwargs(self) -> Dict[str, Any]:
+    def dump_kwargs(self) -> dict[str, Any]:
         """Dict[:class:`str`, Any]: A helper method to dump the view's create kwargs when creating a child view."""
         return {"context": self.context, "timeout": self.timeout, "parent": self}
 
@@ -300,7 +295,7 @@ class CommandSelecter(discord.ui.Select["BaseView"]):
         The parent that created this select.
     """
 
-    __slots__: Tuple[str, ...] = (
+    __slots__: tuple[str, ...] = (
         "parent",
         "_command_mapping",
     )
@@ -353,9 +348,9 @@ class CogSelecter(discord.ui.Select["BaseView"]):
         The parent that created this view.
     """
 
-    __slots__: Tuple[str, ...] = ("parent", "_cog_mapping")
+    __slots__: tuple[str, ...] = ("parent", "_cog_mapping")
 
-    def __init__(self, parent: BaseView, cogs: List[Cog]) -> None:
+    def __init__(self, parent: BaseView, cogs: list[Cog]) -> None:
         self.parent: BaseView = parent
         self._cog_mapping: Mapping[str, Cog] = {
             c.qualified_name.lower(): c for c in cogs
@@ -416,7 +411,7 @@ class HelpGroup(BaseView):
         The group that this view represents.
     """
 
-    __slots__: Tuple[str, ...] = ("group",)
+    __slots__: tuple[str, ...] = ("group",)
 
     def __init__(self, group: GroupType, **kwargs: Any) -> None:
         self.group: GroupType = group
@@ -444,7 +439,7 @@ class HelpCommand(BaseView):
         The command that this view represents.
     """
 
-    __slots__: Tuple[str, ...] = ("command",)
+    __slots__: tuple[str, ...] = ("command",)
 
     def __init__(self, command: CommandType, **kwargs: Any) -> None:
         self.command: CommandType = command
@@ -468,7 +463,7 @@ class HelpCog(BaseView):
         The cog that this view represents.
     """
 
-    __slots__: Tuple[str, ...] = ("cog",)
+    __slots__: tuple[str, ...] = ("cog",)
 
     def __init__(self, cog: Cog, **kwargs: Any) -> None:
         self.cog: Cog = cog
@@ -516,9 +511,9 @@ class HelpView(BaseView):
         A list of cogs to display in the help view.
     """
 
-    __slots__: Tuple[str, ...] = ()
+    __slots__: tuple[str, ...] = ()
 
-    def __init__(self, cogs: List[Cog], **kwargs: Any) -> None:
+    def __init__(self, cogs: list[Cog], **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.add_item(CogSelecter(parent=self, cogs=cogs))
 
@@ -530,7 +525,7 @@ class HelpView(BaseView):
         except AttributeError:
             prefix = self.context.bot.user.mention  # type: ignore
 
-        getting_help: List[str] = [
+        getting_help: list[str] = [
             f"Use `{prefix}help <command>` for more info on a command.",
             f"There is also `{prefix}help <command> [subcommand]`.",
             f"Use `{prefix}help <category>` for more info on a category.",
@@ -563,13 +558,13 @@ class Help(commands.HelpCommand):
         super().__init__(**kwargs, verify_checks=False)
 
     async def _filter_mapping(
-        self, mapping: Mapping[Optional[Cog], List[CommandType]]
-    ) -> Mapping[Cog, List[CommandType]]:
+        self, mapping: Mapping[Cog | None, list[CommandType]]
+    ) -> Mapping[Cog, list[CommandType]]:
         """An internal helper method to filter all commands."""
         cmds = sum(mapping.values(), [])
         await self.filter_commands(cmds)
 
-        cogs: Dict[Cog, List[CommandType]] = {}
+        cogs: dict[Cog, list[CommandType]] = {}
         for command in cmds:
             if not command.cog:
                 continue
@@ -578,7 +573,7 @@ class Help(commands.HelpCommand):
 
         return cogs
 
-    async def send_bot_help(self, mapping: Mapping[Optional[Cog], List[CommandType]]) -> discord.Message:  # type: ignore
+    async def send_bot_help(self, mapping: Mapping[Cog | None, list[CommandType]]) -> discord.Message:  # type: ignore
         """|coro|
         A method used to send the bot's main help message.
         Parameters
