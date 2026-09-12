@@ -42,6 +42,8 @@ from .tree import MentionableTree
 if TYPE_CHECKING:
     from src.kens_utils._types.types import DiscordClientT
 
+    from .cog import CogU
+
 # fmt: off
 __all__ = (
     "BotU",

@@ -91,6 +91,10 @@ select = [
     "TCH",  # flake8-type-checking (moves typing-only imports into TYPE_CHECKING blocks)
 ]
 
+[tool.ruff.lint.per-file-ignores]
+# these re-export the public API via `from .x import *`, relying on each submodule's `__all__`
+"__init__.py" = ["F403", "F405"]
+
 [tool.isort]
 profile = "black"
 combine_as_imports = true

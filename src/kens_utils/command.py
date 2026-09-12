@@ -9,7 +9,6 @@ from typing import (
     Generic,
     ParamSpec,
     TypeVar,
-    Union,
 )
 
 import discord
@@ -52,13 +51,13 @@ __all__ = (
 T = TypeVar("T")
 P = ParamSpec("P")
 
-AutocompleteCallbackTypeReturn = Union[Iterable[Any], Awaitable[Iterable[Any]]]
-RestrictedType = Union[Iterable[Any], Callable[[ContextT], AutocompleteCallbackTypeReturn]]
+AutocompleteCallbackTypeReturn = Iterable[Any] | Awaitable[Iterable[Any]]
+RestrictedType = Iterable[Any] | Callable[[ContextT], AutocompleteCallbackTypeReturn]
 
-AutocompleteCallbackType = Union[
-    Callable[[CogT, ContextT, str], AutocompleteCallbackTypeReturn],
-    Callable[[ContextT, str], AutocompleteCallbackTypeReturn],
-]
+AutocompleteCallbackType = (
+    Callable[[CogT, ContextT, str], AutocompleteCallbackTypeReturn]
+    | Callable[[ContextT, str], AutocompleteCallbackTypeReturn]
+)
 
 NUMPY_ITEM_REGEX = re.compile(r'(?P<type>\:[a-z]{1,}\:)\`(?P<name>[a-z\.]{1,})\`', flags=re.IGNORECASE)
 DOC_HEADER_REGEX = re.compile(r'\|[a-z]{1,}\|', flags=re.IGNORECASE)

@@ -1,14 +1,19 @@
+from __future__ import annotations
+
 import asyncio
-import datetime
 import inspect
-from collections.abc import Callable, Sequence
-from typing import Any, Generic, Literal
+from typing import TYPE_CHECKING, Any, Generic, Literal
 
 from discord.ext.tasks import LF, Loop
 from discord.utils import MISSING, cached_property
 
-from .cog import CogU
 from .methods import get_any_key
+
+if TYPE_CHECKING:
+    import datetime
+    from collections.abc import Callable, Sequence
+
+    from .cog import CogU
 
 # fmt: off
 __all__ = (
@@ -162,6 +167,8 @@ def loop(
     """
 
     def decorator(func: LF) -> MaybeManagedLoop[LF]:
+        from .cog import CogU
+
         sig = inspect.signature(func)
         params = list(sig.parameters.values())
 

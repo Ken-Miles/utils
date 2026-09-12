@@ -5,7 +5,6 @@ https://gist.github.com/Soheab/891c39d7294b1bdbadc7ecf35ce51cc5#file-1-how-to-md
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -338,7 +337,7 @@ class GoToPageModalV2(discord.ui.Modal):
 
     def __init__(
         self,
-        paginator: BaseButtonPaginator,
+        paginator: BaseButtonPaginatorV2,
         author_id: int | None = None,
         title: str = "Go to Page",
         **kwargs,
@@ -469,7 +468,7 @@ ThreeButtonPaginatorV2 = ButtonPaginatorV2
 class FiveButtonPaginatorV2(BaseButtonPaginatorV2):
     """
     .. note::
-        This subclass doesn't add any additional attributes or methods, but instead overrides the internal methods of the :class:`BaseButtonPaginator` class.
+        This subclass doesn't add any additional attributes or methods, but instead overrides the internal methods of the :class:`BaseButtonPaginatorV2` class.
         It also adds the additional buttons if applicable.
     """
     buttons_action_row: discord.ui.ActionRow[Self] = discord.ui.ActionRow(id=373)
@@ -563,8 +562,8 @@ async def create_paginator_v2(
         The context object.
     pages  Sequence[Any]
         The pages to paginate. Should be a List of :class:`discord.Embed`s or :class:`str`s.
-    paginator: Type[:class:`src.paginators.BaseButtonPaginator`]
-        The paginator to use. Defaults to :class:`src.paginators.BaseButtonPaginator`.
+    paginator: Type[:class:`src.paginators.BaseButtonPaginatorV2`]
+        The paginator to use. Defaults to :class:`src.paginators.BaseButtonPaginatorV2`.
     author_id: Optional[:class:`int`]
         The ID of the author that requested this paginator. If provided, use of the paginator will be restricted to this user. Defaults to ``None``.
     timeout: Optional[:class:`float`]
@@ -578,9 +577,9 @@ async def create_paginator_v2(
 
     Returns
     -------
-    :class:`BaseButtonPaginator`
+    :class:`BaseButtonPaginatorV2`
         The paginator object.
-    """    
+    """
     pg = paginator(
         pages,
         author_id=author_id,
