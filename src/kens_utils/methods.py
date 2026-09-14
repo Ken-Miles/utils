@@ -522,7 +522,7 @@ def snowflake_timestamp(snowflake: int | str) -> datetime.datetime:
 def utcnow() -> datetime.datetime:
     """Returns the current UTC time as a timezone-aware datetime object.
     Intended to be a drop-in replacement for the depricated :func:`datetime.datetime.utcnow` or :func:`discord.utils.utcnow` functions."""
-    return datetime.datetime.now(datetime.timezone.utc)
+    return datetime.datetime.now(UTC)
 
 def get_any_key(
     keys: Iterable[Hashable],
