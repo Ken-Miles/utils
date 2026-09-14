@@ -12,6 +12,7 @@ from typing import (
     Any,
 )
 from urllib.parse import urlencode
+import sys
 
 import discord
 from discord import app_commands
@@ -37,6 +38,11 @@ if TYPE_CHECKING:
     from discord.ext.commands import Bot
 
     from .context import ContextU
+
+if sys.version_info >= (3, 11):
+    UTC = datetime.UTC
+else:
+    UTC = datetime.timezone.utc
 
 # fmt: off
 __all__ = (
