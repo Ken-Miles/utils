@@ -127,12 +127,24 @@ async def check_bot_permissions(ctx: ContextU, perms: dict[str, bool], *, check=
         getattr(resolved, name, None) == value for name, value in perms.items()
     )
 
+def _raise_missing_permissions(ctx: ContextU, perms: dict[str, bool], *, guild: bool):
+    """Raise the same errors as discord.py's permission checks so the error handler can report which permissions are missing."""
+    if not ctx.guild or isinstance(ctx.author, discord.User):
+        raise commands.NoPrivateMessage()
+
+    resolved = ctx.author.guild_permissions if guild else ctx.channel.permissions_for(ctx.author)
+    missing = [name for name, value in perms.items() if getattr(resolved, name, None) != value]
+    raise commands.MissingPermissions(missing)
+
 def has_permissions(*, check=all, **perms: bool):
     """This is a modified version of Danny's `has_permissions` decorator from RoboDanny.
     Decorator that checks if the user has the required permissions to run a command.
+    Bot owners bypass this check.
     """
     async def pred(ctx: ContextU):
-        return await check_permissions(ctx, perms, check=check)
+        if await check_permissions(ctx, perms, check=check):
+            return True
+        _raise_missing_permissions(ctx, perms, guild=False)
 
     return commands.check(pred)
 
@@ -197,9 +209,12 @@ async def check_bot_guild_permissions(ctx: ContextU, perms: dict[str, bool], *, 
 def has_guild_permissions(*, check=all, **perms: bool):
     """This is a modified version of Danny's `has_guild_permissions` decorator from RoboDanny.
     Decorator that checks if the user has the required guild permissions to run a command.
+    Bot owners bypass this check.
     """
     async def pred(ctx: ContextU):
-        return await check_guild_permissions(ctx, perms, check=check)
+        if await check_guild_permissions(ctx, perms, check=check):
+            return True
+        _raise_missing_permissions(ctx, perms, guild=True)
 
     return commands.check(pred)
 
@@ -225,7 +240,9 @@ def hybrid_permissions_check(**perms: bool) -> Callable[[T], T]:
     They also do not take channel overrides into account.
     """
     async def pred(ctx: ContextU):
-        return await check_guild_permissions(ctx, perms)
+        if await check_guild_permissions(ctx, perms):
+            return True
+        _raise_missing_permissions(ctx, perms, guild=True)
 
     def decorator(func: T) -> T:
         commands.check(pred)(func)
