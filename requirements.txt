@@ -7,7 +7,7 @@ lru-dict
 numpydoc
 parsedatetime
 python-dateutil
-python-environ
+django-environ
 python-Levenshtein
 PyYAML
 sentry-sdk
