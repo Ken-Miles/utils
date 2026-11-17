@@ -48,6 +48,8 @@ else:
 __all__ = (
     'makeembed',
     'makeembed_bot',
+    'make_footer',
+    'formatstat',
     'makeembed_failedaction',
     'makeembed_partialaction',
     'makeembed_successfulaction',
@@ -150,6 +152,70 @@ def makeembed(
     return embed
 
 
+def formatstat(value: float | int | None, fmt: str = "{:,}", na: str = "n/a") -> str:
+    """Formats a stat for display, or `na` when stats.cc didn't send it.
+
+    formatstat(1234) -> "1,234", formatstat(60.0, "{:.1f}%") -> "60.0%", formatstat(None) -> "n/a".
+    Use it so unknown values read as unknown rather than as 0.
+    """
+    if value is None:
+        return na
+    return fmt.format(value)
+
+
+def make_footer(
+    *,
+    bot: Bot | None = None,
+    bot_owner: discord.User | None = None,
+    command_user: discord.abc.User | None = None,
+) -> tuple[str, str | None]:
+    """The footer makeembed_bot uses when none is given, and its icon URL (or None).
+
+    With command_user: "Requested by {user}", with that user's avatar.
+    Otherwise: "Made by @owner". The owner comes from bot_owner, then the bot's team
+    or application owner, then bot.owner_id, and falls back to DEFAULT_FOOTER_NAME.
+    """
+    if command_user:
+        return f"Requested by {command_user}", command_user.display_avatar.url
+
+    owner_obj = bot_owner or None
+    owner_name = None
+    # Prefer explicit bot_owner if provided
+    if bot_owner is not None:
+        owner_obj = bot_owner
+        owner_name = getattr(bot_owner, "name", str(bot_owner))
+    else:
+        # Try to get app_info from bot if not provided
+        resolved_app_info = bot.application if bot else None
+
+        if resolved_app_info and resolved_app_info.team:
+            team_members = list(resolved_app_info.team.members)
+            if team_members:
+                owner_obj = team_members[0]
+                owner_name = getattr(owner_obj, "name", str(owner_obj))
+        elif resolved_app_info and resolved_app_info.owner:
+            owner_obj = resolved_app_info.owner
+            owner_name = getattr(owner_obj, "name", str(owner_obj))
+
+    # Fallbacks
+    if owner_name is None and owner_obj is not None:
+        # set owner_name if we have owner_obj
+        owner_name = getattr(owner_obj, "name", str(owner_obj))
+    if owner_name is None and bot and getattr(bot, "owner_id", None):
+        # try to get owner_name from bot.owner_id if we have a bot and it has an owner_id
+        owner_name = str(bot.owner_id)
+    footer = f"Made by @{owner_name}" if owner_name else f"Made by {DEFAULT_FOOTER_NAME}"
+
+    if bot and bot.user:
+        icon_url = bot.user.display_avatar.url
+    elif owner_obj:
+        icon_url = owner_obj.display_avatar.url
+    else:
+        icon_url = None
+    return footer, icon_url
+
+
+
 def makeembed_bot(
     title: str | app_commands.locale_str | None = MISSING,
     timestamp: datetime.datetime | None = MISSING,
@@ -182,52 +248,11 @@ def makeembed_bot(
         timestamp = datetime.datetime.now()
     
     # Only set footer to "made by owner" if a command user isn't provided
-    if not footer and not command_user:
-        owner_obj = bot_owner or None
-        owner_name = None
-        # Prefer explicit bot_owner if provided
-        if bot_owner is not None:
-            owner_obj = bot_owner
-            owner_name = getattr(bot_owner, "name", str(bot_owner))
-        else:
-            # Try to get app_info from bot if not provided
-            resolved_app_info = bot.application if bot else None
-
-            if resolved_app_info and resolved_app_info.team:
-                team_members = list(resolved_app_info.team.members)
-                if team_members:
-                    owner_obj = team_members[0]
-                    owner_name = getattr(owner_obj, "name", str(owner_obj))
-            elif resolved_app_info and resolved_app_info.owner:
-                owner_obj = resolved_app_info.owner
-                owner_name = getattr(owner_obj, "name", str(owner_obj))
-        
-        # Fallbacks
-        if owner_name is None and owner_obj is not None:
-            # set owner_name if we have owner_obj
-            owner_name = getattr(owner_obj, "name", str(owner_obj))
-        if owner_name is None and bot and getattr(bot, "owner_id", None):
-            # try to get owner_name from bot.owner_id if we have a bot and it has an owner_id
-            owner_name = str(bot.owner_id)
-        if owner_name:
-            footer = f"Made by @{owner_name}"
-        else:
-            footer = f"Made by {DEFAULT_FOOTER_NAME}"
-
-        if not footer_icon_url:
-            if bot and bot.user:
-                footer_icon_url = bot.user.display_avatar.url
-            elif owner_obj:
-                footer_icon_url = owner_obj.display_avatar.url
-    
-    # we used to make command author the title, instead let's make it the footer.
-    elif command_user and not footer:
-        footer = f"Requested by {command_user}"
-        if not footer_icon_url:
-            footer_icon_url = command_user.display_avatar.url
-
-    elif not footer and not bot:
-        footer = f"Made by {DEFAULT_FOOTER_NAME}"
+    if not footer:
+        footer, default_icon_url = make_footer(
+            bot=bot, bot_owner=bot_owner, command_user=command_user
+        )
+        footer_icon_url = footer_icon_url or default_icon_url
 
     # i would put this in the default args, but then it will only be when the bot is started
     return makeembed(

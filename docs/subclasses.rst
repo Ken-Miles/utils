@@ -277,6 +277,17 @@ Embed-related methods
 
 .. automethod:: src.methods.makeembed_partialaction
 
+.. automethod:: src.methods.make_footer
+
+Components V2 layout methods
+=============================
+
+.. automethod:: src.viewsv2.makelayout_bot
+
+.. automethod:: src.viewsv2.section_or_text
+
+.. automethod:: src.viewsv2.link_row
+
 Formatting methods
 ====================
 
@@ -317,3 +328,7 @@ oauth_url
 get_max_file_upload_limit
 --------------------------------
 .. automethod:: src.methods.get_max_file_upload_limit
+
+formatstat
+----------------------
+.. automethod:: src.methods.formatstat
