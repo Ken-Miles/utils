@@ -50,11 +50,10 @@ __all__ = (
 )
 # fmt: on
 
-T = TypeVar("T")
-P = ParamSpec("P")
+T = TypeVar('T')
+P = ParamSpec('P')
 
-ChannelT = TypeVar("ChannelT", GuildChannel, Thread, PrivateChannel)
-
+ChannelT = TypeVar('ChannelT', GuildChannel, Thread, PrivateChannel)
 
 
 # TODO: should i also implement GroupMixIn?
@@ -66,21 +65,19 @@ class BotBaseU(BotBase, GroupMixin[None]):
 
     _cached_application_emojis: list[discord.Emoji] = []
 
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-    
 
     @discord.utils.copy_doc(BotBase.get_cog)
     def get_cog(self, name: str, /) -> CogU | None:
         # TODO: fix type error here, cogT is a cog?
-        return super().get_cog(name) # type: ignore
+        return super().get_cog(name)  # type: ignore
 
     @property
     def tree(self) -> MentionableTree[DiscordClientT]:
         """Overrides the base tree property to be the custom MentionableTree.
         This helps with better typing and typehinting for all tree-related operations."""
-        return super().tree # type: ignore
+        return super().tree  # type: ignore
 
     async def get_context(
         self,
@@ -90,11 +87,12 @@ class BotBaseU(BotBase, GroupMixin[None]):
     ) -> ContextU:
         return await super().get_context(origin, cls=cls)
 
+
 class ClientU(discord.Client):
     started_at: datetime.datetime
     _user_cache: weakref.WeakValueDictionary[int, User]  # similar to library approach
 
-    def __init__(self, *args, **kwargs) -> None:        
+    def __init__(self, *args, **kwargs) -> None:
         self._user_cache = weakref.WeakValueDictionary()
         return super().__init__(*args, **kwargs)
 
@@ -124,7 +122,7 @@ class ClientU(discord.Client):
         self.started_at = discord.utils.utcnow()
 
         return await super().setup_hook()
-    
+
     @property
     def application_emojis(self) -> list[discord.Emoji]:
         """Cached version of all the bot's application emojis. Only populated if :meth:`.fetch_application_emojis` is called.
@@ -277,7 +275,7 @@ class ClientU(discord.Client):
                 channel = await self.fetch_channel(channelid)
 
         if not isinstance(channel, channel_type):
-            raise InvalidData(f"Channel {channelid} is not a {channel_type.__name__}")
+            raise InvalidData(f'Channel {channelid} is not a {channel_type.__name__}')
         return channel
 
     async def get_or_fetch_channel(
@@ -313,7 +311,7 @@ class ClientU(discord.Client):
                 channel = await self.fetch_channel(channelid)
         return channel
 
-    @deprecated("get_or_fetch_channel")
+    @deprecated('get_or_fetch_channel')
     async def getorfetch_channel(self, *args, **kwargs):
         return await self.get_or_fetch_channel(*args, **kwargs)
 
@@ -340,7 +338,7 @@ class ClientU(discord.Client):
         """
         return await self._get_or_fetch_channel(threadid, Thread, guild)
 
-    @deprecated("get_or_fetch_thread")
+    @deprecated('get_or_fetch_thread')
     async def getorfetch_thread(self, *args, **kwargs):
         return await self.get_or_fetch_thread(*args, **kwargs)
 
@@ -367,7 +365,7 @@ class ClientU(discord.Client):
         """
         return await self._get_or_fetch_channel(channelid, TextChannel, guild)  # type: ignore
 
-    @deprecated("get_or_fetch_textchannel")
+    @deprecated('get_or_fetch_textchannel')
     async def getorfetch_textchannel(self, *args, **kwargs):
         return await self.get_or_fetch_textchannel(*args, **kwargs)
 
@@ -393,7 +391,7 @@ class ClientU(discord.Client):
         """
         return await self._get_or_fetch_channel(channelid, VoiceChannel, guild)  # type: ignore
 
-    @deprecated("get_or_fetch_voicechannel")
+    @deprecated('get_or_fetch_voicechannel')
     async def getorfetch_voicechannel(self, *args, **kwargs):
         return await self.get_or_fetch_voicechannel(*args, **kwargs)
 
@@ -423,7 +421,7 @@ class ClientU(discord.Client):
 
     get_or_fetch_category = get_or_fetch_categorychannel
 
-    @deprecated("get_or_fetch_categorychannel")
+    @deprecated('get_or_fetch_categorychannel')
     async def getorfetch_category_channel(self, *args, **kwargs):
         return await self.get_or_fetch_categorychannel(*args, **kwargs)
 
@@ -452,7 +450,7 @@ class ClientU(discord.Client):
 
     get_or_fetch_stage = get_or_fetch_stagechannel
 
-    @deprecated("get_or_fetch_stagechannel")
+    @deprecated('get_or_fetch_stagechannel')
     async def getorfetch_stage_channel(self, *args, **kwargs):
         return await self.get_or_fetch_stagechannel(*args, **kwargs)
 
@@ -483,7 +481,7 @@ class ClientU(discord.Client):
     get_or_fetch_forum = get_or_fetch_forumchannel
     getorfetch_forum = get_or_fetch_forumchannel
 
-    @deprecated("get_or_fetch_forumchannel")
+    @deprecated('get_or_fetch_forumchannel')
     async def getorfetch_forum_channel(self, *args, **kwargs):
         return await self.get_or_fetch_forumchannel(*args, **kwargs)
 
@@ -568,7 +566,7 @@ class ClientU(discord.Client):
         members = await guild.query_members(limit=1, user_ids=[member_id], cache=True)
         if not members:
             # TODO: raise something more meaningful
-            raise ValueError(f"Member with ID {member_id} not found in guild {guild.id}")
+            raise ValueError(f'Member with ID {member_id} not found in guild {guild.id}')
         return members[0]
 
     # coped from RoboDanny
@@ -710,7 +708,7 @@ class ClientU(discord.Client):
         if not self.application:
             return None  # type: ignore
 
-        if getattr(self.application, "team", None):
+        if getattr(self.application, 'team', None):
             user = self.get_user(self.application.team.owner.id)  # type: ignore
             if user:
                 return user
@@ -733,8 +731,7 @@ class ClientU(discord.Client):
             The bot's user.
         """
         # TODO: verify this *should* never be none
-        return super().user # type: ignore
-    
+        return super().user  # type: ignore
 
     @property
     def avatar_url(self) -> str:
@@ -755,7 +752,7 @@ class ClientU(discord.Client):
         """
         if self.user.avatar:
             return self.user.avatar.url
-        raise AttributeError("Bot has no avatar")
+        raise AttributeError('Bot has no avatar')
 
     @property
     def display_avatar_url(self) -> str:
@@ -773,7 +770,7 @@ class ClientU(discord.Client):
         """
         if self.user.display_avatar:
             return self.user.display_avatar.url
-        raise AttributeError("Bot has no display avatar")
+        raise AttributeError('Bot has no display avatar')
 
     # overridden methods/properties
 
@@ -794,11 +791,9 @@ class ClientU(discord.Client):
         if not user:
             user = self._user_cache.get(user_id)
         return user
-    
+
     # copied from RoboDanny
-    async def query_member_named(
-        self, guild: discord.Guild, argument: str, *, cache: bool = False
-    ) -> discord.Member | None:
+    async def query_member_named(self, guild: discord.Guild, argument: str, *, cache: bool = False) -> discord.Member | None:
         """Queries a member by their name, name + discrim, or nickname.
 
         Parameters
@@ -868,12 +863,11 @@ class ClientU(discord.Client):
 # TODO: autoshardedclient first ensures that super() calls autoshardedclient methods
 # also ensure that clientU methods are used over Client methods
 class AutoShardedClientU(ClientU, AutoShardedClient):
-
     def __init__(self, *args, **kwargs) -> None:
 
         # this hopefully calls AutoShardedClient
         super().__init__(*args, **kwargs)
-        
+
         # shard_id: List[datetime.datetime]
         # shows the last attempted IDENTIFYs and RESUMEs
         self.resumes: defaultdict[int, list[datetime.datetime]] = defaultdict(list)
@@ -905,10 +899,10 @@ class AutoShardedClientU(ClientU, AutoShardedClient):
         self.identifies[shard_id].append(discord.utils.utcnow())
 
 
-
 @discord.utils.copy_doc(commands.Bot)
 class BotU(commands.Bot, BotBaseU, ClientU):
     """A subclass of discord.ext.commands.AutoShardedBot with additional features."""
+
     command_stats: Counter[str]
     socket_stats: Counter[str]
     command_types_used: Counter[bool]
@@ -921,8 +915,8 @@ class BotU(commands.Bot, BotBaseU, ClientU):
         *args,
         **kwargs,
     ) -> None:
-        if kwargs.get("cls", None):
-            assert issubclass(kwargs["cls"], MentionableTree)
+        if kwargs.get('cls', None):
+            assert issubclass(kwargs['cls'], MentionableTree)
         # kwargs["pm_help"] = None
 
         # strip_after_prefix by default
@@ -941,7 +935,6 @@ class BotU(commands.Bot, BotBaseU, ClientU):
 
         # if translator_cls is not None:
         #     await self.tree.set_translator(translator_cls(*translator_args, **translator_kwargs))
-
 
         self._listener_funcs = [
             #     (_cache_update_on_message, 'on_message'),
@@ -984,11 +977,13 @@ class BotU(commands.Bot, BotBaseU, ClientU):
 
         if not cmd:
             if isinstance(command, str):
-                cmd = f"`/{command}`"
+                cmd = f'`/{command}`'
             else:
-                cmd = f"`/{command.name}`"
+                cmd = f'`/{command.name}`'
         return cmd
+
 
 class AutoShardedBotU(BotU, AutoShardedClientU):
     """A subclass of BotU and AutoShardedClientU with additional features."""
+
     pass

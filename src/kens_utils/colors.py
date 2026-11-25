@@ -9,9 +9,11 @@ __all__ = (
 )
 # fmt: on
 
+
 def danny_red() -> Color:
     """A factory method that returns a Colour with a value of 0xDD5F53."""
     return Color(0xDD5F53)
+
 
 def danny_green() -> Color:
     """A factory method that returns a Colour with a value of 0x53DDA4."""

@@ -40,15 +40,15 @@ __all__ = (
 )
 # fmt: on
 
-T = TypeVar("T")
-P = ParamSpec("P")
-BaseViewInit = Callable[Concatenate["BaseView", P], T]
+T = TypeVar('T')
+P = ParamSpec('P')
+BaseViewInit = Callable[Concatenate['BaseView', P], T]
 CommandType: TypeAlias = commands.Command[Any, ..., Any]
 GroupType: TypeAlias = commands.Group[Any, ..., Any]
 
-QUESTION_MARK = "\N{BLACK QUESTION MARK ORNAMENT}"
-HOME = "\N{HOUSE BUILDING}"
-NON_MARKDOWN_INFORMATION_SOURCE = "\N{INFORMATION SOURCE}"
+QUESTION_MARK = '\N{BLACK QUESTION MARK ORNAMENT}'
+HOME = '\N{HOUSE BUILDING}'
+NON_MARKDOWN_INFORMATION_SOURCE = '\N{INFORMATION SOURCE}'
 
 
 def _wrap_init(__init__: BaseViewInit[P, T]) -> BaseViewInit[P, T]:
@@ -64,7 +64,7 @@ def _wrap_init(__init__: BaseViewInit[P, T]) -> BaseViewInit[P, T]:
 def _find_home(view: BaseView) -> BaseView | None:
     home: BaseView = view
 
-    while parent := getattr(home, "parent", None):
+    while parent := getattr(home, 'parent', None):
         home = parent
 
     if home is view:
@@ -80,19 +80,19 @@ def _backup_command_embed(command: CommandType, prefix: str) -> discord.Embed:
     )
 
     embed.add_field(
-        name="How to use",
-        value=f"`{prefix}{command.qualified_name} {command.signature}".strip() + "`",
+        name='How to use',
+        value=f'`{prefix}{command.qualified_name} {command.signature}'.strip() + '`',
     )
 
-    if subcommands := getattr(command, "commands", None):
+    if subcommands := getattr(command, 'commands', None):
         embed.add_field(
-            name="Subcommands",
-            value=",".join([f"`{c.name}`" for c in subcommands if not c.hidden]),
+            name='Subcommands',
+            value=','.join([f'`{c.name}`' for c in subcommands if not c.hidden]),
             inline=False,
         )
 
     if isinstance(command, commands.Group):
-        embed.set_footer(text="Select a subcommand to get more information about it.")
+        embed.set_footer(text='Select a subcommand to get more information about it.')
 
     return embed
 
@@ -107,7 +107,7 @@ def grouper(n: int, iterable: Iterable[T]) -> Generator[tuple[T, ...], None, Non
         yield chunk
 
 
-class Stop(discord.ui.Button["BaseView"]):
+class Stop(discord.ui.Button['BaseView']):
     """A button used to stop the help command.
     Attributes
     ----------
@@ -115,13 +115,13 @@ class Stop(discord.ui.Button["BaseView"]):
         The parent view of the help command.
     """
 
-    __slots__: tuple[str, ...] = ("parent",)
+    __slots__: tuple[str, ...] = ('parent',)
 
     def __init__(self, parent: BaseView) -> None:
         self.parent: BaseView = parent
         super().__init__(
             style=discord.ButtonStyle.danger,
-            label="Stop",
+            label='Stop',
         )
 
     async def callback(self, interaction: discord.Interaction) -> None:
@@ -134,13 +134,14 @@ class Stop(discord.ui.Button["BaseView"]):
             The interaction that was created by interacting with the button.
         """
         for child in self.parent.children:
-            child.disabled = True  # type: ignore
+            if not getattr(child, 'url', None):  # link buttons stay usable
+                child.disabled = True  # type: ignore
 
         self.parent.stop()
         return await interaction.response.edit_message(view=self.parent)
 
 
-class GoHome(discord.ui.Button["BaseView"]):
+class GoHome(discord.ui.Button['BaseView']):
     """A button used to go home within the parent tree. Home
     is considered the root of the parent tree.
     Attributes
@@ -152,15 +153,15 @@ class GoHome(discord.ui.Button["BaseView"]):
     """
 
     __slots__: tuple[str, ...] = (
-        "parent",
-        "bot",
+        'parent',
+        'bot',
     )
 
     def __init__(self, parent: BaseView) -> None:
         self.parent: BaseView = parent
         self.bot: BotU = parent.bot
         super().__init__(
-            label="Go Home",
+            label='Go Home',
             emoji=HOME,
         )
 
@@ -173,12 +174,10 @@ class GoHome(discord.ui.Button["BaseView"]):
         interaction: :class:`discord.Interaction`
             The interaction that was created by interacting with the button.
         """
-        await interaction.response.edit_message(
-            view=self.parent, embed=self.parent.embed
-        )
+        await interaction.response.edit_message(view=self.parent, embed=self.parent.embed)
 
 
-class GoBack(discord.ui.Button["BaseView"]):
+class GoBack(discord.ui.Button['BaseView']):
     """A button used to go back within the parent tree.
     Attributes
     ----------
@@ -186,10 +185,10 @@ class GoBack(discord.ui.Button["BaseView"]):
         The parent view of the help command.
     """
 
-    __slots__: tuple[str, ...] = ("parent",)
+    __slots__: tuple[str, ...] = ('parent',)
 
     def __init__(self, parent: discord.ui.View) -> None:
-        super().__init__(label="Go Back")
+        super().__init__(label='Go Back')
         self.parent: discord.ui.View = parent
 
     async def callback(self, interaction: discord.Interaction) -> None:
@@ -225,7 +224,7 @@ class BaseView(discord.ui.View, abc.ABC):
         The parent of this view. Defaults to ``None``.
     """
 
-    __slots__: tuple[str, ...] = ("bot", "author", "parent", "context")
+    __slots__: tuple[str, ...] = ('bot', 'author', 'parent', 'context')
 
     def __init_subclass__(cls: type[Self]) -> None:
         cls.__init__ = _wrap_init(cls.__init__)  # pyright: ignore
@@ -261,7 +260,7 @@ class BaseView(discord.ui.View, abc.ABC):
 
     def dump_kwargs(self) -> dict[str, Any]:
         """Dict[:class:`str`, Any]: A helper method to dump the view's create kwargs when creating a child view."""
-        return {"context": self.context, "timeout": self.timeout, "parent": self}
+        return {'context': self.context, 'timeout': self.timeout, 'parent': self}
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         """|coro|
@@ -279,14 +278,12 @@ class BaseView(discord.ui.View, abc.ABC):
         check = self.author == interaction.user
 
         if not check:
-            await interaction.response.send_message(
-                "Hey, you can't do that!", ephemeral=True
-            )
+            await interaction.response.send_message("Hey, you can't do that!", ephemeral=True)
 
         return check
 
 
-class CommandSelecter(discord.ui.Select["BaseView"]):
+class CommandSelecter(discord.ui.Select['BaseView']):
     """A select used to have the user select a command
     from a list of commands.
     Parameters
@@ -296,22 +293,20 @@ class CommandSelecter(discord.ui.Select["BaseView"]):
     """
 
     __slots__: tuple[str, ...] = (
-        "parent",
-        "_command_mapping",
+        'parent',
+        '_command_mapping',
     )
 
     def __init__(self, *, parent: BaseView, cmds: Sequence[CommandType]) -> None:
         self.parent: BaseView = parent
 
-        self._command_mapping: Mapping[str, CommandType] = {
-            c.qualified_name: c for c in cmds
-        }
+        self._command_mapping: Mapping[str, CommandType] = {c.qualified_name: c for c in cmds}
         super().__init__(
-            placeholder="Select a command...",
+            placeholder='Select a command...',
             options=[
                 discord.SelectOption(
                     label=command.qualified_name,
-                    description=command.brief[:100] if command.brief else "",
+                    description=command.brief[:100] if command.brief else '',
                     value=command.qualified_name,
                 )
                 for command in cmds
@@ -340,7 +335,7 @@ class CommandSelecter(discord.ui.Select["BaseView"]):
         return await interaction.response.edit_message(embed=view.embed, view=view)
 
 
-class CogSelecter(discord.ui.Select["BaseView"]):
+class CogSelecter(discord.ui.Select['BaseView']):
     """A select prompting the user to select a cog.
     Attributes
     ----------
@@ -348,28 +343,24 @@ class CogSelecter(discord.ui.Select["BaseView"]):
         The parent that created this view.
     """
 
-    __slots__: tuple[str, ...] = ("parent", "_cog_mapping")
+    __slots__: tuple[str, ...] = ('parent', '_cog_mapping')
 
     def __init__(self, parent: BaseView, cogs: list[Cog]) -> None:
         self.parent: BaseView = parent
-        self._cog_mapping: Mapping[str, Cog] = {
-            c.qualified_name.lower(): c for c in cogs
-        }
+        self._cog_mapping: Mapping[str, Cog] = {c.qualified_name.lower(): c for c in cogs}
 
         options = []
 
         for cog in cogs:
-            if getattr(cog, "hidden", False):
+            if getattr(cog, 'hidden', False):
                 continue
 
             # check if the cog is jishaku and if it's hidden
-            if hasattr(cog, "jsk") and cog.qualified_name == "Jishaku":
-                if getattr(getattr(cog, "jsk"), "hidden", False):
+            if hasattr(cog, 'jsk') and cog.qualified_name == 'Jishaku':
+                if getattr(getattr(cog, 'jsk'), 'hidden', False):
                     continue
 
-            if all(
-                [command.hidden for command in cog.get_commands()]
-            ):  # if all commands in a cog are hidden
+            if all([command.hidden for command in cog.get_commands()]):  # if all commands in a cog are hidden
                 continue
 
             description = cog.description or cog.__doc__
@@ -377,11 +368,11 @@ class CogSelecter(discord.ui.Select["BaseView"]):
                 discord.SelectOption(
                     label=cog.qualified_name,
                     value=cog.qualified_name.lower(),
-                    description=description[:100] if description else "",
+                    description=description[:100] if description else '',
                 )
             )
 
-        super().__init__(placeholder="Select a group...", options=options)
+        super().__init__(placeholder='Select a group...', options=options)
 
     async def callback(self, interaction: discord.Interaction) -> None:
         """|coro|
@@ -411,7 +402,7 @@ class HelpGroup(BaseView):
         The group that this view represents.
     """
 
-    __slots__: tuple[str, ...] = ("group",)
+    __slots__: tuple[str, ...] = ('group',)
 
     def __init__(self, group: GroupType, **kwargs: Any) -> None:
         self.group: GroupType = group
@@ -439,7 +430,7 @@ class HelpCommand(BaseView):
         The command that this view represents.
     """
 
-    __slots__: tuple[str, ...] = ("command",)
+    __slots__: tuple[str, ...] = ('command',)
 
     def __init__(self, command: CommandType, **kwargs: Any) -> None:
         self.command: CommandType = command
@@ -463,7 +454,7 @@ class HelpCog(BaseView):
         The cog that this view represents.
     """
 
-    __slots__: tuple[str, ...] = ("cog",)
+    __slots__: tuple[str, ...] = ('cog',)
 
     def __init__(self, cog: Cog, **kwargs: Any) -> None:
         self.cog: Cog = cog
@@ -487,17 +478,13 @@ class HelpCog(BaseView):
             description=cog.description,
         )
         embed.add_field(
-            name="Commands",
-            value=",".join(
-                [
-                    f"`{command.qualified_name}`"
-                    for command in cog.get_commands()
-                    if not command.hidden
-                ],
+            name='Commands',
+            value=','.join(
+                [f'`{command.qualified_name}`' for command in cog.get_commands() if not command.hidden],
             )
-            or "No commands...",
+            or 'No commands...',
         )
-        embed.set_footer(text="Use the dropdown to get more info on a command.")
+        embed.set_footer(text='Use the dropdown to get more info on a command.')
         return embed
 
 
@@ -526,22 +513,21 @@ class HelpView(BaseView):
             prefix = self.context.bot.user.mention  # type: ignore
 
         getting_help: list[str] = [
-            f"Use `{prefix}help <command>` for more info on a command.",
-            f"There is also `{prefix}help <command> [subcommand]`.",
-            f"Use `{prefix}help <category>` for more info on a category.",
-            "You can also use the menu below to view a category.",
+            f'Use `{prefix}help <command>` for more info on a command.',
+            f'There is also `{prefix}help <command> [subcommand]`.',
+            f'Use `{prefix}help <category>` for more info on a category.',
+            'You can also use the menu below to view a category.',
         ]
 
         embed = discord.Embed(
-            title="Bot Help Menu",
+            title='Bot Help Menu',
             description=f"Hello, I'm {self.context.bot.user.mention}! A general purpose bot for all your needs.",  # type: ignore
         )
         embed.set_author(
-            name=self.context.bot.user.name, icon_url=self.context.bot.user.display_avatar.url  # type: ignore
+            name=self.context.bot.user.name,
+            icon_url=self.context.bot.user.display_avatar.url,  # type: ignore
         )
-        embed.add_field(
-            name="Getting Help", value="\n".join(getting_help), inline=False
-        )
+        embed.add_field(name='Getting Help', value='\n'.join(getting_help), inline=False)
         return embed
 
 
@@ -557,9 +543,7 @@ class Help(commands.HelpCommand):
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs, verify_checks=False)
 
-    async def _filter_mapping(
-        self, mapping: Mapping[Cog | None, list[CommandType]]
-    ) -> Mapping[Cog, list[CommandType]]:
+    async def _filter_mapping(self, mapping: Mapping[Cog | None, list[CommandType]]) -> Mapping[Cog, list[CommandType]]:
         """An internal helper method to filter all commands."""
         cmds = sum(mapping.values(), [])
         await self.filter_commands(cmds)
@@ -654,7 +638,9 @@ class Help(commands.HelpCommand):
         matches.extend(c.qualified_name for c in self.context.bot.cogs.values())
 
         maybe_found = await self.context.bot.wrap(difflib.get_close_matches, string, matches, n=1, cutoff=0.01)  # type: ignore
-        return f'The command / group called "{string}" was not found. Maybe you meant `{self.context.prefix}{maybe_found[0]}`?'
+        return (
+            f'The command / group called "{string}" was not found. Maybe you meant `{self.context.prefix}{maybe_found[0]}`?'
+        )
 
     async def subcommand_not_found(self, command: CommandType, string: str, /) -> str:  # type: ignore
         """|coro|
@@ -674,10 +660,12 @@ class Help(commands.HelpCommand):
 
         fmt = [f'There was no subcommand named "{string}" found on that command.']
         if isinstance(command, commands.Group):
-            maybe_found = await self.context.bot.wrap(difflib.get_close_matches, string, [c.qualified_name for c in command.commands], n=1, cutoff=0.01)  # type: ignore
-            fmt.append(f"Maybe you meant `{maybe_found[0]}`?")
+            maybe_found = await self.context.bot.wrap(
+                difflib.get_close_matches, string, [c.qualified_name for c in command.commands], n=1, cutoff=0.01
+            )  # type: ignore
+            fmt.append(f'Maybe you meant `{maybe_found[0]}`?')
 
-        return "".join(fmt)
+        return ''.join(fmt)
 
 
 async def setup(bot: BotU) -> None:

@@ -18,6 +18,7 @@ async def async_iterate(array):
     for item in array:
         yield item
 
+
 @pytest.mark.parametrize(
     ('snowflake', 'time_tuple'),
     [
@@ -30,14 +31,15 @@ async def async_iterate(array):
     ],
 )
 def test_snowflake_time(snowflake: int, time_tuple: tuple[int, int, int, int, int, int]):
-    my_dt = my_utils.snowflake_timestamp(snowflake) # discord_utils.snowflake_time
+    my_dt = my_utils.snowflake_timestamp(snowflake)  # discord_utils.snowflake_time
     dc_dt = discord_utils.snowflake_time(snowflake)
 
     # make sure both utils give same result
     assert my_dt == dc_dt
 
-    dt = my_dt # have it check the dt from my utils
+    dt = my_dt  # have it check the dt from my utils
     assert (dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second) == time_tuple
+
 
 @pytest.mark.parametrize(
     ('dt', 'style', 'formatted'),
@@ -49,7 +51,7 @@ def test_snowflake_time(snowflake: int, time_tuple: tuple[int, int, int, int, in
     ],
 )
 def test_format_dt(dt: datetime.datetime, style: discord_utils.TimestampStyle | None, formatted: str):
-    my_dt = my_utils.dctimestamp(dt, format=style) == formatted # discord_utils.format_dt
+    my_dt = my_utils.dctimestamp(dt, format=style) == formatted  # discord_utils.format_dt
     dc_dt = discord_utils.format_dt(dt, style=style) == formatted
 
     assert my_dt == dc_dt

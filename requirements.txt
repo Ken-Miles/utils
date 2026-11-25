@@ -8,7 +8,8 @@ numpydoc
 parsedatetime
 python-dateutil
 django-environ
+emoji
 python-Levenshtein
 PyYAML
-sentry-sdk
+sentry-sdk>=2.0 # new_scope() was added in 2.0
 typing_extensions

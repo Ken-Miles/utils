@@ -1,4 +1,3 @@
-
 """
 Tests for discord.ext.tasks
 
@@ -131,7 +130,7 @@ def test_task_regression_issue7676():
         assert actual_time == expected_time
 
 
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="zoneinfo requires 3.9")
+@pytest.mark.skipif(sys.version_info < (3, 9), reason='zoneinfo requires 3.9')
 def test_task_is_imaginary():
     import zoneinfo
 
@@ -146,7 +145,7 @@ def test_task_is_imaginary():
     assert not discord_tasks.is_imaginary(now)
 
 
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="zoneinfo requires 3.9")
+@pytest.mark.skipif(sys.version_info < (3, 9), reason='zoneinfo requires 3.9')
 def test_task_is_ambiguous():
     import zoneinfo
 
@@ -161,7 +160,7 @@ def test_task_is_ambiguous():
     assert not discord_tasks.is_imaginary(now)
 
 
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="zoneinfo requires 3.9")
+@pytest.mark.skipif(sys.version_info < (3, 9), reason='zoneinfo requires 3.9')
 @pytest.mark.parametrize(
     ('dt', 'key', 'expected'),
     [
@@ -179,6 +178,7 @@ def test_task_date_resolve(dt, key, expected):
     actual = discord_tasks.resolve_datetime(dt.replace(tzinfo=tz))
     expected = expected.replace(tzinfo=tz)
     assert actual == expected
+
 
 # my tests
 

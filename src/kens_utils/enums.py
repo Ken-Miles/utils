@@ -14,6 +14,7 @@ __all__ = (
 )
 # fmt: on
 
+
 class EnumU(Enum):
     """
     A custom enum class that makes implementing it as slash command/prefix command options easy.
@@ -33,7 +34,7 @@ class EnumU(Enum):
     @classmethod
     def all(cls) -> list[Self]:
         """A method to retrieve all instances of an enum.
-        
+
         Returns an iterable with all instances of the enum within it."""
         return [x for x in cls]
 
@@ -46,7 +47,7 @@ class EnumU(Enum):
         The returned choice.
         """
         return app_commands.Choice(name=self.name, value=self.actual_value)
-    
+
     def to_locale_choice(self, **kwargs) -> app_commands.Choice:
         """Converts the enum instance into a discord app commands choice.
         This method calls :meth:`.to_choice`, converts the name to a :class:`discord.app_commands.locale_str`, and returns it by default.
@@ -71,28 +72,27 @@ class EnumU(Enum):
         s = s.strip().lower()
 
         for instance in cls.all():
-            if s == instance.name.lower().strip() \
-            or s == str(instance.actual_value).lower().strip():
-            
+            if s == instance.name.lower().strip() or s == str(instance.actual_value).lower().strip():
                 return instance
-        
-        raise ValueError(f"String {s} does not match any instances of enum {cls.__name__}")
+
+        raise ValueError(f'String {s} does not match any instances of enum {cls.__name__}')
+
 
 class RequestType(Enum):
-    GET = "GET"
-    POST = "POST"
-    PATCH = "PATCH"
-    PUT = "PUT"
-    DELETE = "DELETE"
+    GET = 'GET'
+    POST = 'POST'
+    PATCH = 'PATCH'
+    PUT = 'PUT'
+    DELETE = 'DELETE'
 
     def get_method_callable(self, session: aiohttp.ClientSession) -> Callable:
         """Returns the method callable for the request type.
         Returns the callable is for the provided `session` object (ex: `session.get` for a GET instance of the enum).
-        
+
         Parameters
         ----------
             session: :class:`aiohttp.ClientSession` The session object to get the method callable for.
-        
+
         Returns
         -------
             :class:`Callable` The method callable for the request type.
@@ -108,7 +108,7 @@ class RequestType(Enum):
             return session.put
         elif self is RequestType.DELETE:
             return session.delete
-        raise ValueError(f"Invalid request type {self}")
+        raise ValueError(f'Invalid request type {self}')
 
     def __str__(self):
         return self.value.upper()
@@ -116,6 +116,7 @@ class RequestType(Enum):
 
 class IntegrationType(Enum):
     """An Enum representing the type of integration for a discord bot."""
+
     guild = 0
     user = 1
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime
 import difflib
 import re
+import sys
 import time
 import uuid
 from collections import Counter
@@ -12,7 +13,6 @@ from typing import (
     Any,
 )
 from urllib.parse import urlencode
-import sys
 
 import discord
 from discord import app_commands
@@ -28,6 +28,7 @@ from .constants import (
     emojidict,
 )
 from .enums import IntegrationType
+from .settings import settings
 from .views import SendModalView
 
 if TYPE_CHECKING:
@@ -72,6 +73,7 @@ __all__ = (
     'get_copyable_slash_command_format',
 )
 # fmt: on
+
 
 def makeembed(
     title: str | app_commands.locale_str | None = MISSING,
@@ -152,7 +154,7 @@ def makeembed(
     return embed
 
 
-def formatstat(value: float | int | None, fmt: str = "{:,}", na: str = "n/a") -> str:
+def formatstat(value: float | int | None, fmt: str = '{:,}', na: str = 'n/a') -> str:
     """Formats a stat for display, or `na` when stats.cc didn't send it.
 
     formatstat(1234) -> "1,234", formatstat(60.0, "{:.1f}%") -> "60.0%", formatstat(None) -> "n/a".
@@ -173,17 +175,17 @@ def make_footer(
 
     With command_user: "Requested by {user}", with that user's avatar.
     Otherwise: "Made by @owner". The owner comes from bot_owner, then the bot's team
-    or application owner, then bot.owner_id, and falls back to DEFAULT_FOOTER_NAME.
+    or application owner, then bot.owner_id, and falls back to settings.footer_name.
     """
     if command_user:
-        return f"Requested by {command_user}", command_user.display_avatar.url
+        return f'Requested by {command_user}', command_user.display_avatar.url
 
     owner_obj = bot_owner or None
     owner_name = None
     # Prefer explicit bot_owner if provided
     if bot_owner is not None:
         owner_obj = bot_owner
-        owner_name = getattr(bot_owner, "name", str(bot_owner))
+        owner_name = getattr(bot_owner, 'name', str(bot_owner))
     else:
         # Try to get app_info from bot if not provided
         resolved_app_info = bot.application if bot else None
@@ -192,19 +194,19 @@ def make_footer(
             team_members = list(resolved_app_info.team.members)
             if team_members:
                 owner_obj = team_members[0]
-                owner_name = getattr(owner_obj, "name", str(owner_obj))
+                owner_name = getattr(owner_obj, 'name', str(owner_obj))
         elif resolved_app_info and resolved_app_info.owner:
             owner_obj = resolved_app_info.owner
-            owner_name = getattr(owner_obj, "name", str(owner_obj))
+            owner_name = getattr(owner_obj, 'name', str(owner_obj))
 
     # Fallbacks
     if owner_name is None and owner_obj is not None:
         # set owner_name if we have owner_obj
-        owner_name = getattr(owner_obj, "name", str(owner_obj))
-    if owner_name is None and bot and getattr(bot, "owner_id", None):
+        owner_name = getattr(owner_obj, 'name', str(owner_obj))
+    if owner_name is None and bot and getattr(bot, 'owner_id', None):
         # try to get owner_name from bot.owner_id if we have a bot and it has an owner_id
         owner_name = str(bot.owner_id)
-    footer = f"Made by @{owner_name}" if owner_name else f"Made by {DEFAULT_FOOTER_NAME}"
+    footer = f'Made by @{owner_name}' if owner_name else f'Made by {settings.footer_name}'
 
     if bot and bot.user:
         icon_url = bot.user.display_avatar.url
@@ -213,7 +215,6 @@ def make_footer(
     else:
         icon_url = None
     return footer, icon_url
-
 
 
 def makeembed_bot(
@@ -246,12 +247,10 @@ def makeembed_bot(
 
     if not timestamp:
         timestamp = datetime.datetime.now()
-    
+
     # Only set footer to "made by owner" if a command user isn't provided
     if not footer:
-        footer, default_icon_url = make_footer(
-            bot=bot, bot_owner=bot_owner, command_user=command_user
-        )
+        footer, default_icon_url = make_footer(bot=bot, bot_owner=bot_owner, command_user=command_user)
         footer_icon_url = footer_icon_url or default_icon_url
 
     # i would put this in the default args, but then it will only be when the bot is started
@@ -293,7 +292,7 @@ def makeembed_failedaction(
     """
 
     if not title:
-        title = f"{emojidict.get(False)} Action Failed"
+        title = f'{emojidict.get(False)} Action Failed'
     # kwargs["title"] = kwargs.get("title", f"{emojidict.get(False)} Action Failed")
     # if not color:
     #     color = discord.Color.brand_red()
@@ -378,7 +377,7 @@ def makeembed_successfulaction(
     This method calls :meth:`makeembed_bot` with the changed defaults.
     """
     if not title:
-        title = f"{emojidict.get(True)} Action Successful"
+        title = f'{emojidict.get(True)} Action Successful'
 
     emb = makeembed_bot(
         title=title,
@@ -405,7 +404,7 @@ timestamptype = (
 
 
 # @discord.utils.copy_doc(discord.utils.format_dt)
-def dctimestamp(dt: datetime.datetime | int | float, format: timestamptype | None = "f") -> str:
+def dctimestamp(dt: datetime.datetime | int | float, format: timestamptype | None = 'f') -> str:
     """Formats a timestamp for Discord.
     This method functions similar to :meth:`discord.utils.format_dt`, except it can also accepts a :class:`int` or :class:`float` as the timestamp.
     In addition, if no format/style is specified, it uses the "f" format by default instead of no format at all.
@@ -451,17 +450,17 @@ def dctimestamp(dt: datetime.datetime | int | float, format: timestamptype | Non
         dt = int(dt)
 
     if not format:  # user intentionally provided None
-        return f"<t:{int(dt)}>"
-    return f"<t:{int(dt)}:{format[:1]}>"
+        return f'<t:{int(dt)}>'
+    return f'<t:{int(dt)}:{format[:1]}>'
 
 
 def dchyperlink(
-    text: str | app_commands.locale_str | None=None,
-    url: str | app_commands.locale_str | None=None,
+    text: str | app_commands.locale_str | None = None,
+    url: str | app_commands.locale_str | None = None,
     *,
     hovertext: str | app_commands.locale_str | None = None,
     suppress_embed: bool | None = None,
-    **kwargs
+    **kwargs,
 ) -> str:
     """Creates a hyperlink for Discord.
     This method creates a hyperlink for Discord, with the option to suppress the embed.
@@ -491,22 +490,22 @@ def dchyperlink(
 
     if not text:
         # legacy support, accept old texttoclick param
-        text = kwargs.get("texttoclick", None) or url or ""
+        text = kwargs.get('texttoclick', None) or url or ''
 
     # url and text could be switched; Discord may wrap URLs in <...> when suppressing embeds.
-    if RE_URL.match(str(text).strip("<>")) is not None:
+    if RE_URL.match(str(text).strip('<>')) is not None:
         text, url = url, text
-    
-    text = f"[{text}]"
-    hovertext = f' "{hovertext}"' if hovertext is not None else ""
+
+    text = f'[{text}]'
+    hovertext = f' "{hovertext}"' if hovertext is not None else ''
 
     if suppress_embed is not None:
-        url = str(url).strip("<>")
+        url = str(url).strip('<>')
 
     if suppress_embed is True:
-        url = f"<{url}>"
+        url = f'<{url}>'
 
-    return f"{text}({url}{hovertext})"
+    return f'{text}({url}{hovertext})'
 
 
 def parse_discord_snowflake(snowflake: str | int) -> Snowflake:
@@ -544,10 +543,12 @@ def snowflake_timestamp(snowflake: int | str) -> datetime.datetime:
 
     return parse_discord_snowflake(snowflake).datetime
 
+
 def utcnow() -> datetime.datetime:
     """Returns the current UTC time as a timezone-aware datetime object.
     Intended to be a drop-in replacement for the depricated :func:`datetime.datetime.utcnow` or :func:`discord.utils.utcnow` functions."""
     return datetime.datetime.now(UTC)
+
 
 def get_any_key(
     keys: Iterable[Hashable],
@@ -590,7 +591,7 @@ def get_any_key(
             d_keys: dict = d
 
         if try_spaces and isinstance(search_key, str):
-            SPACING_CHARS = [" ", "_", "-"]
+            SPACING_CHARS = [' ', '_', '-']
             possible_keys = set()
             possible_keys.add(search_key)
             for spacing_char in SPACING_CHARS:
@@ -608,7 +609,7 @@ def get_any_key(
     return default, None
 
 
-async def create_codeblock(content: str | app_commands.locale_str, lang: CodeblockLanguage = "py") -> str:
+async def create_codeblock(content: str | app_commands.locale_str, lang: CodeblockLanguage = 'py') -> str:
     """Creates a codeblock for formatted for Discord.
 
     Parameters
@@ -629,20 +630,21 @@ async def create_codeblock(content: str | app_commands.locale_str, lang: Codeblo
         If the language is not a valid language code.
     """
     if lang not in CODEBLOCK_LANGUAGES:
-        raise ValueError(f"Invalid Language: {lang}")
-    fmt: str | app_commands.locale_str = "```"
-    return f"{fmt}{lang}\n{content}{fmt}"
+        raise ValueError(f'Invalid Language: {lang}')
+    fmt: str | app_commands.locale_str = '```'
+    return f'{fmt}{lang}\n{content}{fmt}'
+
 
 # add some mentioning method shortcuts
 
 # regexes for each of the mention patterns
 
 # supports old format as well with the ! inside
-USER_MENTION_STR_FORMAT: re.Pattern[str] = re.compile(r"<@!?(\d+)>")
+USER_MENTION_STR_FORMAT: re.Pattern[str] = re.compile(r'<@!?(\d+)>')
 
-ROLE_MENTION_STR_FORMAT: re.Pattern[str] = re.compile(r"<@&(\d+)>")
+ROLE_MENTION_STR_FORMAT: re.Pattern[str] = re.compile(r'<@&(\d+)>')
 
-CHANNEL_MENTION_STR_FORMAT: re.Pattern[str] = re.compile(r"<#(\d+)>")
+CHANNEL_MENTION_STR_FORMAT: re.Pattern[str] = re.compile(r'<#(\d+)>')
 
 
 def _generic_mention_str(
@@ -654,10 +656,10 @@ def _generic_mention_str(
     default_dpy: bool = True,
 ) -> str:
     """Returns a normalized mention string from an object, raw ID, or mention string."""
-    mention_str = ""
+    mention_str = ''
 
     if not obj:
-        return ""
+        return ''
 
     if isinstance(obj, (discord.abc.User, discord.Role, discord.abc.GuildChannel)):
         if default_dpy:
@@ -681,11 +683,12 @@ def _generic_mention_str(
                 return raw_obj
 
     if isinstance(obj, int):
-        mention_str = f"<{mention_prefix}{obj}>"
-    
+        mention_str = f'<{mention_prefix}{obj}>'
+
     return mention_str
 
-def user_mention_str(user_obj: discord.abc.User | int | str, /, default_dpy: bool=True) -> str:
+
+def user_mention_str(user_obj: discord.abc.User | int | str, /, default_dpy: bool = True) -> str:
     """Returns a user mention string for the given user object or ID.
 
     Parameters
@@ -702,16 +705,17 @@ def user_mention_str(user_obj: discord.abc.User | int | str, /, default_dpy: boo
     return _generic_mention_str(
         user_obj,
         pattern=USER_MENTION_STR_FORMAT,
-        mention_prefix="@",
+        mention_prefix='@',
         default_dpy=default_dpy,
     )
 
-def role_mention_str(role_obj: discord.Role | int | str, /, default_dpy: bool=True) -> str:
+
+def role_mention_str(role_obj: discord.Role | int | str, /, default_dpy: bool = True) -> str:
     """Returns a role mention string for the given role object or ID."""
     return _generic_mention_str(
         role_obj,
         pattern=ROLE_MENTION_STR_FORMAT,
-        mention_prefix="@&",
+        mention_prefix='@&',
         default_dpy=default_dpy,
     )
 
@@ -719,7 +723,8 @@ def role_mention_str(role_obj: discord.Role | int | str, /, default_dpy: bool=Tr
 umention = user_mention_str
 rmention = role_mention_str
 
-def channel_mention_str(channel_obj: discord.abc.GuildChannel | int | str, /, default_dpy: bool=True) -> str:
+
+def channel_mention_str(channel_obj: discord.abc.GuildChannel | int | str, /, default_dpy: bool = True) -> str:
     """Returns a channel mention string for the given channel object or ID.
 
     Parameters
@@ -735,11 +740,13 @@ def channel_mention_str(channel_obj: discord.abc.GuildChannel | int | str, /, de
     return _generic_mention_str(
         channel_obj,
         pattern=CHANNEL_MENTION_STR_FORMAT,
-        mention_prefix="#",
+        mention_prefix='#',
         default_dpy=default_dpy,
     )
 
+
 cmention = channel_mention_str
+
 
 @lru_cache(maxsize=1000)
 def _autocomplete(
@@ -853,7 +860,7 @@ def generate_transaction_id(guild_id: int | None = None, user_id: int | None = N
         guild_id = 0
     if user_id is None:
         user_id = 0
-    return str(uuid.uuid5(uuid.NAMESPACE_DNS, f"{guild_id}-{user_id}-{time.time()}"))[:length]
+    return str(uuid.uuid5(uuid.NAMESPACE_DNS, f'{guild_id}-{user_id}-{time.time()}'))[:length]
 
 
 def oauth_url(
@@ -896,20 +903,20 @@ def oauth_url(
         The OAuth2 URL for inviting the bot into guilds.
     """
 
-    url = f"https://discord.com/oauth2/authorize?client_id={client_id}"
-    url += "&scope=" + "+".join(scopes or ("bot", "applications.commands"))
+    url = f'https://discord.com/oauth2/authorize?client_id={client_id}'
+    url += '&scope=' + '+'.join(scopes or ('bot', 'applications.commands'))
     if permissions is not MISSING:
-        url += f"&permissions={permissions.value}"
+        url += f'&permissions={permissions.value}'
     if guild is not MISSING:
-        url += f"&guild_id={guild.id}"
+        url += f'&guild_id={guild.id}'
     if disable_guild_select:
-        url += "&disable_guild_select=true"
+        url += '&disable_guild_select=true'
     if redirect_uri is not MISSING:
-        url += "&response_type=code&" + urlencode({"redirect_uri": redirect_uri})
+        url += '&response_type=code&' + urlencode({'redirect_uri': redirect_uri})
     if state is not MISSING:
         url += f'&{urlencode({"state": state})}'
     if integration_type is not MISSING:
-        url += f"&integration_type={int(integration_type)}"
+        url += f'&integration_type={int(integration_type)}'
 
     return url
 
@@ -1011,7 +1018,7 @@ async def send_modal_hybrid(ctx: ContextU, modal: discord.ui.Modal, *args, **kwa
         return await ctx.interaction.response.send_modal(modal)
 
     if not args and 'embed' not in kwargs.keys():  # no content, no embed
-        kwargs['embed'] = makeembed_bot(description="Click the button below to open the modal/form.")
+        kwargs['embed'] = makeembed_bot(description='Click the button below to open the modal/form.')
 
     if kwargs.get('ephemeral', None) is None:
         kwargs['ephemeral'] = True
@@ -1043,11 +1050,11 @@ def get_copyable_slash_command_format(qualified_name: str, kwargs: dict[str, str
     # special formatting for boolean values, null values
     for key, value in kwargs.items():
         if value is None:
-            value = ""  # the key shuold still show, but just be blank if passed in.
+            value = ''  # the key shuold still show, but just be blank if passed in.
         elif isinstance(value, bool):
             value = str(value)
         elif isinstance(value, int):
             value = str(value)
         actual_kwargs[key] = value
 
-    return f"/{qualified_name} {' '.join([k+':'+str(v) for k, v in actual_kwargs.items()])}"
+    return f'/{qualified_name} {" ".join([k + ":" + str(v) for k, v in actual_kwargs.items()])}'

@@ -19,17 +19,18 @@ from discord.utils import _to_json as to_json
 if TYPE_CHECKING:
     import pathlib
 
-    T = TypeVar("T")
-    #T = TypeVar("T", default=Any)
+    T = TypeVar('T')
+    # T = TypeVar("T", default=Any)
 else:
-    T = TypeVar("T")
-_defT = TypeVar("_defT")  # noqa: N816 # how typeshed does it
+    T = TypeVar('T')
+_defT = TypeVar('_defT')  # noqa: N816 # how typeshed does it
 
 # fmt: off
 __all__ = (
     "Config",
 )
 # fmt: on
+
 
 class Config(Generic[T]):
     """The "database" object. Internally based on ``json``."""
@@ -63,8 +64,8 @@ class Config(Generic[T]):
             await self.loop.run_in_executor(None, self.load_from_file)
 
     def _dump(self) -> None:
-        temp = self.path.with_suffix(".tmp")
-        with temp.open("w", encoding="utf-8") as tmp:
+        temp = self.path.with_suffix('.tmp')
+        with temp.open('w', encoding='utf-8') as tmp:
             tmp.write(to_json(self._db.copy()))
 
         # atomically move the file

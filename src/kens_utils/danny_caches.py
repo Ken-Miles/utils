@@ -19,24 +19,20 @@ from lru import LRU
 
 R = TypeVar('R')
 
+
 # Can't use ParamSpec due to https://github.com/python/typing/discussions/946
 class CacheProtocol(Protocol[R]):
     cache: MutableMapping[str, asyncio.Task[R]]
 
-    def __call__(self, *args: Any, **kwds: Any) -> asyncio.Task[R]:
-        ...
+    def __call__(self, *args: Any, **kwds: Any) -> asyncio.Task[R]: ...
 
-    def get_key(self, *args: Any, **kwargs: Any) -> str:
-        ...
+    def get_key(self, *args: Any, **kwargs: Any) -> str: ...
 
-    def invalidate(self, *args: Any, **kwargs: Any) -> bool:
-        ...
+    def invalidate(self, *args: Any, **kwargs: Any) -> bool: ...
 
-    def invalidate_containing(self, key: str) -> None:
-        ...
+    def invalidate_containing(self, key: str) -> None: ...
 
-    def get_stats(self) -> tuple[int, int]:
-        ...
+    def get_stats(self) -> tuple[int, int]: ...
 
 
 class ExpiringCache(dict):
@@ -160,4 +156,3 @@ def cache(
         return wrapper  # type: ignore
 
     return decorator
-

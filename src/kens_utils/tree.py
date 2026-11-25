@@ -12,6 +12,7 @@ __all__ = (
 )
 # fmt: on
 
+
 class MentionableTree(app_commands.CommandTree[DiscordClientT]):
     """A command tree that can generate mentions for application commands.
 
@@ -90,8 +91,8 @@ class MentionableTree(app_commands.CommandTree[DiscordClientT]):
         if not app_command_found:
             return None
 
-        return f"</{_command.qualified_name}:{app_command_found.id}>"
-    
+        return f'</{_command.qualified_name}:{app_command_found.id}>'
+
     async def get_command_mention(self, command: str | commands.Command) -> str:
         """Gets the Mention string for a command. If the tree is a MentionableTree, it will return the mention string for the command.
         If the command ID cannot be found, it will return a string with the command name in backticks.
@@ -99,7 +100,7 @@ class MentionableTree(app_commands.CommandTree[DiscordClientT]):
         Parameters
         ----------
             command_name (Union[str, commands.Command]): The command/name of the command to get the mention for.
-        
+
         Returns
         -------
             :class:`str`: The mention string for the command.
@@ -110,7 +111,7 @@ class MentionableTree(app_commands.CommandTree[DiscordClientT]):
         cmd = await self.find_mention_for(command)  # type: ignore
         if not cmd:
             if isinstance(command, str):
-                cmd = f"`/{command}`"
+                cmd = f'`/{command}`'
             else:
-                cmd = f"`/{command.name}`"
+                cmd = f'`/{command.name}`'
         return cmd

@@ -48,8 +48,8 @@ __all__ = (
 )
 # fmt: on
 
-T = TypeVar("T")
-P = ParamSpec("P")
+T = TypeVar('T')
+P = ParamSpec('P')
 
 AutocompleteCallbackTypeReturn = Iterable[Any] | Awaitable[Iterable[Any]]
 RestrictedType = Iterable[Any] | Callable[[ContextT], AutocompleteCallbackTypeReturn]
@@ -61,6 +61,7 @@ AutocompleteCallbackType = (
 
 NUMPY_ITEM_REGEX = re.compile(r'(?P<type>\:[a-z]{1,}\:)\`(?P<name>[a-z\.]{1,})\`', flags=re.IGNORECASE)
 DOC_HEADER_REGEX = re.compile(r'\|[a-z]{1,}\|', flags=re.IGNORECASE)
+
 
 def _subber(match: re.Match) -> str:
     _, name = match.groups()
@@ -92,6 +93,7 @@ class PromptSelect(discord.ui.Select):
 
         self.parent.stop()
 
+
 class PromptView(CustomBaseView):
     def __init__(
         self,
@@ -115,13 +117,18 @@ class PromptView(CustomBaseView):
 
     @property
     def embed(self) -> discord.Embed:
-        embed = discord.Embed(title=_T('That\'s not quite right!'))
+        embed = discord.Embed(title=_T("That's not quite right!"))
         if self.value is not None:
-            embed.description = _T(f'`{self.value}` is not a valid response to the option named `{self.param.name}`, you need to select one of the following options below.') # type: ignore
+            embed.description = _T(
+                f'`{self.value}` is not a valid response to the option named `{self.param.name}`, you need to select one of the following options below.'
+            )  # type: ignore
         else:
-            embed.description = _T(f'You did not enter a value for the option named `{self.param.name}`, you need to select one of the following options below.') # type: ignore
+            embed.description = _T(
+                f'You did not enter a value for the option named `{self.param.name}`, you need to select one of the following options below.'
+            )  # type: ignore
 
         return embed
+
 
 class AutoComplete:
     def __init__(self, func: Callable[..., Any], param_name: str) -> None:
@@ -150,8 +157,7 @@ class AutoComplete:
         return view.item
 
 
-
-#@discord.utils.copy_doc(commands.Command)
+# @discord.utils.copy_doc(commands.Command)
 class CommandU(commands.Command, Generic[CogT, P, T]):
     """Implements the front end CommandU functionality. This subclasses
     :class:`discord.ext.commands.Command` to add some fun utility functions.
@@ -219,12 +225,12 @@ class CommandU(commands.Command, Generic[CogT, P, T]):
         for key, value in self.help_mapping.items():
             embed.add_field(name=key.title(), value=value, inline=False)
 
-        embed.add_field(name='How to use', value=f'`<@{self.cog.bot.user.name}> {self.qualified_name} {self.signature}'.strip() + '`')
+        embed.add_field(
+            name='How to use', value=f'`<@{self.cog.bot.user.name}> {self.qualified_name} {self.signature}'.strip() + '`'
+        )
 
         if cmds := getattr(self, 'commands', None):
-            embed.add_field(
-                name='Subcommands', value=human_join([f'`{c.name}`' for c in cmds], final='and'), inline=False
-            )
+            embed.add_field(name='Subcommands', value=human_join([f'`{c.name}`' for c in cmds], final='and'), inline=False)
 
         if isinstance(self, commands.Group):
             embed.set_footer(text='Select a subcommand to get more information about it.')
@@ -368,6 +374,7 @@ class CommandU(commands.Command, Generic[CogT, P, T]):
         ctx.subcommand_passed = None
         injected = hooked_wrapped_callback(self, ctx, self.callback)
         await injected(*ctx.args, **ctx.kwargs)
+
 
 # Due to autocomplete, we can't directly inherit from `commands.Group`
 # because calling super().invoke won't go to the correct method.
@@ -521,6 +528,7 @@ class GroupU(commands.GroupMixin[CogT], CommandU[CogT, P, T]):
             view.previous = previous
             await super().reinvoke(ctx, call_hooks=call_hooks)
 
+
 @discord.utils.copy_doc(commands.HybridCommand)
 class HybridCommandU(commands.HybridCommand, CommandU):
     def autocomplete(self, name: str, slash: bool = True, message: bool = False):
@@ -529,6 +537,7 @@ class HybridCommandU(commands.HybridCommand, CommandU):
         elif message is True:
             return CommandU.autocomplete(self, name)
 
+
 @discord.utils.copy_doc(commands.HybridGroup)
 class HybridGroupU(commands.HybridGroup, GroupU):
     def autocomplete(self, name: str, slash: bool = True, message: bool = False):
@@ -536,6 +545,7 @@ class HybridGroupU(commands.HybridGroup, GroupU):
             return commands.HybridGroup.autocomplete(self, name)
         elif message is True:
             return GroupU.autocomplete(self, name)
+
 
 def command(
     name: str | app_commands.locale_str = MISSING,
@@ -581,6 +591,7 @@ def command(
 
     return decorator
 
+
 def hybrid_command(
     name: str | app_commands.locale_str = MISSING,
     description: str | app_commands.locale_str = MISSING,
@@ -622,6 +633,7 @@ def hybrid_command(
         return HybridCommandU(func, **kwargs)
 
     return decorator
+
 
 def group(
     name: str | app_commands.locale_str = MISSING,
@@ -672,6 +684,7 @@ def group(
         return cls(func, **kwargs)
 
     return decorator
+
 
 def hybrid_group(
     name: str | app_commands.locale_str = MISSING,

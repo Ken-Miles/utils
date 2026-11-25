@@ -30,9 +30,9 @@ __all__ = (
 )
 # fmt: on
 
-KT = TypeVar("KT")
-VT = TypeVar("VT")
-DT = TypeVar("DT")
+KT = TypeVar('KT')
+VT = TypeVar('VT')
+DT = TypeVar('DT')
 
 
 class LRUCache(Generic[KT, VT]):
@@ -42,7 +42,7 @@ class LRUCache(Generic[KT, VT]):
         self._cache: MutableMapping[KT, VT] = {}
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}(max_size={self._max_size}, items={len(self._cache)})"
+        return f'{self.__class__.__qualname__}(max_size={self._max_size}, items={len(self._cache)})'
 
     def __len__(self) -> int:
         return len(self._cache)

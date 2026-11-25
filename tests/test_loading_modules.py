@@ -5,20 +5,23 @@ from pathlib import Path
 
 import pytest
 
-SRC = Path(__file__).resolve().parents[1] / "src"
+SRC = Path(__file__).resolve().parents[1] / 'src'
+
 
 def to_dotted(path: Path) -> str:
     # make dotted module path relative to SRC, strip .py
-    rel = path.relative_to(SRC).with_suffix("")
-    return ".".join(rel.parts)
+    rel = path.relative_to(SRC).with_suffix('')
+    return '.'.join(rel.parts)
+
 
 # Collect all python modules under src/
-FILES = sorted(p for p in SRC.rglob("*.py"))
+FILES = sorted(p for p in SRC.rglob('*.py'))
 # Also test packages (directories) by importing their package name, not just files
 # Include __init__.py targets and plain .py modules
 MODULES = [to_dotted(p) for p in FILES]
 
-@pytest.mark.parametrize("modname", MODULES, ids=MODULES)
+
+@pytest.mark.parametrize('modname', MODULES, ids=MODULES)
 def test_imports_as_temp_package(modname: str):
     """
     Import each module under a temporary package so relative imports (from .foo) work.
@@ -42,10 +45,10 @@ importlib.import_module(fullname)
 """
     try:
         subprocess.run(
-            [sys.executable, "-c", code, str(SRC), modname],
+            [sys.executable, '-c', code, str(SRC), modname],
             check=True,
             capture_output=True,
             text=True,
         )
     except subprocess.CalledProcessError as e:
-        pytest.fail(f"Import failed for {modname}:\n{e.stderr}")
+        pytest.fail(f'Import failed for {modname}:\n{e.stderr}')

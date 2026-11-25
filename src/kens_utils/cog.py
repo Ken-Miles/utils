@@ -22,8 +22,8 @@ __all__ = (
 )
 # fmt: on
 
-T = TypeVar("T")
-P = ParamSpec("P")
+T = TypeVar('T')
+P = ParamSpec('P')
 
 # class CogUMeta(commands.CogMeta, abc.ABCMeta):
 #     """Subclass of :class:`commands.CogMeta` that allows for the use of the `hidden`, `emoji`, `brief`, and `nsfw` parameters when initializing cogs."""
@@ -35,7 +35,7 @@ P = ParamSpec("P")
 
 #     def __init__(self, *args: Any, **kwargs: Any) -> None:
 #         return super().__init__(*args)
-    
+
 #     def __new__(cls, *args: Any, **kwargs: Any) -> CogUMeta:
 #         # *args are for the cogmeta to parse name, etc. don't touch
 
@@ -45,11 +45,14 @@ P = ParamSpec("P")
 #         cog_brief = kwargs.pop("brief", None)
 #         cog_nsfw = kwargs.pop("nsfw", False)
 
-#         return super().__new__(cls, *args, **kwargs) 
+#         return super().__new__(cls, *args, **kwargs)
 
-#@discord.utils.copy_doc(commands.Cog)
-class CogU(Cog,):# metaclass=CogUMeta):
-    """A subclass of Cog that includes some additional metadata attributes such as `hidden`, `emoji`, `brief`, and `nsfw`. 
+
+# @discord.utils.copy_doc(commands.Cog)
+class CogU(
+    Cog,
+):  # metaclass=CogUMeta):
+    """A subclass of Cog that includes some additional metadata attributes such as `hidden`, `emoji`, `brief`, and `nsfw`.
     These attributes can be used in the help command (or read by other cogs) to provide additional information about the cog.
 
     Intended for use in Help commands where entire cogs shouldn't be shown by default.
@@ -71,10 +74,10 @@ class CogU(Cog,):# metaclass=CogUMeta):
         Its purpose is to add parameters to the cog
         that will later be used in the help command.
         """
-        cls.emoji = kwargs.pop("emoji", None)
-        cls.brief = kwargs.pop("brief", None)
-        cls.hidden = kwargs.pop("hidden", False)
-        cls.nsfw = kwargs.pop("nsfw", False)
+        cls.emoji = kwargs.pop('emoji', None)
+        cls.brief = kwargs.pop('brief', None)
+        cls.hidden = kwargs.pop('hidden', False)
+        cls.nsfw = kwargs.pop('nsfw', False)
         return super().__init_subclass__(**kwargs)
 
     def __init__(self, bot: BotU, *args: Any, **kwargs: Any) -> None:
@@ -82,8 +85,8 @@ class CogU(Cog,):# metaclass=CogUMeta):
         self.id: int = int(str(int(uuid.uuid4()))[:20])
 
         next_in_mro = next(iter(self.__class__.__mro__))
-        if hasattr(next_in_mro, "__is_jishaku__") or isinstance(next_in_mro, self.__class__):
-            kwargs["bot"] = bot
+        if hasattr(next_in_mro, '__is_jishaku__') or isinstance(next_in_mro, self.__class__):
+            kwargs['bot'] = bot
 
         super().__init__(*args, **kwargs)
 
@@ -91,16 +94,16 @@ class CogU(Cog,):# metaclass=CogUMeta):
         await self._register_loops()
         return await super().cog_load()
 
-    #@commands.Cog.listener("on_unload")
+    # @commands.Cog.listener("on_unload")
     async def cog_unload(self) -> None:
         """Unregisters all the loops in the cog when the bot is unloaded."""
         # Do away with bot.loop operations in cog_unload
         # as if the cog fails to load the bot doesn't have a loop by this point
-        #self.bot.loop.create_task(self._unregister_loops())
+        # self.bot.loop.create_task(self._unregister_loops())
         await self._unregister_loops()
         return await super().cog_unload()
 
-    @commands.Cog.listener("on_ready")
+    @commands.Cog.listener('on_ready')
     async def _register_on_ready_loops(self) -> None:
         await self._register_loops()
         return None
@@ -108,7 +111,7 @@ class CogU(Cog,):# metaclass=CogUMeta):
     async def _register_loops(self) -> None:
         """Registers all the loops in the cog when the cog is loaded."""
         for loop in self.__loop_functions:
-            if isinstance(loop, MaybeManagedLoop) and (not loop._should_load() or loop.load_when != "cog_load"):
+            if isinstance(loop, MaybeManagedLoop) and (not loop._should_load() or loop.load_when != 'cog_load'):
                 # in order to not be managed, you have to be using the subclass and set the attribute
                 continue
             if not loop.is_running():
@@ -124,16 +127,18 @@ class CogU(Cog,):# metaclass=CogUMeta):
         #     if isinstance(loop, MaybeManagedLoop) and not loop.is_managed:
         #         # in order to not be managed, you have to be using the subclass and set the attribute
         #         continue
-    
+
         for loop in self.__loops:
-            if loop.is_running() and loop._can_be_cancelled(): # should i be using this private method? if not i guess i could implement it myself in my subclass
-                loop.stop() # allows it to finish before stopping
-                #loop.cancel() # stops immediately, even if mid-execution
+            if (
+                loop.is_running() and loop._can_be_cancelled()
+            ):  # should i be using this private method? if not i guess i could implement it myself in my subclass
+                loop.stop()  # allows it to finish before stopping
+                # loop.cancel() # stops immediately, even if mid-execution
         return None
 
     @property
     def logger(self):
-        return logging.getLogger(f"{__name__}.{self.__class__.__name__}")
+        return logging.getLogger(f'{__name__}.{self.__class__.__name__}')
 
     # def get_commands(self) -> List[CommandU[Self, ..., Any]]:
     #     return super().get_commands()
@@ -144,7 +149,7 @@ class CogU(Cog,):# metaclass=CogUMeta):
         This method is a wrapper for :meth:`aiohttp.ClientSession.get`."""
         return await _get(*args, **kwargs)
 
-    async def _post(self,  *args, **kwargs) -> aiohttp.ClientResponse:
+    async def _post(self, *args, **kwargs) -> aiohttp.ClientResponse:
         """|coro|
         Performs a POST request on the given URL.
         This method is a wrapper for :meth:`aiohttp.ClientSession.post`."""
@@ -157,7 +162,7 @@ class CogU(Cog,):# metaclass=CogUMeta):
         return await _patch(*args, **kwargs)
 
     async def _put(self, *args, **kwargs) -> aiohttp.ClientResponse:
-        """"|coro|
+        """ "|coro|
         Performs a PUT request on the given URL.
         This method is a wrapper for :meth:`aiohttp.ClientSession.put`."""
         return await _put(*args, **kwargs)
@@ -166,7 +171,7 @@ class CogU(Cog,):# metaclass=CogUMeta):
         """|coro|
         Performs a DELETE request on the given URL.
         This method is a wrapper for :meth:`aiohttp.ClientSession.delete`."""
-        return await _delete( *args, **kwargs)
+        return await _delete(*args, **kwargs)
 
     async def get_command_mention(self, command: str | commands.Command):
         """|coro|
@@ -188,4 +193,3 @@ class CogU(Cog,):# metaclass=CogUMeta):
             The command mention string.
         """
         return await self.bot.get_command_mention(command)
-

@@ -31,12 +31,15 @@ __all__ = (
 )
 # fmt: on
 
+
 def can_execute_action(ctx: ContextU, user: discord.Member, target: discord.Member) -> bool:
     """Whether the user can execute an action on a target."""
     return user.id == ctx.bot.owner_id or user.id == getattr(ctx.guild, 'owner_id', None) or user.top_role > target.top_role
 
+
 class MemberID(commands.Converter):
     """Converter that converts to a :class:`discord.Member` or :class:`discord.User` object in the case of a hackban."""
+
     async def convert(self, ctx: ContextU, argument: str):
         try:
             m = await commands.MemberConverter().convert(ctx, argument)
@@ -44,10 +47,10 @@ class MemberID(commands.Converter):
             try:
                 member_id = int(argument, base=10)
             except ValueError:
-                raise commands.BadArgument(f"{argument} is not a valid member or member ID.") from None
+                raise commands.BadArgument(f'{argument} is not a valid member or member ID.') from None
             else:
                 assert ctx.guild is not None
-                m = await ctx.bot.getorfetch_member(member_id,ctx.guild)
+                m = await ctx.bot.getorfetch_member(member_id, ctx.guild)
                 if m is None:
                     # hackban case
                     return type('_Hackban', (), {'id': member_id, '__str__': lambda s: f'Member ID {s.id}'})()
@@ -58,8 +61,10 @@ class MemberID(commands.Converter):
             raise commands.BadArgument('You cannot do this action on this user due to role hierarchy.')
         return m
 
+
 class BannedMember(commands.Converter):
     """Converter that converts to a :class:`discord.BanEntry` object."""
+
     async def convert(self, ctx: ContextU, argument: str):
         assert ctx.guild is not None
 
@@ -76,8 +81,9 @@ class BannedMember(commands.Converter):
             raise commands.BadArgument('This member has not been banned before.')
         return entity
 
+
 class EmojiConverter(commands.EmojiConverter):
-    """Converts to a :class:`discord.Emoji` or :class:`discord.PartialEmoji` object. 
+    """Converts to a :class:`discord.Emoji` or :class:`discord.PartialEmoji` object.
     This converter is more lenient than the default :class:`discord.ext.commands.EmojiConverter`, verifying a :class:`discord.PartialEmoji` is usable by the bot and also correctly converts Unicode emoji."""
 
     async def convert(self, ctx: ContextU, argument: str) -> discord.Emoji:
@@ -97,26 +103,26 @@ class EmojiConverter(commands.EmojiConverter):
             # Try to get the emoji by name in bot cached guild emojis.
             if result is None:
                 result = discord.utils.get(bot.emojis, name=argument)
-            
+
             # App command emojis can only be used if the user specifies the ID.
             # if result is None:
             #     # Try to get the emoji by name in application emojis.
             #     result = discord.utils.get(app_emojis, name=argument)
-            
+
             if result is None:
                 result = emoji.analyze(argument)
                 if result:
                     result = discord.PartialEmoji.from_str(argument)
                 else:
                     result = None
-            
+
             if result is None:
                 result = emoji.get_emoji_by_name(argument)
                 if result:
                     result = discord.PartialEmoji.from_str(result)
                 else:
                     result = None
-            
+
             if result is None:
                 raise commands.EmojiNotFound(argument)
 
@@ -133,7 +139,8 @@ class EmojiConverter(commands.EmojiConverter):
         if result is None:
             raise commands.EmojiNotFound(argument)
 
-        return result # type: ignore
+        return result  # type: ignore
+
 
 class EnumBaseConverter(commands.Converter, app_commands.Transformer):
     """This is a base class converter intended for use for Enums with Hybrid commands, implementing both prefix and slash command-specific functionality in one class.
@@ -145,9 +152,9 @@ class EnumBaseConverter(commands.Converter, app_commands.Transformer):
 
     By default, the `.transform` method converts the interaction to the class stored in the `context_cls` attribute, and calls :meth:`.convert` with the new context.
     `context_cls` is :class:`ContextU` by default but it can be updated if you so desire.
-    
+
     The enum must be either a subclass of `EnumU` or a standard enum class implementing the methods as descibed.
-    
+
     To use this converter, you must override this class, and set the `enum_cls` class attribute to the class of your Enum."""
 
     enum_cls: ClassVar[type[EnumU]]
@@ -156,21 +163,23 @@ class EnumBaseConverter(commands.Converter, app_commands.Transformer):
     max_choices: ClassVar[int] = 25
     """Constant defined in case discord ever decides to raise the max app command choices amount."""
 
-    # internal attr to specify to use 
+    # internal attr to specify to use
     @property
     def _has_max_choices(self):
         return len(self.enum_cls.all()) > self.max_choices
-    
+
     @property
     def choices(self):
         if self._has_max_choices:
             return None
         return [x.to_choice() for x in self.enum_cls.all()]
-    
-    async def autocomplete(self, interaction: discord.Interaction, value: int | float | str, /) -> list[app_commands.Choice[int | float | str]]:
+
+    async def autocomplete(
+        self, interaction: discord.Interaction, value: int | float | str, /
+    ) -> list[app_commands.Choice[int | float | str]]:
         if not self._has_max_choices:
             return []
-        
+
         item_tuples = [(x.name, x.actual_value) for x in self.enum_cls.all()]
 
         return (await generic_autocomplete(str(value), items=item_tuples, interaction=interaction))[:24]
@@ -179,7 +188,7 @@ class EnumBaseConverter(commands.Converter, app_commands.Transformer):
         try:
             return self.enum_cls.from_str(argument)
         except ValueError:
-            raise commands.BadArgument(f"Invalid input: {argument}")
+            raise commands.BadArgument(f'Invalid input: {argument}')
 
     async def transform(self, interaction: discord.Interaction, value: int | float | str):
         return await self.convert(await self.context_cls.from_interaction(interaction), str(value))

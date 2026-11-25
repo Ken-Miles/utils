@@ -78,8 +78,8 @@ class DPYMessageCatalogBuilder(MessageCatalogBuilder):
         REGEX = self._ADMONITION_REGEX
         for textdomain, catalog in status_iterator(
             self.catalogs.items(),
-            __("writing message catalogs... "),
-            "darkgreen",
+            __('writing message catalogs... '),
+            'darkgreen',
             len(self.catalogs),
             self.app.verbosity,
             lambda textdomain__: textdomain__[0],

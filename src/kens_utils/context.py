@@ -7,18 +7,12 @@ from typing import TYPE_CHECKING, ParamSpec, TypeVar
 import discord
 from discord.ext import commands
 
-try:
-    from . import LOADING_EMOJI, USE_DEFER_EMOJI
-except ImportError:
-    LOADING_EMOJI = None
-    USE_DEFER_EMOJI = False
 from .methods import get_max_file_upload_limit
+from .settings import settings
 from .views import CustomBaseView
 
 if TYPE_CHECKING:
     from .bot import BotU
-
-    assert isinstance(LOADING_EMOJI, str)
 
 # fmt: off
 __all__ = (
@@ -33,8 +27,9 @@ __all__ = (
 
 logger = logging.getLogger(__name__)
 
-T = TypeVar("T")
-P = ParamSpec("P")
+T = TypeVar('T')
+P = ParamSpec('P')
+
 
 class ConfirmationView(CustomBaseView):
     """Taken from https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/context.py#L280, Written by @danny on Discord."""
@@ -50,7 +45,7 @@ class ConfirmationView(CustomBaseView):
         super().__init__(message=None, author_id=author_id, timeout=timeout)
         self.value: bool | None = None
         self.delete_after: bool = delete_after
-        #self.author_id: int = author_id
+        # self.author_id: int = author_id
         self.message: discord.Message | None = None
 
     # async def interaction_check(self, interaction: discord.Interaction) -> bool:
@@ -66,7 +61,7 @@ class ConfirmationView(CustomBaseView):
         if self.delete_after and self.message:
             await self.message.delete()
 
-    @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
+    @discord.ui.button(label='Confirm', style=discord.ButtonStyle.green)
     async def confirm(self, interaction: discord.Interaction, _: discord.ui.Button):
         self.value = True
         await interaction.response.defer()
@@ -78,7 +73,7 @@ class ConfirmationView(CustomBaseView):
             await interaction.response.edit_message(view=self)
         self.stop()
 
-    @discord.ui.button(label="Cancel", style=discord.ButtonStyle.red)
+    @discord.ui.button(label='Cancel', style=discord.ButtonStyle.red)
     async def cancel(self, interaction: discord.Interaction, _: discord.ui.Button):
         self.value = False
         await interaction.response.defer()
@@ -90,7 +85,8 @@ class ConfirmationView(CustomBaseView):
             await interaction.response.edit_message(view=self)
         self.stop()
 
-#@discord.utils.copy_doc(commands.Context)
+
+# @discord.utils.copy_doc(commands.Context)
 class ContextU(commands.Context):
     """Context Subclass to add some extra functionality."""
 
@@ -101,12 +97,10 @@ class ContextU(commands.Context):
     async def defer(self, *args, **kwargs):
         if not self.has_been_deferred:
             self.has_been_deferred = True
-            if USE_DEFER_EMOJI:
+            if settings.use_defer_emoji:
                 if not self.interaction and self.message:
-                    if (
-                        self.guild and self.guild.me.guild_permissions.add_reactions
-                    ) or self.guild is None:
-                        self.defer_reaction = await self.message.add_reaction(LOADING_EMOJI)
+                    if (self.guild and self.guild.me.guild_permissions.add_reactions) or self.guild is None:
+                        self.defer_reaction = await self.message.add_reaction(settings.get_loading_emoji())
             else:
                 if not self.interaction and self.message:
                     await self.message.channel.typing()
@@ -115,34 +109,36 @@ class ContextU(commands.Context):
     async def _remove_reaction_if_present(self):
         """Internal method to remove the loading emoji if it's present."""
         if not self.interaction and self.message:
-            if USE_DEFER_EMOJI:
-                if self.guild and LOADING_EMOJI in [str(x.emoji) for x in self.message.reactions]:  ##discord.utils.get(self.message.reactions, emoji____str__=LOADING_EMOJI)
+            if settings.use_defer_emoji:
+                if self.guild and settings.get_loading_emoji() in [
+                    str(x.emoji) for x in self.message.reactions
+                ]:  ##discord.utils.get(self.message.reactions, emoji____str__=settings.get_loading_emoji())
                     if self.guild.me.guild_permissions.manage_messages:
                         try:
-                            await self.message.clear_reaction(LOADING_EMOJI)
-                        except discord.HTTPException: # message deleted
+                            await self.message.clear_reaction(settings.get_loading_emoji())
+                        except discord.HTTPException:  # message deleted
                             self.defer_reaction = None
                             return
                     else:
                         try:
-                            await self.message.remove_reaction(LOADING_EMOJI, self.me)
-                        except discord.HTTPException: # message deleted
+                            await self.message.remove_reaction(settings.get_loading_emoji(), self.me)
+                        except discord.HTTPException:  # message deleted
                             self.defer_reaction = None
                             return
                     self.defer_reaction = None
                 if self.defer_reaction:
                     try:
-                        await self.message.remove_reaction(LOADING_EMOJI, self.me)
-                    except discord.HTTPException: # message deleted
+                        await self.message.remove_reaction(settings.get_loading_emoji(), self.me)
+                    except discord.HTTPException:  # message deleted
                         pass
                     self.defer_reaction = None
 
-    #@discord.utils.copy_doc(commands.Context.send)
+    # @discord.utils.copy_doc(commands.Context.send)
     async def send(self, *args, **kwargs):
         await self._remove_reaction_if_present()
         return await super().send(*args, **kwargs)
 
-    #@discord.utils.copy_doc(commands.Context.reply)
+    # @discord.utils.copy_doc(commands.Context.reply)
     async def reply(self, *args, **kwargs):
         await self._remove_reaction_if_present()
         return await super().reply(*args, **kwargs)
@@ -189,7 +185,7 @@ class ContextU(commands.Context):
         view.message = await self.send(content=message, embed=embed, view=view, ephemeral=delete_after)
         await view.wait()
         return view.value
-    
+
     @property
     def max_file_limit(self) -> int:
         """
@@ -205,7 +201,7 @@ class ContextU(commands.Context):
         return get_max_file_upload_limit(
             guild=self.guild,
         )
-    
+
     # From Danny's context code
     @discord.utils.cached_property
     def replied_reference(self) -> discord.MessageReference | None:
@@ -220,7 +216,7 @@ class ContextU(commands.Context):
         if ref and isinstance(ref.resolved, discord.Message):
             return ref.resolved
         return None
-    
+
     async def safe_send(self, content: str, *, escape_mentions: bool = True, **kwargs) -> discord.Message:
         """Same as send except with some safe guards.
 
@@ -249,6 +245,7 @@ class GuildContextU(ContextU):
     me: discord.Member
     prefix: str
 
+
 class DMContextU(ContextU):
     """DM Context Subclass to add some extra functionality.
     Only types are changed to support DMs."""
@@ -258,72 +255,76 @@ class DMContextU(ContextU):
     me: discord.ClientUser
     prefix: str
 
+
 async def prompt(
-        interaction: discord.Interaction,
-        message: str | None = None,
-        embed: discord.Embed | None = None,
-        *,
-        timeout: float = 60.0,
-        delete_after: bool = True,
-        author_id: int | None = None,
-    ) -> bool | None:
-        """An interactive reaction confirmation dialog.
+    interaction: discord.Interaction,
+    message: str | None = None,
+    embed: discord.Embed | None = None,
+    *,
+    timeout: float = 60.0,
+    delete_after: bool = True,
+    author_id: int | None = None,
+) -> bool | None:
+    """An interactive reaction confirmation dialog.
 
-        .. note::
-            You must pass either a `message` or `embed` in order for this function to work.
-        
-        Parameters
-        ----------
-        interaction: :class:`discord.Interaction`
-            The interaction to use for sending the prompt
-        message: Optional[:class:`str`]
-            The message to show along with the prompt, defaults to ``None``.
-        embed  Optional[:class:`discord.Embed`]
-            The embed to show along with the prompt, defaults to ``None``.
-        timeout: Optional[:class:`float`]
-            How long to wait before returning, defaults to ``60.0``.
-        delete_after: :class:`bool`
-            Whether to delete the confirmation message after we're done,
-            defaults to ``True``.
-        author_id: Optional[:class:`int`]
-            The member who should respond to the prompt. 
-            Defaults to the author of the Context's message.
+    .. note::
+        You must pass either a `message` or `embed` in order for this function to work.
 
-        Returns
-        -------
-        Optional[:class:`bool`]
-            ``True`` if explicit confirm, ``False`` if explicit deny,
-            ``None`` if deny due to timeout.
+    Parameters
+    ----------
+    interaction: :class:`discord.Interaction`
+        The interaction to use for sending the prompt
+    message: Optional[:class:`str`]
+        The message to show along with the prompt, defaults to ``None``.
+    embed  Optional[:class:`discord.Embed`]
+        The embed to show along with the prompt, defaults to ``None``.
+    timeout: Optional[:class:`float`]
+        How long to wait before returning, defaults to ``60.0``.
+    delete_after: :class:`bool`
+        Whether to delete the confirmation message after we're done,
+        defaults to ``True``.
+    author_id: Optional[:class:`int`]
+        The member who should respond to the prompt.
+        Defaults to the author of the Context's message.
 
-        Notes
-        -----
-        You must pass either a `message` or `embed` parameter.
-        """
+    Returns
+    -------
+    Optional[:class:`bool`]
+        ``True`` if explicit confirm, ``False`` if explicit deny,
+        ``None`` if deny due to timeout.
 
-        author_id = author_id or interaction.user.id
-        view = ConfirmationView(
-            timeout=timeout,
-            delete_after=delete_after,
-            author_id=author_id,
-        )
+    Notes
+    -----
+    You must pass either a `message` or `embed` parameter.
+    """
 
-        message_kwargs = {
-            "content": message if isinstance(message, str) else None,
-            "embed": embed if isinstance(embed, discord.Embed) else None,
-        }
-        if interaction.response.is_done():
-            view.message = await interaction.followup.send(**message_kwargs, view=view, ephemeral=delete_after)
-        else:
-            response = await interaction.response.send_message(**message_kwargs, view=view, ephemeral=delete_after)
-            if isinstance(response, discord.Message):
-                view.message = response
-            elif isinstance(response, discord.InteractionCallbackResponse):
-                if isinstance(response.resource, discord.InteractionMessage): # this is a subclass of discord.Message, but just in case it ever isn't we run it here
-                    view.message = response.resource
-                else:
-                    # If the resource is not an InteractionMessage, we can't use it. This somehow launched an activity or did something else
-                    logger.warning("prompt function received an unexpected interaction response resource type. Falling back to followup.")
-            
-        await view.wait()
-        return view.value
-    
+    author_id = author_id or interaction.user.id
+    view = ConfirmationView(
+        timeout=timeout,
+        delete_after=delete_after,
+        author_id=author_id,
+    )
+
+    message_kwargs = {
+        'content': message if isinstance(message, str) else None,
+        'embed': embed if isinstance(embed, discord.Embed) else None,
+    }
+    if interaction.response.is_done():
+        view.message = await interaction.followup.send(**message_kwargs, view=view, ephemeral=delete_after)
+    else:
+        response = await interaction.response.send_message(**message_kwargs, view=view, ephemeral=delete_after)
+        if isinstance(response, discord.Message):
+            view.message = response
+        elif isinstance(response, discord.InteractionCallbackResponse):
+            if isinstance(
+                response.resource, discord.InteractionMessage
+            ):  # this is a subclass of discord.Message, but just in case it ever isn't we run it here
+                view.message = response.resource
+            else:
+                # If the resource is not an InteractionMessage, we can't use it. This somehow launched an activity or did something else
+                logger.warning(
+                    'prompt function received an unexpected interaction response resource type. Falling back to followup.'
+                )
+
+    await view.wait()
+    return view.value

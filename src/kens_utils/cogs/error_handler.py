@@ -5,7 +5,7 @@ import time
 from typing import TYPE_CHECKING
 
 from discord.ext import commands
-from sentry_sdk import capture_exception, push_scope
+from sentry_sdk import capture_exception, new_scope
 
 from ..cog import CogU
 from ..methods import dctimestamp
@@ -33,7 +33,7 @@ class ErrorHandler(CogU, hidden=True):
         """
 
         # This prevents any commands with local handlers being handled here in on_command_error.
-        if hasattr(ctx.command, "on_error"):
+        if hasattr(ctx.command, 'on_error'):
             return
 
         # This prevents any cogs with an overwritten cog_command_error being handled here.
@@ -46,11 +46,11 @@ class ErrorHandler(CogU, hidden=True):
 
         # Allows us to check for original exceptions raised and sent to CommandInvokeError.
         # If nothing is found. We keep the exception passed to on_command_error.
-        error = getattr(error, "original", error)
+        error = getattr(error, 'original', error)
 
         kwargs = {
-            "ephemeral": True,
-            "delete_after": 10.0 if not ctx.interaction else None,
+            'ephemeral': True,
+            'delete_after': 10.0 if not ctx.interaction else None,
         }
         # kwargs = {}
 
@@ -61,36 +61,36 @@ class ErrorHandler(CogU, hidden=True):
             return
 
         if isinstance(error, commands.DisabledCommand):
-            await ctx.reply(f"{ctx.command} has been disabled.")
+            await ctx.reply(f'{ctx.command} has been disabled.')
 
         elif isinstance(error, commands.NoPrivateMessage):
             kwargs = {}
-            message = f"{ctx.command} can not be used in Private Messages."
+            message = f'{ctx.command} can not be used in Private Messages.'
 
         elif isinstance(error, commands.MissingPermissions):
-            message = f"You are missing the following permissions: {', '.join(error.missing_permissions)}"
+            message = f'You are missing the following permissions: {", ".join(error.missing_permissions)}'
 
         elif isinstance(error, commands.BotMissingPermissions):
-            message = f"I am missing the following permissions: {', '.join(error.missing_permissions)}"
+            message = f'I am missing the following permissions: {", ".join(error.missing_permissions)}'
 
         elif isinstance(error, commands.NotOwner):
-            message = "You must be the owner of this bot to use this command."
+            message = 'You must be the owner of this bot to use this command.'
 
         elif isinstance(error, commands.BadArgument):
             # message = 'Invalid argument. Please try again.'
             message = str(error)
 
         elif isinstance(error, commands.CommandOnCooldown):
-            message = f"This command is on cooldown. Please try again {dctimestamp(int(time.time()+error.retry_after)+1,'R')}."
+            message = f'This command is on cooldown. Please try again {dctimestamp(int(time.time() + error.retry_after) + 1, "R")}.'
 
         elif isinstance(error, commands.MissingRequiredArgument):
-            message = f"Missing required argument: `{error.param.name}`"
+            message = f'Missing required argument: `{error.param.name}`'
 
         elif isinstance(error, commands.TooManyArguments):
-            message = "Too many arguments. Please try again."
+            message = 'Too many arguments. Please try again.'
 
         elif isinstance(error, commands.CheckFailure):
-            message = "The check for this command failed. You most likely do not have permission to use this command or are using it in the wrong channel."
+            message = 'The check for this command failed. You most likely do not have permission to use this command or are using it in the wrong channel.'
 
         # elif isinstance(error, commands.CommandInvokeError):
         #     #message = f"An error occured while running this command. Please try again later."
@@ -106,29 +106,27 @@ class ErrorHandler(CogU, hidden=True):
 
         else:
             # All other Errors not returned come here. And we can just print the default TraceBack.
-            print(
-                f"Ignoring exception in command {ctx.command}:", file=sys.stderr
-            )
+            print(f'Ignoring exception in command {ctx.command}:', file=sys.stderr)
             # traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
             try:
-                with push_scope() as scope:
+                with new_scope() as scope:
                     # scope.set_tag("error_id", er)
                     if ctx.guild:
-                        scope.set_tag("guild_id", ctx.guild.id)
+                        scope.set_tag('guild_id', ctx.guild.id)
                         if ctx.guild.shard_id:
-                            scope.set_tag("shard_id", ctx.guild.shard_id)
-                    scope.set_tag("user_id", ctx.author.id)
-                    scope.set_level("error")
-                    scope.set_context("command", ctx.command.name)
-                    scope.set_context("args", ctx.args)
-                    scope.set_context("kwargs", ctx.kwargs)
+                            scope.set_tag('shard_id', ctx.guild.shard_id)
+                    scope.set_tag('user_id', ctx.author.id)
+                    scope.set_level('error')
+                    scope.set_context('command', ctx.command.name)
+                    scope.set_context('args', ctx.args)
+                    scope.set_context('kwargs', ctx.kwargs)
                     capture_exception(error)
             except Exception:
                 pass
             if isinstance(error, commands.CommandError):
                 message = str(error)
             else:
-                message = "An error occured while running this command. Please try again later."
+                message = 'An error occured while running this command. Please try again later.'
 
         await ctx.reply(message, **kwargs)
 

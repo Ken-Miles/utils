@@ -7,6 +7,7 @@ __version__ = '2.2.0'
 # ensure that __path__ exists, it sometimes won't while running tests
 try:
     from pkgutil import extend_path
+
     __path__  # raises NameError if not a package yet
 except NameError:
     pass
@@ -35,6 +36,7 @@ from .mysty_lru import *  # context
 from .paginatorv1 import *  # context
 from .paginatorv2 import *  # context
 from .requests_http import *  # constants
+from .settings import *  # constants
 from .tree import *
 from .umbra_async_config import *  # context
 from .umbra_ui import *  # context, views

@@ -23,25 +23,25 @@ class plural:
 
     def __format__(self, format_spec: str) -> str:
         v = self.value
-        singular, _, plural = format_spec.partition("|")
-        plural = plural or f"{singular}s"
+        singular, _, plural = format_spec.partition('|')
+        plural = plural or f'{singular}s'
         if abs(v) != 1:
-            return f"{v} {plural}"
-        return f"{v} {singular}"
+            return f'{v} {plural}'
+        return f'{v} {singular}'
 
 
-def human_join(seq: Sequence[str], delim: str = ", ", final: str = "or") -> str:
+def human_join(seq: Sequence[str], delim: str = ', ', final: str = 'or') -> str:
     size = len(seq)
     if size == 0:
-        return ""
+        return ''
 
     if size == 1:
         return seq[0]
 
     if size == 2:
-        return f"{seq[0]} {final} {seq[1]}"
+        return f'{seq[0]} {final} {seq[1]}'
 
-    return delim.join(seq[:-1]) + f" {final} {seq[-1]}"
+    return delim.join(seq[:-1]) + f' {final} {seq[-1]}'
 
 
 class TabularData:
@@ -79,14 +79,14 @@ class TabularData:
         +-------+-----+
         """
 
-        sep = "+".join("-" * w for w in self._widths)
-        sep = f"+{sep}+"
+        sep = '+'.join('-' * w for w in self._widths)
+        sep = f'+{sep}+'
 
         to_draw = [sep]
 
         def get_entry(d):
-            elem = "|".join(f"{e:^{self._widths[i]}}" for i, e in enumerate(d))
-            return f"|{elem}|"
+            elem = '|'.join(f'{e:^{self._widths[i]}}' for i, e in enumerate(d))
+            return f'|{elem}|'
 
         to_draw.append(get_entry(self._columns))
         to_draw.append(sep)
@@ -95,7 +95,7 @@ class TabularData:
             to_draw.append(get_entry(row))
 
         to_draw.append(sep)
-        return "\n".join(to_draw)
+        return '\n'.join(to_draw)
 
 
 def format_dt(dt: datetime.datetime, style: str | None = None) -> str:
@@ -103,14 +103,14 @@ def format_dt(dt: datetime.datetime, style: str | None = None) -> str:
         dt = dt.replace(tzinfo=datetime.timezone.utc)
 
     if style is None:
-        return f"<t:{int(dt.timestamp())}>"
-    return f"<t:{int(dt.timestamp())}:{style}>"
+        return f'<t:{int(dt.timestamp())}>'
+    return f'<t:{int(dt.timestamp())}:{style}>'
 
 
 def tick(opt: bool | None, /) -> str:
     lookup = {
-        True: "<:greenTick:330090705336664065>",
-        False: "<:redTick:330090723011592193>",
-        None: "<:greyTick:563231201280917524>",
+        True: '<:greenTick:330090705336664065>',
+        False: '<:redTick:330090723011592193>',
+        None: '<:greyTick:563231201280917524>',
     }
-    return lookup.get(opt, "<:redTick:330090723011592193>")
+    return lookup.get(opt, '<:redTick:330090723011592193>')

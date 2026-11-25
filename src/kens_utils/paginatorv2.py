@@ -21,6 +21,7 @@ except ImportError:
     emojidict = {}
 
 from .paginatorv1 import GoToPageButton
+from .views import _disable_items
 
 # fmt: off
 __all__ = (
@@ -44,7 +45,7 @@ if TYPE_CHECKING:
 
     Context = _Context[Any]
 
-SequenceT = TypeVar("SequenceT")
+SequenceT = TypeVar('SequenceT')
 Sequence = list[SequenceT] | tuple[SequenceT, ...]
 Page = (
     str
@@ -61,7 +62,7 @@ Page = (
     | Sequence[discord.ui.MediaGallery]
 )
 
-PageT_co = TypeVar("PageT_co", bound=Page, covariant=True)
+PageT_co = TypeVar('PageT_co', bound=Page, covariant=True)
 
 
 class BaseButtonPaginatorV2(discord.ui.LayoutView, Generic[PageT_co]):
@@ -101,8 +102,8 @@ class BaseButtonPaginatorV2(discord.ui.LayoutView, Generic[PageT_co]):
 
         if container_accent_color and container is not True:
             raise ValueError(
-                "container_accent_color may only be set if container is True. "
-                "This means a new Container is created automatically with the given accent color."
+                'container_accent_color may only be set if container is True. '
+                'This means a new Container is created automatically with the given accent color.'
             )
 
         self._container: discord.ui.Container | None = None
@@ -114,12 +115,11 @@ class BaseButtonPaginatorV2(discord.ui.LayoutView, Generic[PageT_co]):
                     accent_color=container_accent_color,
                 )
             else:
-                raise TypeError(
-                    "Container must be a discord.ui.Container instance, True, or None."
-                )
+                raise TypeError('Container must be a discord.ui.Container instance, True, or None.')
 
         self._buttons_container: discord.ui.Container | None = self._container
 
+        self.go_to_button: GoToPageButton | None = None
         if go_to_button:
             self.go_to_button_action_row = discord.ui.ActionRow(id=374)
             self.go_to_button = GoToPageButton(self)
@@ -133,7 +133,7 @@ class BaseButtonPaginatorV2(discord.ui.LayoutView, Generic[PageT_co]):
 
         if self.go_to_button:
             self.go_to_button.disabled = True
-    
+
         super().stop()
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
@@ -141,9 +141,7 @@ class BaseButtonPaginatorV2(discord.ui.LayoutView, Generic[PageT_co]):
             return True
 
         if self.author_id != interaction.user.id:
-            await interaction.response.send_message(
-                "This menu is not for you.", ephemeral=True
-            )
+            await interaction.response.send_message('This menu is not for you.', ephemeral=True)
             return False
 
         return True
@@ -159,37 +157,27 @@ class BaseButtonPaginatorV2(discord.ui.LayoutView, Generic[PageT_co]):
             base = page_number * self.per_page
             return self.pages[base : base + self.per_page]
 
-    def format_page(
-        self, page: PageT_co | Sequence[PageT_co]
-    ) -> PageT_co | Sequence[PageT_co]:
+    def format_page(self, page: PageT_co | Sequence[PageT_co]) -> PageT_co | Sequence[PageT_co]:
         if isinstance(page, discord.Embed):
-            if (
-                page.footer
-                and page.footer.text
-                and " | page" in page.footer.text.lower()
-            ):
-                new_footer = page.footer.text[
-                    : page.footer.text.lower().find(" | page")
-                ]
-                new_footer += f" | Page {self.current_page+1}/{self.max_pages}"
+            if page.footer and page.footer.text and ' | page' in page.footer.text.lower():
+                new_footer = page.footer.text[: page.footer.text.lower().find(' | page')]
+                new_footer += f' | Page {self.current_page + 1}/{self.max_pages}'
                 page.set_footer(text=new_footer.strip())
         return page
 
-    async def get_page_kwargs(
-        self, page: PageT_co | Sequence[PageT_co], skip_formatting: bool = False
-    ) -> dict[str, Any]:
+    async def get_page_kwargs(self, page: PageT_co | Sequence[PageT_co], skip_formatting: bool = False) -> dict[str, Any]:
         formatted_page: PageT_co | Sequence[PageT_co]
         if not skip_formatting:
             self.clear_items()
             if self._container:
                 self._container.clear_items()
                 for child in self._container.children:
-                    if hasattr(child, "clear_items"):
+                    if hasattr(child, 'clear_items'):
                         child.clear_items()  # type: ignore
 
             self._page_kwargs = {
-                "files": [],
-                "view": self,
+                'files': [],
+                'view': self,
             }
             formatted_page = await discord.utils.maybe_coroutine(self.format_page, page)
         else:
@@ -202,7 +190,7 @@ class BaseButtonPaginatorV2(discord.ui.LayoutView, Generic[PageT_co]):
         if isinstance(formatted_page, (discord.File, discord.Attachment)):
             if isinstance(formatted_page, discord.Attachment):
                 formatted_page = await formatted_page.to_file()  # type: ignore
-            self._page_kwargs.setdefault("files", []).append(formatted_page)
+            self._page_kwargs.setdefault('files', []).append(formatted_page)
 
         if isinstance(formatted_page, str):
             formatted_page = discord.ui.TextDisplay(formatted_page)  # type: ignore
@@ -213,22 +201,17 @@ class BaseButtonPaginatorV2(discord.ui.LayoutView, Generic[PageT_co]):
             else:
                 self.add_item(formatted_page)
 
-        if (
-            isinstance(formatted_page, discord.ui.Container)
-            and not self._buttons_container
-        ):
+        if isinstance(formatted_page, discord.ui.Container) and not self._buttons_container:
             self._buttons_container = formatted_page
 
         return self._page_kwargs
 
     def update_buttons(self) -> None:
-        assert hasattr(self, "previous_page") and hasattr(
-            self, "next_page"
-        ), "You must add the previous_page and next_page buttons to the paginator."
-        self.previous_page.disabled = self.max_pages < 2 or self.current_page <= 0
-        self.next_page.disabled = (
-            self.max_pages < 2 or self.current_page >= self.max_pages - 1
+        assert hasattr(self, 'previous_page') and hasattr(self, 'next_page'), (
+            'You must add the previous_page and next_page buttons to the paginator.'
         )
+        self.previous_page.disabled = self.max_pages < 2 or self.current_page <= 0
+        self.next_page.disabled = self.max_pages < 2 or self.current_page >= self.max_pages - 1
         if self._container:
             self.add_item(self._container)
         if self._add_buttons_to_container:
@@ -250,10 +233,10 @@ class BaseButtonPaginatorV2(discord.ui.LayoutView, Generic[PageT_co]):
         kwargs = await self.get_page_kwargs(self.get_page(self.current_page))
         self.update_buttons()
         self.reset_files(kwargs)
-        kwargs["attachments"] = kwargs.pop("files", [])
-        #await interaction.response.edit_message(**kwargs)
+        kwargs['attachments'] = kwargs.pop('files', [])
+        # await interaction.response.edit_message(**kwargs)
         try:
-            if not interaction.response.is_done(): # did not defer
+            if not interaction.response.is_done():  # did not defer
                 await interaction.response.edit_message(**kwargs)
             # elif interaction.response.message:
             #     await interaction.followup.edit_message(self.message.id, **kwargs)
@@ -264,29 +247,20 @@ class BaseButtonPaginatorV2(discord.ui.LayoutView, Generic[PageT_co]):
             if self.message:
                 await self.message.edit(**kwargs)
 
-
-    async def _previous_page(
-        self, interaction: Interaction, _: discord.ui.Button[Self]
-    ) -> None:
+    async def _previous_page(self, interaction: Interaction, _: discord.ui.Button[Self]) -> None:
         self.current_page -= 1
         await self.update_page(interaction)
 
-    async def _next_page(
-        self, interaction: Interaction, _: discord.ui.Button[Self]
-    ) -> None:
+    async def _next_page(self, interaction: Interaction, _: discord.ui.Button[Self]) -> None:
         self.current_page += 1
         await self.update_page(interaction)
 
-    async def _stop_paginator(
-        self, interaction: Interaction, _: discord.ui.Button[Self]
-    ) -> None:
+    async def _stop_paginator(self, interaction: Interaction, _: discord.ui.Button[Self]) -> None:
         if self.delete_message_after:
             if self.message is not None:
                 await self.message.delete()
         else:
-            for button in self.walk_children():
-                if hasattr(button, "disabled"):
-                    setattr(button, "disabled", True)
+            _disable_items(self.walk_children())
         if self.message:
             await interaction.response.edit_message(view=self)
 
@@ -294,28 +268,24 @@ class BaseButtonPaginatorV2(discord.ui.LayoutView, Generic[PageT_co]):
 
     async def _go_to_page(self, interaction: Interaction, page_num: int) -> None:
         if page_num < 1 or page_num > self.max_pages:
-            raise ValueError(
-                f"Page number must be between 1 and {self.max_pages}, got {page_num}."
-            )
+            raise ValueError(f'Page number must be between 1 and {self.max_pages}, got {page_num}.')
         self.current_page = page_num - 1
         await self.update_page(interaction)
 
     def reset_files(self, page_kwargs: dict[str, Any]) -> None:
-        files: list[discord.File] = page_kwargs.get("files", [])
+        files: list[discord.File] = page_kwargs.get('files', [])
         if not files:
             return
 
         for file in files:
             file.reset()
 
-    async def start(
-        self, obj: discord.Interaction | discord.abc.Messageable, **send_kwargs: Any
-    ) -> discord.Message:
+    async def start(self, obj: discord.Interaction | discord.abc.Messageable, **send_kwargs: Any) -> discord.Message:
         kwargs = await self.get_page_kwargs(self.get_page(self.current_page))
         self.update_buttons()
         if self.max_pages < 2:
             self.stop()
-            del kwargs["view"]
+            del kwargs['view']
 
         self.reset_files(kwargs)
         if isinstance(obj, discord.Interaction):
@@ -327,36 +297,32 @@ class BaseButtonPaginatorV2(discord.ui.LayoutView, Generic[PageT_co]):
         elif isinstance(obj, discord.abc.Messageable):
             self.message = await obj.send(**kwargs, **send_kwargs)
         else:
-            raise TypeError(
-                f"Expected Interaction or Messageable, got {obj.__class__.__name__}"
-            )
+            raise TypeError(f'Expected Interaction or Messageable, got {obj.__class__.__name__}')
 
         return self.message  # type: ignore
 
-class GoToPageModalV2(discord.ui.Modal):
 
+class GoToPageModalV2(discord.ui.Modal):
     def __init__(
         self,
         paginator: BaseButtonPaginatorV2,
         author_id: int | None = None,
-        title: str = "Go to Page",
+        title: str = 'Go to Page',
         **kwargs,
     ):
-        if not title and kwargs.get("title", None):
-            title = kwargs.pop("title")
-        super().__init__(title="Go to Page", **kwargs)
+        super().__init__(title=title or 'Go to Page', **kwargs)
 
         self.paginator = paginator
 
         self.author_id = author_id
 
         self.page_num = discord.ui.TextInput(
-            label="Page Number",
-            placeholder="Enter a page number",
+            label='Page Number',
+            placeholder='Enter a page number',
             min_length=len(str(0)),
             max_length=len(str(self.paginator.max_pages)),
             required=True,
-            custom_id="page_num",
+            custom_id='page_num',
             row=0,
         )
 
@@ -366,22 +332,18 @@ class GoToPageModalV2(discord.ui.Modal):
         await interaction.response.defer()
 
         if self.author_id and interaction.user.id != self.author_id:
-            return await interaction.followup.send(
-                "This modal is not for you.", ephemeral=True
-            )
+            return await interaction.followup.send('This modal is not for you.', ephemeral=True)
         try:
             page_num = int(self.page_num.value)
             # page_num += 1 # 0-indexed
         except ValueError:
-            return await interaction.followup.send(
-                "Page number must be an integer.", ephemeral=True
-            )
+            return await interaction.followup.send('Page number must be an integer.', ephemeral=True)
 
         min_pages, max_pages = 1, self.paginator.max_pages
 
         if not min_pages <= page_num <= max_pages:
             return await interaction.followup.send(
-                f"Page number must be between `{min_pages}` and `{max_pages}`.",
+                f'Page number must be between `{min_pages}` and `{max_pages}`.',
                 ephemeral=True,
             )
 
@@ -393,13 +355,14 @@ class GoToPageModalV2(discord.ui.Modal):
                 ephemeral=True,
             )
 
+
 class GoToPageButtonV2(discord.ui.Button):
     def __init__(
         self,
         paginator: BaseButtonPaginatorV2,
-        label: str = "Go to Page",
+        label: str = 'Go to Page',
         disabled: bool = False,
-        custom_id: str = "go_to_page",
+        custom_id: str = 'go_to_page',
         url: str | None = None,
         emoji: str | discord.PartialEmoji | None = None,
         row: int | None = None,
@@ -422,6 +385,7 @@ class GoToPageButtonV2(discord.ui.Button):
         modal = GoToPageModalV2(paginator=self.paginator, author_id=interaction.user.id)
         await interaction.response.send_modal(modal)
 
+
 class ButtonPaginatorV2(BaseButtonPaginatorV2[PageT_co]):
     buttons_action_row: discord.ui.ActionRow[Self] = discord.ui.ActionRow(id=373)
 
@@ -433,34 +397,25 @@ class ButtonPaginatorV2(BaseButtonPaginatorV2[PageT_co]):
         super().__init__(*args, **kwargs)
 
     @buttons_action_row.button(
-        label="\u200b",
+        label='\u200b',
         style=discord.ButtonStyle.blurple,
         emoji=emojidict.get('back'),
     )
-    async def previous_page(
-        self, interaction: Interaction, _: discord.ui.Button[Self]
-    ) -> None:
+    async def previous_page(self, interaction: Interaction, _: discord.ui.Button[Self]) -> None:
         return await self._previous_page(interaction, _)
 
-    @buttons_action_row.button(
-        label="\u200b",
-        style=discord.ButtonStyle.red,
-        emoji=emojidict.get('stop')
-    )
-    async def _stop_paginator(
-        self, interaction: Interaction, _: discord.ui.Button[Self]
-    ) -> None:
+    @buttons_action_row.button(label='\u200b', style=discord.ButtonStyle.red, emoji=emojidict.get('stop'))
+    async def _stop_paginator(self, interaction: Interaction, _: discord.ui.Button[Self]) -> None:
         return await super()._stop_paginator(interaction, _)
 
     @buttons_action_row.button(
-        label="\u200b",
+        label='\u200b',
         style=discord.ButtonStyle.blurple,
         emoji=emojidict.get('forward'),
     )
-    async def next_page(
-        self, interaction: Interaction, _: discord.ui.Button[Self]
-    ) -> None:
+    async def next_page(self, interaction: Interaction, _: discord.ui.Button[Self]) -> None:
         return await self._next_page(interaction, _)
+
 
 ThreeButtonPaginatorV2 = ButtonPaginatorV2
 
@@ -471,6 +426,7 @@ class FiveButtonPaginatorV2(BaseButtonPaginatorV2):
         This subclass doesn't add any additional attributes or methods, but instead overrides the internal methods of the :class:`BaseButtonPaginatorV2` class.
         It also adds the additional buttons if applicable.
     """
+
     buttons_action_row: discord.ui.ActionRow[Self] = discord.ui.ActionRow(id=373)
 
     def __init__(
@@ -495,46 +451,42 @@ class FiveButtonPaginatorV2(BaseButtonPaginatorV2):
         return super().stop()
 
     @buttons_action_row.button(
-        label="\u200b",
+        label='\u200b',
         style=discord.ButtonStyle.blurple,
-        emoji=emojidict.get("prev"),
+        emoji=emojidict.get('prev'),
     )
     async def first_page(self, interaction: Interaction, _: discord.ui.Button) -> None:
         self.current_page = 0
         await self.update_page(interaction)
 
     @buttons_action_row.button(
-        label="\u200b",
+        label='\u200b',
         style=discord.ButtonStyle.blurple,
-        emoji=emojidict.get("back"),
+        emoji=emojidict.get('back'),
     )
-    async def previous_page(
-        self, interaction: Interaction, _: discord.ui.Button
-    ) -> None:
+    async def previous_page(self, interaction: Interaction, _: discord.ui.Button) -> None:
         return await self._previous_page(interaction, _)
 
     @buttons_action_row.button(
-        label="\u200b",
+        label='\u200b',
         style=discord.ButtonStyle.red,
-        emoji=emojidict.get("stop"),
+        emoji=emojidict.get('stop'),
     )
-    async def stop_paginator(
-        self, interaction: Interaction, _: discord.ui.Button
-    ) -> None:
+    async def stop_paginator(self, interaction: Interaction, _: discord.ui.Button) -> None:
         return await self._stop_paginator(interaction, _)
 
     @buttons_action_row.button(
-        label="\u200b",
+        label='\u200b',
         style=discord.ButtonStyle.blurple,
-        emoji=emojidict.get("forward"),
+        emoji=emojidict.get('forward'),
     )
     async def next_page(self, interaction: Interaction, _: discord.ui.Button) -> None:
         return await self._next_page(interaction, _)
 
     @buttons_action_row.button(
-        label="\u200b",
+        label='\u200b',
         style=discord.ButtonStyle.blurple,
-        emoji=emojidict.get("next"),
+        emoji=emojidict.get('next'),
     )
     async def last_page(self, interaction: Interaction, _: discord.ui.Button) -> None:
         self.current_page = self.max_pages - 1
@@ -615,12 +567,12 @@ def generate_pages_v2(
     -------
     List[:class:`discord.Embed`]
         A list of Embeds generated from the items.
-    """    
+    """
     # """Generate pages for an Embed Paginator
 
     sections = []
 
-    desc = ""
+    desc = ''
     pagenum = 0
 
     items_on_page = 0
@@ -643,7 +595,7 @@ def generate_pages_v2(
             #     __footer = None
             section = discord.ui.Container(
                 discord.ui.TextDisplay(desc.strip()),
-                #discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large),
+                # discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large),
                 id=pagenum,
             )
             # if add_page_nums:
@@ -653,17 +605,17 @@ def generate_pages_v2(
             #             )
             #     )
             sections.append(section)
-            desc = ""
+            desc = ''
 
-        desc += str(item) + "\n"
+        desc += str(item) + '\n'
         items_on_page += 1
 
     if desc:
         section = discord.ui.Container(
-                discord.ui.TextDisplay(desc.strip(), id=pagenum+100),
-                #discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large),
-                #id=pagenum,
-            )
+            discord.ui.TextDisplay(desc.strip(), id=pagenum + 100),
+            # discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large),
+            # id=pagenum,
+        )
         if pagenum == 0:
             sections.append(section)
             add_page_nums = False
@@ -674,12 +626,8 @@ def generate_pages_v2(
     # verify page numbers
     if add_page_nums:
         for page_num, section in enumerate(sections, start=1):
+            section.add_item(discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large))
             section.add_item(
-                discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large)
-            )
-            section.add_item(
-                discord.ui.TextDisplay(
-                    f"Page {page_num}/{len(sections)}", id=section.id+1000 if section.id else None
-                )
+                discord.ui.TextDisplay(f'Page {page_num}/{len(sections)}', id=section.id + 1000 if section.id else None)
             )
     return sections

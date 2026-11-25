@@ -31,7 +31,7 @@ import discord
 import pytest
 from discord import app_commands
 
-#from discord.ext import commands
+# from discord.ext import commands
 from discord.ext.commands import GroupCog
 
 from ..src import (
@@ -73,8 +73,7 @@ def mock_on_sub_group_error_handler() -> AsyncMock:
 def sub_group_class() -> type[app_commands.Group]:
     class MySubGroup(app_commands.Group):
         @app_commands.command()
-        async def my_sub_group_command(self, interaction: discord.Interaction) -> None:
-            ...
+        async def my_sub_group_command(self, interaction: discord.Interaction) -> None: ...
 
     return MySubGroup
 
@@ -83,8 +82,7 @@ def sub_group_class() -> type[app_commands.Group]:
 def sub_group_with_handler_class(mock_on_sub_group_error_handler: AsyncMock) -> type[app_commands.Group]:
     class MySubGroup(app_commands.Group):
         @app_commands.command()
-        async def my_sub_group_command(self, interaction: discord.Interaction) -> None:
-            ...
+        async def my_sub_group_command(self, interaction: discord.Interaction) -> None: ...
 
         def on_error(
             self,
@@ -102,8 +100,7 @@ def group_class(sub_group_class: type[app_commands.Group]) -> type[app_commands.
         my_sub_group = sub_group_class()
 
         @app_commands.command()
-        async def my_group_command(self, interaction: discord.Interaction) -> None:
-            ...
+        async def my_group_command(self, interaction: discord.Interaction) -> None: ...
 
     return MyGroup
 
@@ -116,8 +113,7 @@ def group_with_handler_class(
         my_sub_group = sub_group_class()
 
         @app_commands.command()
-        async def my_group_command(self, interaction: discord.Interaction) -> None:
-            ...
+        async def my_group_command(self, interaction: discord.Interaction) -> None: ...
 
         def on_error(
             self,
@@ -137,8 +133,7 @@ def group_with_handler_and_sub_group_handler_class(
         my_sub_group = sub_group_with_handler_class()
 
         @app_commands.command()
-        async def my_group_command(self, interaction: discord.Interaction) -> None:
-            ...
+        async def my_group_command(self, interaction: discord.Interaction) -> None: ...
 
         def on_error(
             self,
@@ -162,8 +157,7 @@ class TestCog:
 
         class MyCog(Cog):
             @app_commands.command()
-            async def my_command(self, interaction: discord.Interaction) -> None:
-                ...
+            async def my_command(self, interaction: discord.Interaction) -> None: ...
 
             def cog_app_command_error(
                 self,
@@ -189,8 +183,7 @@ class TestCog:
 
         class MyCog(Cog):
             @app_commands.command()
-            async def my_command(self, interaction: discord.Interaction) -> None:
-                ...
+            async def my_command(self, interaction: discord.Interaction) -> None: ...
 
             @my_command.error
             async def on_my_command_with_handler_error(
@@ -359,8 +352,7 @@ class TestGroupCog:
 
         class MyCog(GroupCog):
             @app_commands.command()
-            async def my_command(self, interaction: discord.Interaction) -> None:
-                ...
+            async def my_command(self, interaction: discord.Interaction) -> None: ...
 
             def cog_app_command_error(
                 self,
@@ -386,8 +378,7 @@ class TestGroupCog:
 
         class MyCog(GroupCog):
             @app_commands.command()
-            async def my_command(self, interaction: discord.Interaction) -> None:
-                ...
+            async def my_command(self, interaction: discord.Interaction) -> None: ...
 
             @my_command.error
             async def on_my_command_with_handler_error(

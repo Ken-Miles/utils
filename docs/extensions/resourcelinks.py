@@ -15,13 +15,7 @@ from sphinx.util.typing import RoleFunction
 
 def make_link_role(resource_links: dict[str, str]) -> RoleFunction:
     def role(
-        typ: str,
-        rawtext: str,
-        text: str,
-        lineno: int,
-        inliner: Inliner,
-        options: dict = {},
-        content: list[str] = []
+        typ: str, rawtext: str, text: str, lineno: int, inliner: Inliner, options: dict = {}, content: list[str] = []
     ) -> tuple[list[Node], list[system_message]]:
 
         text = utils.unescape(text)
@@ -31,11 +25,13 @@ def make_link_role(resource_links: dict[str, str]) -> RoleFunction:
             title = full_url
         pnode = nodes.reference(title, title, internal=False, refuri=full_url)
         return [pnode], []
+
     return role
 
 
 def add_link_role(app: Sphinx) -> None:
     app.add_role('resource', make_link_role(app.config.resource_links))
+
 
 def setup(app: Sphinx) -> dict[str, Any]:
     app.add_config_value('resource_links', {}, 'env')

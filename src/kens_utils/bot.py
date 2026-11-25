@@ -47,10 +47,10 @@ __all__ = (
 )
 # fmt: on
 
-T = TypeVar("T")
-P = ParamSpec("P")
+T = TypeVar('T')
+P = ParamSpec('P')
 
-ChannelT = TypeVar("ChannelT", GuildChannel, Thread, PrivateChannel)
+ChannelT = TypeVar('ChannelT', GuildChannel, Thread, PrivateChannel)
 
 
 @discord.utils.copy_doc(commands.AutoShardedBot)
@@ -80,8 +80,8 @@ class BotU(AutoShardedBot):
         translator_kwargs: dict = {},
         **kwargs,
     ) -> None:
-        if kwargs.get("cls", None):
-            assert issubclass(kwargs["cls"], MentionableTree)
+        if kwargs.get('cls', None):
+            assert issubclass(kwargs['cls'], MentionableTree)
         # kwargs["pm_help"] = None
 
         # strip_after_prefix by default
@@ -163,7 +163,7 @@ class BotU(AutoShardedBot):
         """
         if self.user.avatar:
             return self.user.avatar.url
-        raise AttributeError("Bot has no avatar")
+        raise AttributeError('Bot has no avatar')
 
     @property
     def display_avatar_url(self) -> str:
@@ -181,7 +181,7 @@ class BotU(AutoShardedBot):
         """
         if self.user.display_avatar:
             return self.user.display_avatar.url
-        raise AttributeError("Bot has no display avatar")
+        raise AttributeError('Bot has no display avatar')
 
     @property
     def application(self) -> discord.AppInfo | None:
@@ -365,7 +365,7 @@ class BotU(AutoShardedBot):
         if not self.app_info:
             return None  # type: ignore
 
-        if getattr(self.app_info, "team", None):
+        if getattr(self.app_info, 'team', None):
             user = self.get_user(self.app_info.team.owner.id)  # type: ignore
             if user:
                 return user
@@ -399,7 +399,7 @@ class BotU(AutoShardedBot):
                 channel = await self.fetch_channel(channelid)
 
         if not isinstance(channel, channel_type):
-            raise InvalidData(f"Channel {channelid} is not a {channel_type.__name__}")
+            raise InvalidData(f'Channel {channelid} is not a {channel_type.__name__}')
         return channel
 
     async def get_or_fetch_channel(
@@ -435,7 +435,7 @@ class BotU(AutoShardedBot):
                 channel = await self.fetch_channel(channelid)
         return channel
 
-    @deprecated("get_or_fetch_channel")
+    @deprecated('get_or_fetch_channel')
     async def getorfetch_channel(self, *args, **kwargs):
         return await self.get_or_fetch_channel(*args, **kwargs)
 
@@ -462,7 +462,7 @@ class BotU(AutoShardedBot):
         """
         return await self._get_or_fetch_channel(threadid, Thread, guild)
 
-    @deprecated("get_or_fetch_thread")
+    @deprecated('get_or_fetch_thread')
     async def getorfetch_thread(self, *args, **kwargs):
         return await self.get_or_fetch_thread(*args, **kwargs)
 
@@ -489,7 +489,7 @@ class BotU(AutoShardedBot):
         """
         return await self._get_or_fetch_channel(channelid, TextChannel, guild)  # type: ignore
 
-    @deprecated("get_or_fetch_textchannel")
+    @deprecated('get_or_fetch_textchannel')
     async def getorfetch_textchannel(self, *args, **kwargs):
         return await self.get_or_fetch_textchannel(*args, **kwargs)
 
@@ -515,7 +515,7 @@ class BotU(AutoShardedBot):
         """
         return await self._get_or_fetch_channel(channelid, VoiceChannel, guild)  # type: ignore
 
-    @deprecated("get_or_fetch_voicechannel")
+    @deprecated('get_or_fetch_voicechannel')
     async def getorfetch_voicechannel(self, *args, **kwargs):
         return await self.get_or_fetch_voicechannel(*args, **kwargs)
 
@@ -545,7 +545,7 @@ class BotU(AutoShardedBot):
 
     get_or_fetch_category = get_or_fetch_categorychannel
 
-    @deprecated("get_or_fetch_categorychannel")
+    @deprecated('get_or_fetch_categorychannel')
     async def getorfetch_category_channel(self, *args, **kwargs):
         return await self.get_or_fetch_categorychannel(*args, **kwargs)
 
@@ -574,7 +574,7 @@ class BotU(AutoShardedBot):
 
     get_or_fetch_stage = get_or_fetch_stagechannel
 
-    @deprecated("get_or_fetch_stagechannel")
+    @deprecated('get_or_fetch_stagechannel')
     async def getorfetch_stage_channel(self, *args, **kwargs):
         return await self.get_or_fetch_stagechannel(*args, **kwargs)
 
@@ -605,7 +605,7 @@ class BotU(AutoShardedBot):
     get_or_fetch_forum = get_or_fetch_forumchannel
     getorfetch_forum = get_or_fetch_forumchannel
 
-    @deprecated("get_or_fetch_forumchannel")
+    @deprecated('get_or_fetch_forumchannel')
     async def getorfetch_forum_channel(self, *args, **kwargs):
         return await self.get_or_fetch_forumchannel(*args, **kwargs)
 
@@ -690,7 +690,7 @@ class BotU(AutoShardedBot):
         members = await guild.query_members(limit=1, user_ids=[member_id], cache=True)
         if not members:
             # TODO: raise something more meaningful
-            raise ValueError(f"Member with ID {member_id} not found in guild {guild.id}")
+            raise ValueError(f'Member with ID {member_id} not found in guild {guild.id}')
         return members[0]
 
     # coped from RoboDanny
@@ -820,9 +820,7 @@ class BotU(AutoShardedBot):
     get_or_fetch_dm = get_or_fetch_dmchannel
 
     # copied from RoboDanny
-    async def query_member_named(
-        self, guild: discord.Guild, argument: str, *, cache: bool = False
-    ) -> discord.Member | None:
+    async def query_member_named(self, guild: discord.Guild, argument: str, *, cache: bool = False) -> discord.Member | None:
         """Queries a member by their name, name + discrim, or nickname.
 
         Parameters
@@ -879,9 +877,9 @@ class BotU(AutoShardedBot):
 
         if not cmd:
             if isinstance(command, str):
-                cmd = f"`/{command}`"
+                cmd = f'`/{command}`'
             else:
-                cmd = f"`/{command.name}`"
+                cmd = f'`/{command.name}`'
         return cmd
 
     async def check_blacklist(self, ctx):
@@ -890,9 +888,9 @@ class BotU(AutoShardedBot):
         if getattr(self, 'blacklist', None):
             if blacklist_obj := discord.utils.find(lambda x: x.offender_id == ctx.author.id, self.blacklist):
                 # desc = await __("You are currently blacklisted from using the bot. Please reach out to the bot developer on the support server for more information.")
-                desc = "You are currently blacklisted from using the bot."
+                desc = 'You are currently blacklisted from using the bot.'
                 if blacklist_obj.reason:
-                    desc += f"Reason: `{blacklist_obj.reason}`"
+                    desc += f'Reason: `{blacklist_obj.reason}`'
                 emb = makeembed_failedaction(description=desc)
                 await ctx.reply(embed=emb, ephemeral=True, delete_after=10 if not ctx.interaction else None)
                 return False

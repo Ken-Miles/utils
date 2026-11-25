@@ -15,8 +15,7 @@ import discord
 if TYPE_CHECKING:
     from typing_extensions import Self
 
-__all__ = ("UmbraBaseView", "UmbraConfirmationView", "UmbraSelfDeleteView")
-
+__all__ = ('UmbraBaseView', 'UmbraConfirmationView', 'UmbraSelfDeleteView')
 
 
 class UmbraBaseView(discord.ui.View):
@@ -81,7 +80,7 @@ class UmbraBaseView(discord.ui.View):
 
     def _disable_all_buttons(self) -> None:
         for item in self.children:
-            if isinstance(item, discord.ui.Button):
+            if isinstance(item, discord.ui.Button) and not item.url:  # link buttons stay usable
                 item.disabled = True
 
     async def on_timeout(self) -> None:
@@ -94,7 +93,7 @@ class UmbraSelfDeleteView(UmbraBaseView):
         super().__init__(timeout=timeout)
         self.add_item(
             discord.ui.Button(
-                style=discord.ButtonStyle.grey, label="Author and Moderators can delete this message!", disabled=True
+                style=discord.ButtonStyle.grey, label='Author and Moderators can delete this message!', disabled=True
             )
         )
         self.author_id = author_id
@@ -114,7 +113,7 @@ class UmbraSelfDeleteView(UmbraBaseView):
     async def on_timeout(self) -> None:
         await self.message.edit(view=None)
 
-    @discord.ui.button(style=discord.ButtonStyle.danger, emoji="\U0001f5d1\U0000fe0f")
+    @discord.ui.button(style=discord.ButtonStyle.danger, emoji='\U0001f5d1\U0000fe0f')
     async def delete_callback(self, interaction: discord.Interaction, _: discord.ui.Item[Self]) -> None:
         await interaction.response.defer(ephemeral=True)
 
@@ -136,7 +135,7 @@ class UmbraConfirmationView(UmbraBaseView):
         if interaction.user and interaction.user.id == self.author_id:
             return True
         await interaction.response.send_message(
-            "This confirmation dialog is not for you.",
+            'This confirmation dialog is not for you.',
             ephemeral=True,
         )
         return False
@@ -148,10 +147,10 @@ class UmbraConfirmationView(UmbraBaseView):
             else:
                 await self.message.edit(
                     view=None,
-                    content="This is safe to dismiss now.",
+                    content='This is safe to dismiss now.',
                 )
 
-    @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
+    @discord.ui.button(label='Confirm', style=discord.ButtonStyle.green)
     async def confirm(
         self,
         interaction: discord.Interaction,
@@ -166,7 +165,7 @@ class UmbraConfirmationView(UmbraBaseView):
 
         self.stop()
 
-    @discord.ui.button(label="Cancel", style=discord.ButtonStyle.red)
+    @discord.ui.button(label='Cancel', style=discord.ButtonStyle.red)
     async def cancel(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
         self.value = False
         await interaction.response.defer()

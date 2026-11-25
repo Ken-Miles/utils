@@ -22,6 +22,7 @@ __all__ = (
 )
 # fmt: on
 
+
 class MaybeManagedLoop(Loop, Generic[LF]):
     """A subclass of Loop that registers itself to the cog it is defined in, if the cog is a subclass of :class:`CogU`.
     This allows the cog to start and stop the loop when it is loaded and unloaded.
@@ -33,7 +34,7 @@ class MaybeManagedLoop(Loop, Generic[LF]):
 
     _disabled: bool = False
 
-    _load_when: Literal["cog_load", "on_ready"] | None = "on_ready"
+    _load_when: Literal['cog_load', 'on_ready'] | None = 'on_ready'
     """Sets when the loop should be started.
     If set to "cog_load", the loop will be started when the cog is loaded
     If set to "on_ready", the loop will be started when the bot is ready.
@@ -41,15 +42,19 @@ class MaybeManagedLoop(Loop, Generic[LF]):
     """
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        _, ignore_management_key = get_any_key(["ignore_management", "managed", "is_managed"], kwargs, default=None, try_spaces=True) # type: ignore STRINGS ARE HASHABLE STUPID TYPE CHECKER
+        _, ignore_management_key = get_any_key(
+            ['ignore_management', 'managed', 'is_managed'], kwargs, default=None, try_spaces=True
+        )  # type: ignore STRINGS ARE HASHABLE STUPID TYPE CHECKER
         if ignore_management_key:
             self._managed = kwargs.pop(ignore_management_key)
-    
-        _, disabled_key = get_any_key(["is_disabled", "disabled", "ignored", "is_ignored"], kwargs, default=None, try_spaces=True) # type: ignore STRINGS ARE HASHABLE STUPID TYPE CHECKER
+
+        _, disabled_key = get_any_key(
+            ['is_disabled', 'disabled', 'ignored', 'is_ignored'], kwargs, default=None, try_spaces=True
+        )  # type: ignore STRINGS ARE HASHABLE STUPID TYPE CHECKER
         if disabled_key:
             self._disabled = kwargs.pop(disabled_key)
 
-        _, load_when_key = get_any_key(["load_when", "start_when"], kwargs, default=None, try_spaces=True) # type: ignore STRINGS ARE HASHABLE STUPID TYPE CHECKER
+        _, load_when_key = get_any_key(['load_when', 'start_when'], kwargs, default=None, try_spaces=True)  # type: ignore STRINGS ARE HASHABLE STUPID TYPE CHECKER
         if load_when_key:
             self._load_when = kwargs.pop(load_when_key)
 
@@ -59,14 +64,14 @@ class MaybeManagedLoop(Loop, Generic[LF]):
     def is_managed(self) -> bool:
         """Whether the loop is managed by a cog."""
         return not self._managed
-    
+
     @cached_property
     def is_disabled(self) -> bool:
         """Whether the loop is disabled from being started automatically."""
         return self._disabled
 
     @cached_property
-    def load_when(self) -> Literal["cog_load", "on_ready"] | None:
+    def load_when(self) -> Literal['cog_load', 'on_ready'] | None:
         """When the loop should be started."""
         return self._load_when
 
@@ -80,8 +85,8 @@ class MaybeManagedLoop(Loop, Generic[LF]):
     #     if issubclass(owner, CogU):
     #         if not self._ignore_management and self not in owner.__loop_functions:
     #             owner.__loop_functions.append(self)
-        #return super().__set_name__(owner, name)
-    
+    # return super().__set_name__(owner, name)
+
     # this logic was moved to the cog
     def _register_to_cog(self, cog: CogU) -> None:
         """Registers the loop to the cog."""
@@ -90,7 +95,7 @@ class MaybeManagedLoop(Loop, Generic[LF]):
         return None
 
 
-#@discord.utils.copy_doc(tasks.loop)
+# @discord.utils.copy_doc(tasks.loop)
 def loop(
     *,
     seconds: float = MISSING,
@@ -102,7 +107,6 @@ def loop(
     name: str | None = None,
     disabled: bool = False,
     managed: bool = False,
-
 ) -> Callable[[LF], MaybeManagedLoop[LF]]:
     """A decorator that schedules a task in the background for you with
     optional reconnect logic. The decorator returns a :class:`Loop`.
@@ -141,17 +145,17 @@ def loop(
         such as ``discord-ext-tasks: function_name``.
 
         .. versionadded:: 2.4
-    
+
     disabled: :class:`bool`
         Whether the loop should be disabled from being started automatically.
         If set to True, the loop will not be started when the cog is loaded.
         Default is False.
-    
+
     managed: :class:`bool`
         Whether the loop should be managed by the cog it is defined in.
         If set to True, the loop will be started and stopped when the cog is loaded and unloaded.
         Default is False.
-    
+
     .. note::
         If the decorated function is an instance method of a subclass of :class:`CogU`
         and ``managed`` is set to ``True``, the loop will automatically be registered
@@ -175,13 +179,12 @@ def loop(
         # Heuristic: treat a leading parameter literally named "self" as an instance-method style
         expects_self = bool(
             params
-            and params[0].name == "self"
-            and params[0].kind in (inspect.Parameter.POSITIONAL_ONLY,
-                                   inspect.Parameter.POSITIONAL_OR_KEYWORD)
+            and params[0].name == 'self'
+            and params[0].kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
         )
         if not asyncio.iscoroutinefunction(func) and not expects_self:
-            raise TypeError("Looped function must be a coroutine function.")
-        
+            raise TypeError('Looped function must be a coroutine function.')
+
         func_class = params[0].annotation if expects_self else None
 
         loop_object = MaybeManagedLoop[LF](

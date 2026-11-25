@@ -1,4 +1,3 @@
-
 import discord
 from discord import ui
 from discord.abc import MISSING
@@ -14,21 +13,21 @@ __all__ = (
 )
 # fmt: on
 
+
+def _disable_items(items, *, disable_url_buttons: bool = False) -> None:
+    """Disables every item that can be disabled. Link buttons stay enabled unless disable_url_buttons is True."""
+    for item in items:
+        # every Button has a url attribute (None unless it's a link button), so check its value
+        if not hasattr(item, 'disabled') or (not disable_url_buttons and getattr(item, 'url', None)):
+            continue
+        item.disabled = True
+
+
 @deprecated('discord.ui.Button')
 class URLButton(discord.ui.View):
-    def __init__(
-        self, url: str, buttontext: str, emoji: str | None = None, **kwargs
-    ):
+    def __init__(self, url: str, buttontext: str, emoji: str | None = None, **kwargs):
         super().__init__()
-        self.add_item(
-            discord.ui.Button(
-                style=discord.ButtonStyle.link,
-                label=buttontext,
-                url=url,
-                emoji=emoji,
-                **kwargs
-            )
-        )
+        self.add_item(discord.ui.Button(style=discord.ButtonStyle.link, label=buttontext, url=url, emoji=emoji, **kwargs))
 
 
 class CustomBaseView(discord.ui.View):
@@ -43,25 +42,32 @@ class CustomBaseView(discord.ui.View):
     delete_message_after: bool
     author_id: int | None
 
-    def __init__(self, *args,  message: discord.Message | None=None, delete_message_after: bool=False, author_id: int | None=None, **kwargs):
+    def __init__(
+        self,
+        *args,
+        message: discord.Message | None = None,
+        delete_message_after: bool = False,
+        author_id: int | None = None,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
         self.message = message
         self.delete_message_after = delete_message_after
         self.author_id = author_id
 
     # def stop(self, *args, **kwargs):
-        # if self.delete_message_after and self.message:
-        #     try:
-        #         self.message.delete()
-        #     except discord.HTTPException:
-        #         pass
-        # else:
-        #    self.disable_buttons()
-        #     try:
-        #         self.message.edit(view=self)
-        #     except discord.HTTPException:
-        #         pass
-        # return super().stop(*args, **kwargs)
+    # if self.delete_message_after and self.message:
+    #     try:
+    #         self.message.delete()
+    #     except discord.HTTPException:
+    #         pass
+    # else:
+    #    self.disable_buttons()
+    #     try:
+    #         self.message.edit(view=self)
+    #     except discord.HTTPException:
+    #         pass
+    # return super().stop(*args, **kwargs)
 
     async def on_timeout(self) -> None:
         if self.delete_message_after and self.message:
@@ -77,24 +83,20 @@ class CustomBaseView(discord.ui.View):
                 except discord.HTTPException:
                     pass
         return await super().on_timeout()
-    
-    def disable_buttons(self, disable_url_buttons: bool=False):
+
+    def disable_buttons(self, disable_url_buttons: bool = False):
         """Disables all buttons in a view. If disable_url_buttons is set to True, it will disable URL buttons as well.
         Note that the mesasge must still be edited after calling this method for the changes to take effect.
         """
 
-        for button in self.children:
-            # if disable_url_buttons set to True and button is a URL button, or a normal button is set to enabled, disable it
-            if isinstance(button, (discord.ui.Button, discord.ui.Select)):
-                if not disable_url_buttons and hasattr(button, "url"):
-                    continue
-                button.disabled = True
+        _disable_items(self.children, disable_url_buttons=disable_url_buttons)
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if self.author_id is not None and interaction.user.id != self.author_id:
-            await interaction.response.send_message("This button is not for you.", ephemeral=True)
+            await interaction.response.send_message('This button is not for you.', ephemeral=True)
             return False
         return await super().interaction_check(interaction)
+
 
 class CustomBaseSelect(discord.ui.Select):
     """Custom subclass of :class:`discord.ui.Select`.
@@ -103,23 +105,25 @@ class CustomBaseSelect(discord.ui.Select):
     if a author_id is not specified.
     The `not_author_response_kwargs` are kwargs for a `interaction.response.send_message` to send a custom message/embed
     if someone does not match the author_id attribute. The default is a message that says "This button is not for you."
-    
+
     Subclass also allows for a `parent_view` to be passed in.
-    
+
     """
 
-    def __init__(self, *, 
-        custom_id: str = MISSING, 
-        placeholder: str | None = None, 
-        min_values: int = 1, 
-        max_values: int = 1, 
-        options: list[discord.SelectOption] = MISSING, 
-        disabled: bool = False, 
+    def __init__(
+        self,
+        *,
+        custom_id: str = MISSING,
+        placeholder: str | None = None,
+        min_values: int = 1,
+        max_values: int = 1,
+        options: list[discord.SelectOption] = MISSING,
+        disabled: bool = False,
         row: int | None = None,
         author_id: int | None = None,
         parent_view: discord.ui.View | None = None,
     ) -> None:
-        
+
         self.author_id = author_id
         self.parent_view = parent_view
         # if not_author_response_kwargs:
@@ -127,18 +131,27 @@ class CustomBaseSelect(discord.ui.Select):
         # else:
         #     self.not_author_response_kwargs = {'content': "Only the author has permission to use this."}
 
-        super().__init__(custom_id=custom_id, placeholder=placeholder, min_values=min_values, max_values=max_values, options=options, disabled=disabled, row=row)
-    
+        super().__init__(
+            custom_id=custom_id,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            options=options,
+            disabled=disabled,
+            row=row,
+        )
+
     async def interaction_check(self, interaction: discord.Interaction[discord.Client], /) -> bool:
         if not self.author_id:
             return True
-        
+
         if self.author_id != interaction.user.id:
-            #await interaction.response.send_message(**self.not_author_response_kwargs)
-            await interaction.response.send_message("Only the author can use this select.")
+            # await interaction.response.send_message(**self.not_author_response_kwargs)
+            await interaction.response.send_message('Only the author can use this select.')
             return False
-    
+
         return await super().interaction_check(interaction)
+
 
 class CustomBaseModal(discord.ui.Modal):
     """Custom subclass of :class:`discord.ui.Modal`.
@@ -150,18 +163,19 @@ class CustomBaseModal(discord.ui.Modal):
     def __init__(self, *args, author_id: int, **kwargs) -> None:
         self.author_id = author_id
 
-        super().__init__(*args ,**kwargs)
+        super().__init__(*args, **kwargs)
 
     async def interaction_check(self, interaction: discord.Interaction[discord.Client], /) -> bool:
         if not self.author_id:
             return True
-        
+
         if self.author_id != interaction.user.id:
-            #await interaction.response.send_message(**self.not_author_response_kwargs)
-            await interaction.response.send_message("Only the author can use this modal.")
+            # await interaction.response.send_message(**self.not_author_response_kwargs)
+            await interaction.response.send_message('Only the author can use this modal.')
             return False
-    
+
         return await super().interaction_check(interaction)
+
 
 class SendModalView(CustomBaseView):
     """A view subclass, whose main purpose is to have a button to open a modal.
@@ -171,14 +185,22 @@ class SendModalView(CustomBaseView):
 
     modal: ui.Modal
 
-    def __init__(self, *args, modal: discord.ui.Modal, button_text: str="View Modal", message: discord.Message | None = None, delete_message_after: bool = False, author_id: int | None = None, **kwargs):
+    def __init__(
+        self,
+        *args,
+        modal: discord.ui.Modal,
+        button_text: str = 'View Modal',
+        message: discord.Message | None = None,
+        delete_message_after: bool = False,
+        author_id: int | None = None,
+        **kwargs,
+    ):
         super().__init__(*args, message=message, delete_message_after=delete_message_after, author_id=author_id, **kwargs)
 
         self.modal = modal
         if button_text:
             self.view_modal.label = button_text
-    
-    @discord.ui.button(label="View Form", style=discord.ButtonStyle.blurple)
+
+    @discord.ui.button(label='View Form', style=discord.ButtonStyle.blurple)
     async def view_modal(self, interaction: discord.Interaction, _: ui.Button):
         await interaction.response.send_modal(self.modal)
-
