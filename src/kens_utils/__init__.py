@@ -14,11 +14,13 @@ except NameError:
 else:
     __path__ = extend_path(__path__, __name__)
 
+from ._library_features import *
 from .bot import *
 from .checks import *  # context
 from .cog import *
 from .colors import *
 from .command import *  # context, views, danny_formats
+from .compat import *
 from .constants import *  # logger
 from .context import *  # requests
 from .converters import *
@@ -28,6 +30,7 @@ from .danny_fuzzy import *
 from .danny_pages import *  # context
 from .danny_time import *  # context
 from .enums import *
+from .experimental import *
 from .help_command import *
 from .logger import *
 from .loops import *  # cog

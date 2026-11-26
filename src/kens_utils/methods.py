@@ -20,7 +20,7 @@ from discord.utils import MISSING
 
 from .constants import (
     CODEBLOCK_LANGUAGES,
-    DEFAULT_FOOTER_NAME,
+    DEFAULT_FOOTER_NAME,  # noqa: F401 - tests import it from here
     DISCORD_FILE_SIZE_LIMIT,
     RE_URL,
     CodeblockLanguage,
@@ -35,6 +35,7 @@ if TYPE_CHECKING:
     from collections.abc import Hashable, Iterable, Sequence
 
     from discord.abc import Snowflake as DiscordSnowflake
+    from discord.activity import ActivityTypes
     from discord.ext import commands
     from discord.ext.commands import Bot
 
@@ -71,6 +72,15 @@ __all__ = (
     'list_to_occurance_dict',
     'send_modal_hybrid',
     'get_copyable_slash_command_format',
+    'USER_PROFILE_URL_PREFIX',
+    'user_profile_url',
+    'format_discord_date',
+    'unmapped_public_flag_bits',
+    'display_roles',
+    'role_icon_markup',
+    'ACTIVITY_VERBS',
+    'activity_line',
+    'user_nameplate',
 )
 # fmt: on
 
@@ -746,6 +756,79 @@ def channel_mention_str(channel_obj: discord.abc.GuildChannel | int | str, /, de
 
 
 cmention = channel_mention_str
+
+USER_PROFILE_URL_PREFIX = 'https://discord.com/users/'
+
+ACTIVITY_VERBS: dict[discord.ActivityType, str] = {
+    discord.ActivityType.playing: 'Playing',
+    discord.ActivityType.listening: 'Listening to',
+    discord.ActivityType.watching: 'Watching',
+    discord.ActivityType.competing: 'Competing in',
+    discord.ActivityType.streaming: 'Streaming',
+}
+
+
+def user_profile_url(user: discord.abc.User | int | str, /) -> str:
+    """Returns the URL that opens a user's Discord profile, e.g. for a link button."""
+    user_id = user.id if isinstance(user, discord.abc.User) else user
+    return f'{USER_PROFILE_URL_PREFIX}{user_id}'
+
+
+def format_discord_date(dt: datetime.datetime | None, /) -> str:
+    """Returns a full date followed by a relative one, e.g. ``<t:..:F> (<t:..:R>)``. Returns ``'N/A'`` for ``None``."""
+    if dt is None:
+        return 'N/A'
+    return f'{dctimestamp(dt, "F")} ({dctimestamp(dt, "R")})'
+
+
+def unmapped_public_flag_bits(value: int, /) -> list[int]:
+    """Returns the bit positions set in a ``public_flags`` value that discord.py has no name for.
+
+    Discord adds badges before discord.py names them, so callers can log these to spot new ones.
+    """
+    known = 0
+    for mask in discord.PublicUserFlags.VALID_FLAGS.values():
+        known |= mask
+    unknown = value & ~known
+    return [bit for bit in range(unknown.bit_length()) if unknown >> bit & 1]
+
+
+def display_roles(roles: Sequence[discord.Role], /, *, include_everyone: bool = False) -> list[discord.Role]:
+    """Returns roles highest first, as Discord shows them. Drops @everyone unless ``include_everyone`` is true.
+
+    Takes roles sorted lowest first, like :attr:`discord.Member.roles`.
+    """
+    return [role for role in reversed(roles) if include_everyone or not role.is_default()]
+
+
+def role_icon_markup(role: discord.Role, /) -> str:
+    """Returns a role's icon as message text, with a trailing space: the unicode emoji, or an ``icon`` link
+    for an image icon (text can't show it inline). Returns ``''`` when the role has no icon."""
+    icon = role.display_icon
+    if icon is None:
+        return ''
+    if isinstance(icon, str):
+        return f'{icon} '
+    return f'{dchyperlink("icon", icon.url)} '
+
+
+def activity_line(activity: ActivityTypes, /) -> str:
+    """Returns one line describing an activity, e.g. ``Playing **Chess**``."""
+    if isinstance(activity, discord.Spotify):
+        return f'Listening to **{activity.title}** by {activity.artist}'
+    if isinstance(activity, discord.CustomActivity):
+        return f'Custom status: {activity.name or "(empty)"}'
+    return f'{ACTIVITY_VERBS.get(activity.type, "Doing")} **{activity.name or "Unknown"}**'
+
+
+def user_nameplate(user: discord.User | discord.Member, /) -> discord.Collectible | None:
+    """Returns the user's nameplate collectible, or ``None``. Use ``.static.url`` for its image.
+
+    Always ``None`` before discord.py 2.7, which added collectibles.
+    """
+    if discord.version_info < (2, 7):
+        return None
+    return next((c for c in user.collectibles if c.type is discord.CollectibleType.nameplate), None)
 
 
 @lru_cache(maxsize=1000)

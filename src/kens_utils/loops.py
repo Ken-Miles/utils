@@ -2,12 +2,17 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+import sys
 from typing import TYPE_CHECKING, Any, Generic, Literal
 
 from discord.ext.tasks import LF, Loop
 from discord.utils import MISSING, cached_property
 
 from .methods import get_any_key
+
+# asyncio's version is deprecated in 3.14 and removed in 3.16. Before 3.12, inspect's version misses
+# functions marked as coroutines by asyncio, so keep asyncio's there (discord.py does the same).
+_iscoroutinefunction = inspect.iscoroutinefunction if sys.version_info >= (3, 12) else asyncio.iscoroutinefunction
 
 if TYPE_CHECKING:
     import datetime
@@ -182,7 +187,7 @@ def loop(
             and params[0].name == 'self'
             and params[0].kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
         )
-        if not asyncio.iscoroutinefunction(func) and not expects_self:
+        if not _iscoroutinefunction(func) and not expects_self:
             raise TypeError('Looped function must be a coroutine function.')
 
         func_class = params[0].annotation if expects_self else None

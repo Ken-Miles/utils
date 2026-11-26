@@ -8,6 +8,7 @@
 _*.html
 _*.py
 !__init__.py
+!_library_features.py
 dbtesting.py
 graphs.py
 selfbot.py
@@ -25,6 +26,7 @@ data visualization/
 *.xz
 Python-3.10.0/
 .pytest_cache/
+.nox/
 
 # ignore logs + secret files
 *.txt
@@ -35,6 +37,7 @@ Python-3.10.0/
 *.log
 *.yml
 *.yaml
+!.github/workflows/*.yml
 
 # ignore DB files
 *.db
