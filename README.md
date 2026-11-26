@@ -52,6 +52,21 @@ git add utils && git commit -m "Update utils"
 
 Don't use `--remote` in deploy scripts. It pulls the newest utils commit instead of the one your bot was tested with.
 
+## Keeping pytest out of utils
+utils has its own tests in `utils/tests`. If your bot uses pytest, running `pytest` from your bot's root finds and runs
+them too. Pytest reads its settings from your bot's own config file, so the fix goes in your bot's `pyproject.toml`:
+
+```toml
+[tool.pytest.ini_options]
+norecursedirs = ["utils", ".*", "build", "dist", "*.egg", "venv", "CVS", "_darcs", "node_modules", "{arch}"]
+```
+
+The list repeats pytest's default skip list, because setting this key replaces the defaults. Without `.*`, pytest also
+searches hidden folders such as `.venv`.
+
+`pytest utils/tests` still runs utils' tests when you name the path. Any folder named `utils` at any depth is skipped,
+so if your bot has its own `utils/` package with tests, move those tests or narrow the pattern.
+
 # Configuring utils for your bot
 Never put files inside the `utils` folder. Anything you add there isn't tracked by your bot's repository or by this one.
 
