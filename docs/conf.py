@@ -21,7 +21,7 @@ author = 'Ken Miles'
 
 version = ''
 
-with open('../src/__init__.py') as f:
+with open('../src/kens_utils/__init__.py') as f:
     version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE).group(1)
 
 # The full version, including alpha/beta/rc tags.
